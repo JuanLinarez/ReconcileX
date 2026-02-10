@@ -64,8 +64,8 @@ export function UploadPage({ onParsed, sourceA, sourceB, className }: UploadPage
   return (
     <div className={cn('space-y-8', className)}>
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">ReconcileX</h1>
-        <p className="text-muted-foreground">
+        <h1 className="text-2xl font-semibold tracking-tight font-heading">Select your data sources</h1>
+        <p className="text-muted-foreground font-body">
           Upload two files (CSV or Excel) to reconcile transactions.
         </p>
       </div>

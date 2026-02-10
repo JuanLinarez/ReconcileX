@@ -19,10 +19,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronRight, Check, Download, Info, Link2, MinusCircle } from 'lucide-react';
+import { ChevronDown, ChevronRight, Check, Download, Info, Link2, Loader2, MinusCircle } from 'lucide-react';
 import type {
   MatchResult,
   ReconciliationResult,
@@ -35,6 +36,9 @@ import {
 } from './resultsAugmentation';
 import { ManualMatchModal } from './ManualMatchModal';
 import { exportToExcel, exportToCsv } from './exportResults';
+import type { ExceptionAnalysis } from './exceptionAnalysis';
+import { fetchAnalyzeException } from './exceptionAnalysis';
+import { ExceptionAnalysisPanel } from './ExceptionAnalysisPanel';
 
 export interface ResultsPageProps {
   result: ReconciliationResult;
@@ -184,6 +188,11 @@ export function ResultsPage({ result, className }: ResultsPageProps) {
   const [manualMatchSource, setManualMatchSource] = useState<'sourceA' | 'sourceB' | null>(null);
   const [manualMatchTransaction, setManualMatchTransaction] = useState<Transaction | null>(null);
 
+  const [analysisByTxId, setAnalysisByTxId] = useState<Record<string, ExceptionAnalysis>>({});
+  const [loadingAnalysisTxId, setLoadingAnalysisTxId] = useState<string | null>(null);
+  const [openAnalysisTxId, setOpenAnalysisTxId] = useState<string | null>(null);
+  const [errorByTxId, setErrorByTxId] = useState<Record<string, string>>({});
+
   const { reviewedIds, ignoredIds, manualMatches, showIgnored } = augmentation;
   const manualMatchIds = useMemo(() => getIdsInManualMatches(manualMatches), [manualMatches]);
   const unmatchedADisplay = useMemo(
@@ -200,6 +209,22 @@ export function ResultsPage({ result, className }: ResultsPageProps) {
       ...manualMatches.map(({ match, note }) => ({ ...match, isManual: true, note })),
     ],
     [matched, manualMatches]
+  );
+
+  /** All transactions from the other source (for API context). */
+  const otherSourceTransactionsA = useMemo(
+    () => [
+      ...matchedDisplay.flatMap((m) => m.transactionsB),
+      ...unmatchedB.filter((x) => !manualMatchIds.has(x.id)),
+    ],
+    [matchedDisplay, unmatchedB, manualMatchIds]
+  );
+  const otherSourceTransactionsB = useMemo(
+    () => [
+      ...matchedDisplay.flatMap((m) => m.transactionsA),
+      ...unmatchedA.filter((x) => !manualMatchIds.has(x.id)),
+    ],
+    [matchedDisplay, unmatchedA, manualMatchIds]
   );
 
   const reviewedCount = useMemo(() => {
@@ -264,6 +289,125 @@ export function ResultsPage({ result, className }: ResultsPageProps) {
     }
     setManualMatchTransaction(null);
     setManualMatchSource(null);
+  };
+
+  const runAnalyze = async (
+    source: 'sourceA' | 'sourceB',
+    t: Transaction,
+    options?: { followUpQuestion?: string; previousAnalysis?: ExceptionAnalysis }
+  ) => {
+    setErrorByTxId((prev) => {
+      const next = { ...prev };
+      delete next[t.id];
+      return next as Record<string, string>;
+    });
+    setLoadingAnalysisTxId(t.id);
+    const otherSource =
+      source === 'sourceA' ? otherSourceTransactionsA : otherSourceTransactionsB;
+    const fetchResult = await fetchAnalyzeException({
+      unmatchedTransaction: t,
+      otherSourceTransactions: otherSource,
+      matchedTransactions: matchedDisplay,
+      matchingRules: result.config.rules,
+      followUpQuestion: options?.followUpQuestion,
+      previousAnalysis: options?.previousAnalysis,
+    });
+    setLoadingAnalysisTxId(null);
+    if (fetchResult.success) {
+      setAnalysisByTxId((prev) => ({ ...prev, [t.id]: fetchResult.analysis }));
+      setOpenAnalysisTxId(t.id);
+      setErrorByTxId((prev) => {
+        const next = { ...prev };
+        delete next[t.id];
+        return next as Record<string, string>;
+      });
+    } else {
+      setErrorByTxId((prev) => ({ ...prev, [t.id]: fetchResult.error }));
+      setOpenAnalysisTxId(t.id);
+    }
+  };
+
+  const handleAnalyzeException = (source: 'sourceA' | 'sourceB', t: Transaction, forceReAnalyze = false) => {
+    if (!forceReAnalyze && analysisByTxId[t.id]) {
+      setOpenAnalysisTxId(t.id);
+      setErrorByTxId((prev) => {
+        const next = { ...prev };
+        delete next[t.id];
+        return next as Record<string, string>;
+      });
+      return;
+    }
+    runAnalyze(source, t);
+  };
+
+  const handleRetryAnalysis = (source: 'sourceA' | 'sourceB', t: Transaction) => {
+    setErrorByTxId((prev) => {
+      const next = { ...prev };
+      delete next[t.id];
+      return next as Record<string, string>;
+    });
+    runAnalyze(source, t);
+  };
+
+  const handleReAnalyze = (source: 'sourceA' | 'sourceB', t: Transaction) => {
+    setAnalysisByTxId((prev) => {
+      const next = { ...prev };
+      delete next[t.id];
+      return next;
+    });
+    setErrorByTxId((prev) => {
+      const next = { ...prev };
+      delete next[t.id];
+      return next as Record<string, string>;
+    });
+    runAnalyze(source, t);
+  };
+
+  const handleDismissAnalysis = (txId: string) => {
+    setOpenAnalysisTxId((prev) => (prev === txId ? null : prev));
+  };
+
+  const handleAcceptAIMatch = (source: 'sourceA' | 'sourceB', sourceTx: Transaction, candidateTx: Transaction) => {
+    if (source === 'sourceA') {
+      setAugmentation((prev) => ({
+        ...prev,
+        manualMatches: [
+          ...prev.manualMatches,
+          {
+            match: {
+              transactionsA: [sourceTx],
+              transactionsB: [candidateTx],
+              confidence: 1,
+            },
+            note: 'AI Suggested',
+          },
+        ],
+      }));
+    } else {
+      setAugmentation((prev) => ({
+        ...prev,
+        manualMatches: [
+          ...prev.manualMatches,
+          {
+            match: {
+              transactionsA: [candidateTx],
+              transactionsB: [sourceTx],
+              confidence: 1,
+            },
+            note: 'AI Suggested',
+          },
+        ],
+      }));
+    }
+    setOpenAnalysisTxId(null);
+  };
+
+  const handleAskFollowUp = (txId: string, question: string) => {
+    const t = unmatchedA.find((x) => x.id === txId) ?? unmatchedB.find((x) => x.id === txId);
+    const source = t?.source === 'sourceA' ? 'sourceA' : 'sourceB';
+    const previousAnalysis = analysisByTxId[txId];
+    if (!t || !previousAnalysis) return;
+    runAnalyze(source, t, { followUpQuestion: question, previousAnalysis });
   };
 
   const handleExportExcel = () => exportToExcel(result, augmentation);
@@ -571,7 +715,9 @@ export function ResultsPage({ result, className }: ResultsPageProps) {
                           </TableCell>
                           <TableCell>
                             {isManual ? (
-                              <Badge variant="secondary">Manual</Badge>
+                              <Badge variant="secondary">
+                                {'note' in m && m.note === 'AI Suggested' ? 'AI Suggested' : 'Manual'}
+                              </Badge>
                             ) : (
                               <Badge variant="default">
                                 {(m.confidence * 100).toFixed(0)}%
@@ -647,62 +793,100 @@ export function ResultsPage({ result, className }: ResultsPageProps) {
                       : isReviewed
                         ? 'bg-green-100/70 dark:bg-green-900/20'
                         : undefined;
+                    const analysis = analysisByTxId[t.id];
+                    const isAnalysisOpen = openAnalysisTxId === t.id;
+                    const isLoading = loadingAnalysisTxId === t.id;
                     return (
-                      <TableRow key={t.id} className={rowBg}>
-                        <TableCell>{t.rowIndex}</TableCell>
-                        <TableCell>{formatAmount(t.amount)}</TableCell>
-                        <TableCell>{formatDate(t.date)}</TableCell>
-                        <TableCell className="max-w-[300px] truncate">{t.reference}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            {isReviewed && (
-                              <Badge variant="outline" className="text-xs font-normal">
-                                Reviewed
-                              </Badge>
-                            )}
-                            {isIgnored && (
-                              <Badge variant="secondary" className="text-xs font-normal">
-                                Ignored
-                              </Badge>
-                            )}
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon-xs" className="h-7 w-7">
-                                  <ChevronDown className="size-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    setAugmentation((prev) => ({
-                                      ...prev,
-                                      reviewedIds: new Set(prev.reviewedIds).add(t.id),
-                                    }))
-                                  }
-                                >
-                                  <Check className="size-4 mr-2" />
-                                  Mark as Reviewed
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    setAugmentation((prev) => ({
-                                      ...prev,
-                                      ignoredIds: new Set(prev.ignoredIds).add(t.id),
-                                    }))
-                                  }
-                                >
-                                  <MinusCircle className="size-4 mr-2" />
-                                  Ignore
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => openManualMatch('sourceA', t)}>
-                                  <Link2 className="size-4 mr-2" />
-                                  Manual Match
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </TableCell>
-                      </TableRow>
+                      <Fragment key={t.id}>
+                        <TableRow className={rowBg}>
+                          <TableCell>{t.rowIndex}</TableCell>
+                          <TableCell>{formatAmount(t.amount)}</TableCell>
+                          <TableCell>{formatDate(t.date)}</TableCell>
+                          <TableCell className="max-w-[300px] truncate">{t.reference}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-1 flex-wrap">
+                              {isReviewed && (
+                                <Badge variant="outline" className="text-xs font-normal">
+                                  Reviewed
+                                </Badge>
+                              )}
+                              {isIgnored && (
+                                <Badge variant="secondary" className="text-xs font-normal">
+                                  Ignored
+                                </Badge>
+                              )}
+                              {isLoading ? (
+                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Loader2 className="size-3.5 animate-spin" />
+                                  Analyzing with AI...
+                                </span>
+                              ) : (
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon-xs" className="h-7 w-7">
+                                      <ChevronDown className="size-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem
+                                      onClick={() => handleAnalyzeException('sourceA', t)}
+                                    >
+                                      🤖 Analyze with AI
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        setAugmentation((prev) => ({
+                                          ...prev,
+                                          reviewedIds: new Set(prev.reviewedIds).add(t.id),
+                                        }))
+                                      }
+                                    >
+                                      <Check className="size-4 mr-2" />
+                                      Mark as Reviewed
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        setAugmentation((prev) => ({
+                                          ...prev,
+                                          ignoredIds: new Set(prev.ignoredIds).add(t.id),
+                                        }))
+                                      }
+                                    >
+                                      <MinusCircle className="size-4 mr-2" />
+                                      Ignore
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => openManualMatch('sourceA', t)}>
+                                      <Link2 className="size-4 mr-2" />
+                                      Manual Match
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        {(analysis || (isAnalysisOpen && errorByTxId[t.id])) && (
+                          <TableRow className="hover:bg-transparent border-b">
+                            <TableCell colSpan={5} className="p-3 align-top bg-transparent">
+                              <ExceptionAnalysisPanel
+                                analysis={analysis ?? null}
+                                error={errorByTxId[t.id]}
+                                sourceTransaction={t}
+                                onAcceptMatch={
+                                  analysis?.suggestedMatch
+                                    ? (candidate) => handleAcceptAIMatch('sourceA', t, candidate)
+                                    : undefined
+                                }
+                                onDismiss={() => handleDismissAnalysis(t.id)}
+                                onRetry={() => handleRetryAnalysis('sourceA', t)}
+                                onReAnalyze={() => handleReAnalyze('sourceA', t)}
+                                onAskFollowUp={(q) => handleAskFollowUp(t.id, q)}
+                              />
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </Fragment>
                     );
                   })}
                 </TableBody>
@@ -742,62 +926,100 @@ export function ResultsPage({ result, className }: ResultsPageProps) {
                       : isReviewed
                         ? 'bg-green-100/70 dark:bg-green-900/20'
                         : undefined;
+                    const analysis = analysisByTxId[t.id];
+                    const isAnalysisOpen = openAnalysisTxId === t.id;
+                    const isLoading = loadingAnalysisTxId === t.id;
                     return (
-                      <TableRow key={t.id} className={rowBg}>
-                        <TableCell>{t.rowIndex}</TableCell>
-                        <TableCell>{formatAmount(t.amount)}</TableCell>
-                        <TableCell>{formatDate(t.date)}</TableCell>
-                        <TableCell className="max-w-[300px] truncate">{t.reference}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex items-center justify-end gap-1">
-                            {isReviewed && (
-                              <Badge variant="outline" className="text-xs font-normal">
-                                Reviewed
-                              </Badge>
-                            )}
-                            {isIgnored && (
-                              <Badge variant="secondary" className="text-xs font-normal">
-                                Ignored
-                              </Badge>
-                            )}
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" size="icon-xs" className="h-7 w-7">
-                                  <ChevronDown className="size-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    setAugmentation((prev) => ({
-                                      ...prev,
-                                      reviewedIds: new Set(prev.reviewedIds).add(t.id),
-                                    }))
-                                  }
-                                >
-                                  <Check className="size-4 mr-2" />
-                                  Mark as Reviewed
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                  onClick={() =>
-                                    setAugmentation((prev) => ({
-                                      ...prev,
-                                      ignoredIds: new Set(prev.ignoredIds).add(t.id),
-                                    }))
-                                  }
-                                >
-                                  <MinusCircle className="size-4 mr-2" />
-                                  Ignore
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => openManualMatch('sourceB', t)}>
-                                  <Link2 className="size-4 mr-2" />
-                                  Manual Match
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </div>
-                        </TableCell>
-                      </TableRow>
+                      <Fragment key={t.id}>
+                        <TableRow className={rowBg}>
+                          <TableCell>{t.rowIndex}</TableCell>
+                          <TableCell>{formatAmount(t.amount)}</TableCell>
+                          <TableCell>{formatDate(t.date)}</TableCell>
+                          <TableCell className="max-w-[300px] truncate">{t.reference}</TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex items-center justify-end gap-1 flex-wrap">
+                              {isReviewed && (
+                                <Badge variant="outline" className="text-xs font-normal">
+                                  Reviewed
+                                </Badge>
+                              )}
+                              {isIgnored && (
+                                <Badge variant="secondary" className="text-xs font-normal">
+                                  Ignored
+                                </Badge>
+                              )}
+                              {isLoading ? (
+                                <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                  <Loader2 className="size-3.5 animate-spin" />
+                                  Analyzing with AI...
+                                </span>
+                              ) : (
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="icon-xs" className="h-7 w-7">
+                                      <ChevronDown className="size-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem
+                                      onClick={() => handleAnalyzeException('sourceB', t)}
+                                    >
+                                      🤖 Analyze with AI
+                                    </DropdownMenuItem>
+                                    <DropdownMenuSeparator />
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        setAugmentation((prev) => ({
+                                          ...prev,
+                                          reviewedIds: new Set(prev.reviewedIds).add(t.id),
+                                        }))
+                                      }
+                                    >
+                                      <Check className="size-4 mr-2" />
+                                      Mark as Reviewed
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem
+                                      onClick={() =>
+                                        setAugmentation((prev) => ({
+                                          ...prev,
+                                          ignoredIds: new Set(prev.ignoredIds).add(t.id),
+                                        }))
+                                      }
+                                    >
+                                      <MinusCircle className="size-4 mr-2" />
+                                      Ignore
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => openManualMatch('sourceB', t)}>
+                                      <Link2 className="size-4 mr-2" />
+                                      Manual Match
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              )}
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                        {(analysis || (isAnalysisOpen && errorByTxId[t.id])) && (
+                          <TableRow className="hover:bg-transparent border-b">
+                            <TableCell colSpan={5} className="p-3 align-top bg-transparent">
+                              <ExceptionAnalysisPanel
+                                analysis={analysis ?? null}
+                                error={errorByTxId[t.id]}
+                                sourceTransaction={t}
+                                onAcceptMatch={
+                                  analysis?.suggestedMatch
+                                    ? (candidate) => handleAcceptAIMatch('sourceB', t, candidate)
+                                    : undefined
+                                }
+                                onDismiss={() => handleDismissAnalysis(t.id)}
+                                onRetry={() => handleRetryAnalysis('sourceB', t)}
+                                onReAnalyze={() => handleReAnalyze('sourceB', t)}
+                                onAskFollowUp={(q) => handleAskFollowUp(t.id, q)}
+                              />
+                            </TableCell>
+                          </TableRow>
+                        )}
+                      </Fragment>
                     );
                   })}
                 </TableBody>
