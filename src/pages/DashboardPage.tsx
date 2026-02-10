@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
+import { useAuth } from '@/contexts/AuthContext';
 import {
   FileText,
   Target,
@@ -38,8 +39,23 @@ function getTodayLabel(): string {
 
 const headingStyle = { fontFamily: 'var(--font-heading)' };
 
+function getDisplayFirstName(user: { user_metadata?: { full_name?: string }; email?: string | null } | null): string {
+  if (!user) return 'there';
+  const name = user.user_metadata?.full_name?.trim();
+  if (name) {
+    const first = name.split(/\s+/)[0];
+    if (first) return first;
+  }
+  const email = user.email ?? '';
+  const local = email.split('@')[0];
+  if (local) return local;
+  return 'there';
+}
+
 export function DashboardPage() {
+  const { user } = useAuth();
   const templateCount = useMemo(() => getCustomTemplates().length, []);
+  const displayName = getDisplayFirstName(user);
 
   const stats = useMemo(
     () => [
@@ -104,7 +120,7 @@ export function DashboardPage() {
             className="text-2xl font-semibold text-[var(--app-heading)] sm:text-3xl"
             style={headingStyle}
           >
-            {getGreeting()}, Juan
+            {getGreeting()}, {displayName}
           </h1>
           <p className="mt-1 text-sm text-[var(--app-body)]">{getTodayLabel()}</p>
         </div>

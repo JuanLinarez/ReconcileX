@@ -10,8 +10,22 @@ import {
   X,
   Bell,
   Sparkles,
+  LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
+
+function getInitials(user: { user_metadata?: { full_name?: string }; email?: string | null }): string {
+  const name = user.user_metadata?.full_name?.trim();
+  if (name) {
+    const parts = name.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    if (parts[0]) return parts[0].slice(0, 2).toUpperCase();
+  }
+  const email = user.email ?? '';
+  if (email) return email.slice(0, 2).toUpperCase();
+  return '?';
+}
 
 const SIDEBAR_WIDTH = 260;
 
@@ -33,9 +47,12 @@ function breadcrumbFromPath(pathname: string): string {
 }
 
 export function AppLayout() {
+  const { user, signOut } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const breadcrumb = breadcrumbFromPath(location.pathname);
+  const displayName = user?.user_metadata?.full_name?.trim() || user?.email || 'User';
+  const initials = user ? getInitials(user) : '?';
 
   return (
     <div className="flex min-h-screen bg-[var(--app-bg)]">
@@ -93,7 +110,23 @@ export function AppLayout() {
             </NavLink>
           ))}
         </nav>
-        <div className="p-3">
+        <div className="space-y-2 p-3">
+          {user && (
+            <div className="rounded-lg bg-white/5 px-3 py-2">
+              <p className="truncate text-xs font-medium text-white">{displayName}</p>
+              {user.email && (
+                <p className="truncate text-xs text-white/70">{user.email}</p>
+              )}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => signOut()}
+            className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-white/70 transition-colors hover:bg-[rgba(255,255,255,0.05)] hover:text-white"
+          >
+            <LogOut className="h-5 w-5 shrink-0" />
+            Sign Out
+          </button>
           <div className="flex items-center gap-2 rounded-lg bg-[#2563EB]/20 px-3 py-2">
             <Sparkles className="h-4 w-4 text-white" />
             <span className="text-xs font-medium text-white">AI Powered</span>
@@ -127,7 +160,7 @@ export function AppLayout() {
               <Bell className="h-5 w-5" />
             </button>
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--app-primary)] text-xs font-semibold text-white">
-              JL
+              {initials}
             </div>
           </div>
         </header>
