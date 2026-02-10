@@ -246,8 +246,6 @@ function PreviewSummaryCard({
 
   const totalRowsA =
     matched.reduce((s, m) => s + m.transactionsA.length, 0) + unmatchedA.length;
-  const totalRowsB =
-    matched.reduce((s, m) => s + m.transactionsB.length, 0) + unmatchedB.length;
   const matchedRowsA = matched.reduce((s, m) => s + m.transactionsA.length, 0);
   const matchRatePct =
     totalRowsA > 0 ? (matchedRowsA / totalRowsA) * 100 : 0;
