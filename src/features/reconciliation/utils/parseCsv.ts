@@ -129,3 +129,10 @@ export function parseSourceFile(file: File, source: DataSource): Promise<ParseFi
   if (isExcelFile(file)) return parseExcelFile(file, source);
   return parseCsvFile(file, source);
 }
+
+/**
+ * Return a copy of ParsedCsv with the given source (e.g. when assigning selected pair to sourceA/sourceB).
+ */
+export function withSource(data: ParsedCsv, source: DataSource): ParsedCsv {
+  return { ...data, source };
+}

@@ -98,3 +98,10 @@ export interface ParsedCsv {
   /** Source format (CSV or Excel). */
   fileType?: UploadedFileType;
 }
+
+/** A single upload slot (label + optional parsed file). Used when supporting 2–4 files. */
+export interface UploadSlot {
+  id: string;
+  label: string;
+  parsed: ParsedCsv | null;
+}

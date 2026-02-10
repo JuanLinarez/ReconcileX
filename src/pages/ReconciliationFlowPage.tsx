@@ -9,11 +9,12 @@ import { ResultsPage } from '@/features/results/ResultsPage';
 import { useMatching } from '@/features/reconciliation/hooks/useMatching';
 import { getDefaultRules } from '@/features/matching-rules/defaultRules';
 import type {
-  ParsedCsv,
   ReconciliationResult,
   MatchingConfig,
   MatchingRule,
+  UploadSlot,
 } from '@/features/reconciliation/types';
+import { withSource } from '@/features/reconciliation/utils/parseCsv';
 
 type Step = 'upload' | 'preview' | 'matchingRules' | 'results';
 
@@ -29,14 +30,32 @@ const DEFAULT_MATCHING_CONFIG: MatchingConfig = {
   matchingType: 'oneToOne',
 };
 
+function createInitialSlots(): UploadSlot[] {
+  return [
+    { id: `slot-${Date.now()}-a`, label: 'Source A', parsed: null },
+    { id: `slot-${Date.now()}-b`, label: 'Source B', parsed: null },
+  ];
+}
+
 export function ReconciliationFlowPage() {
   const [step, setStep] = useState<Step>('upload');
-  const [sourceA, setSourceA] = useState<ParsedCsv | null>(null);
-  const [sourceB, setSourceB] = useState<ParsedCsv | null>(null);
+  const [uploadSlots, setUploadSlots] = useState<UploadSlot[]>(createInitialSlots);
+  const [pairIndices, setPairIndices] = useState<[number, number]>([0, 1]);
   const [config, setConfig] = useState<MatchingConfig>(DEFAULT_MATCHING_CONFIG);
   const [result, setResult] = useState<ReconciliationResult | null>(null);
   const [previewResult, setPreviewResult] = useState<ReconciliationResult | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+
+  const sourceA = useMemo(() => {
+    const slot = uploadSlots[pairIndices[0]];
+    const p = slot?.parsed;
+    return p ? withSource(p, 'sourceA') : null;
+  }, [uploadSlots, pairIndices]);
+  const sourceB = useMemo(() => {
+    const slot = uploadSlots[pairIndices[1]];
+    const p = slot?.parsed;
+    return p ? withSource(p, 'sourceB') : null;
+  }, [uploadSlots, pairIndices]);
 
   const effectiveConfig = useMemo((): MatchingConfig => {
     if (config.rules.length > 0) return config;
@@ -52,11 +71,8 @@ export function ReconciliationFlowPage() {
     config: effectiveConfig,
   });
 
-  const handleParsed = (a: ParsedCsv | null, b: ParsedCsv | null) => {
-    setSourceA(a);
-    setSourceB(b);
-    if (a && b) setStep('preview');
-  };
+  const canProceedFromUpload =
+    sourceA != null && sourceB != null && pairIndices[0] !== pairIndices[1];
 
   const canRunMatching =
     sourceA?.rows.length &&
@@ -164,8 +180,13 @@ export function ReconciliationFlowPage() {
 
       {step === 'upload' && (
         <>
-          <UploadPage onParsed={handleParsed} sourceA={sourceA} sourceB={sourceB} />
-          {sourceA && sourceB && (
+          <UploadPage
+            slots={uploadSlots}
+            onSlotsChange={setUploadSlots}
+            pairIndices={pairIndices}
+            onPairChange={setPairIndices}
+          />
+          {canProceedFromUpload && (
             <div className="flex justify-center">
               <Button onClick={() => setStep('preview')}>Continue to Preview</Button>
             </div>
