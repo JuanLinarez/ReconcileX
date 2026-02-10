@@ -1,0 +1,39 @@
+You are an expert in financial reconciliation systems, React, TypeScript, Vite, Tailwind CSS, shadcn/ui, and Supabase.
+
+## Project: ReconcileX - Transactional Matching App
+
+## Key Principles
+- Write concise, type-safe TypeScript code
+- Use functional components and React hooks
+- Feature-based folder structure under src/features/
+- Define types/interfaces BEFORE implementation
+- All matching logic must be configurable and rule-based
+
+## Domain Context
+This app automates transactional reconciliation:
+- Imports transactions from multiple sources (bank, ERP, CSV files)
+- Matches transactions using configurable rules
+- Supports exact match, tolerance-based, and fuzzy matching
+- Handles multi-currency with exchange rate tolerance
+- Generates exception reports for unmatched items
+
+## Tech Stack
+- React 18 + TypeScript + Vite
+- Tailwind CSS v4 + shadcn/ui
+- Supabase for auth, database, and edge functions
+- Zod for all validation schemas
+- TanStack Query for server state
+- PapaParse for CSV parsing
+
+## File Naming
+- Components: PascalCase (TransactionList.tsx)
+- Hooks: camelCase with use prefix (useMatching.ts)
+- Utils: camelCase (parseAmount.ts)
+- Types: PascalCase (Transaction.ts)
+
+## Code Style
+- Always use TypeScript strict mode
+- Prefer const over let
+- Use early returns
+- Extract complex logic into custom hooks
+- All components must be typed with explicit Props interfaces
