@@ -55,6 +55,7 @@ import {
   type AutoMapEntry,
   type SavedTemplate,
 } from './templates';
+import { NLRulesInput } from '@/features/nl-rules/NLRulesInput';
 
 const MATCH_TYPE_OPTIONS: Array<{
   value: MatchingRule['matchType'];
@@ -546,6 +547,10 @@ export function MatchingRulesPage({
 
   const allTemplates = [...BUILT_IN_TEMPLATES, ...customTemplates];
 
+  const handleNLConfigGenerated = (newConfig: MatchingConfig, _explanation: string) => {
+    onConfigChange(newConfig);
+  };
+
   return (
     <div className={cn('space-y-8', className)}>
       {/* Matching type at top */}
@@ -660,7 +665,12 @@ export function MatchingRulesPage({
               )}
               <div className="flex items-center gap-2 shrink-0">
                 <span className="text-sm font-medium text-muted-foreground">Rule {index + 1}</span>
-                {rule.suggested && (
+                {rule.nlGenerated && (
+                  <Badge variant="secondary" className="text-xs font-normal bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
+                    AI Generated
+                  </Badge>
+                )}
+                {rule.suggested && !rule.nlGenerated && (
                   <Badge variant="secondary" className="text-xs font-normal bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
                     Suggested
                   </Badge>
@@ -925,6 +935,15 @@ export function MatchingRulesPage({
           )}
         </CardContent>
       </Card>
+
+      {/* Natural Language Rules */}
+      {sourceA && sourceB && (
+        <NLRulesInput
+          sourceA={sourceA}
+          sourceB={sourceB}
+          onConfigGenerated={handleNLConfigGenerated}
+        />
+      )}
 
       {/* Preview loading */}
       {isPreviewLoading && !previewResult && (

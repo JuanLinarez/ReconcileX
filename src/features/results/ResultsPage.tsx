@@ -23,7 +23,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { ChevronDown, ChevronRight, Check, Download, Info, Link2, Loader2, MinusCircle } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronRight, Check, Download, Info, Link2, Loader2, MinusCircle, Sparkles } from 'lucide-react';
 import type {
   MatchResult,
   ReconciliationResult,
@@ -41,11 +41,16 @@ import { fetchAnalyzeException } from './exceptionAnalysis';
 import { ExceptionAnalysisPanel } from './ExceptionAnalysisPanel';
 import { saveAiAnalysis } from '@/lib/database';
 import { captureMatchAcceptance, captureMatchRejection } from '@/features/patterns/patternCapture';
+import { detectAnomalies } from '@/features/anomalies/anomalyDetector';
+import { AnomalyPanel } from '@/features/anomalies/AnomalyPanel';
+import { CopilotPanel } from '@/features/copilot/CopilotPanel';
 
 export interface ResultsPageProps {
   result: ReconciliationResult;
   reconciliationId?: string | null;
   organizationId?: string | null;
+  sourceAName?: string;
+  sourceBName?: string;
   className?: string;
 }
 
@@ -184,7 +189,7 @@ function MatchDetailPanel({ match }: MatchDetailPanelProps) {
 
 const MATCHED_TABLE_COLUMNS = 8; // chevron + confidence + 6 data columns
 
-export function ResultsPage({ result, reconciliationId, organizationId, className }: ResultsPageProps) {
+export function ResultsPage({ result, reconciliationId, organizationId, sourceAName = 'Source A', sourceBName = 'Source B', className }: ResultsPageProps) {
   const { matched, unmatchedA, unmatchedB } = result;
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [augmentation, setAugmentation] = useState(createInitialAugmentation);
@@ -198,6 +203,9 @@ export function ResultsPage({ result, reconciliationId, organizationId, classNam
   const [loadingFollowUpTxId, setLoadingFollowUpTxId] = useState<string | null>(null);
   const [openAnalysisTxId, setOpenAnalysisTxId] = useState<string | null>(null);
   const [errorByTxId, setErrorByTxId] = useState<Record<string, string>>({});
+  const [copilotOpen, setCopilotOpen] = useState(false);
+
+  const anomalyReport = useMemo(() => detectAnomalies(result), [result]);
 
   const { reviewedIds, ignoredIds, manualMatches, showIgnored } = augmentation;
   const manualMatchIds = useMemo(() => getIdsInManualMatches(manualMatches), [manualMatches]);
@@ -596,6 +604,16 @@ export function ResultsPage({ result, reconciliationId, organizationId, classNam
                 </span>
               </div>
               <p className="text-muted-foreground text-xs font-medium">Reconciliation Rate</p>
+              {anomalyReport &&
+                anomalyReport.summary.critical + anomalyReport.summary.high > 0 && (
+                  <div className="flex items-center gap-1 mt-1 text-amber-600 dark:text-amber-500" title="Anomalies detected">
+                    <AlertTriangle className="size-3.5" />
+                    <span className="text-xs font-medium">
+                      {anomalyReport.summary.critical + anomalyReport.summary.high} anomaly
+                      {anomalyReport.summary.critical + anomalyReport.summary.high !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                )}
             </CardContent>
           </Card>
 
@@ -693,6 +711,15 @@ export function ResultsPage({ result, reconciliationId, organizationId, classNam
               <span>Show ignored items</span>
             </label>
           </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-2"
+            onClick={() => setCopilotOpen(true)}
+          >
+            <Sparkles className="size-4 shrink-0" />
+            Ask Copilot
+          </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="flex items-center gap-2">
@@ -724,6 +751,14 @@ export function ResultsPage({ result, reconciliationId, organizationId, classNam
           <TabsTrigger value="matched">Matched</TabsTrigger>
           <TabsTrigger value="unmatchedA">Unmatched Source A</TabsTrigger>
           <TabsTrigger value="unmatchedB">Unmatched Source B</TabsTrigger>
+          <TabsTrigger value="anomalies">
+            Anomalies
+            {anomalyReport && anomalyReport.summary.critical + anomalyReport.summary.high > 0 && (
+              <Badge variant="destructive" className="ml-2 text-xs">
+                {anomalyReport.summary.critical + anomalyReport.summary.high}
+              </Badge>
+            )}
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="matched" className="mt-4">
@@ -1115,6 +1150,10 @@ export function ResultsPage({ result, reconciliationId, organizationId, classNam
             </CardContent>
           </Card>
         </TabsContent>
+
+        <TabsContent value="anomalies" className="mt-4">
+          <AnomalyPanel report={anomalyReport} />
+        </TabsContent>
       </Tabs>
 
       {manualMatchTransaction && (
@@ -1133,6 +1172,15 @@ export function ResultsPage({ result, reconciliationId, organizationId, classNam
           onConfirm={handleConfirmManualMatch}
         />
       )}
+
+      <CopilotPanel
+        result={result}
+        anomalyReport={anomalyReport}
+        sourceAName={sourceAName}
+        sourceBName={sourceBName}
+        isOpen={copilotOpen}
+        onClose={() => setCopilotOpen(false)}
+      />
     </div>
   );
 }

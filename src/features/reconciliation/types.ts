@@ -60,6 +60,8 @@ export interface MatchingRule {
   suggested?: boolean;
   /** True when rule was boosted by learned patterns; show "Learned" badge. */
   learned?: boolean;
+  /** True when rule was generated from natural language; show "AI Generated" badge. */
+  nlGenerated?: boolean;
 }
 
 /** Full matching config: rules + threshold + matching type. */

@@ -342,6 +342,16 @@ export function ReconciliationFlowPage() {
             result={result}
             reconciliationId={currentReconciliationId}
             organizationId={organizationId}
+            sourceAName={
+              effectiveSourceA?.filename ??
+              uploadSlots[pairIndices[0]]?.label ??
+              'Source A'
+            }
+            sourceBName={
+              effectiveSourceB?.filename ??
+              uploadSlots[pairIndices[1]]?.label ??
+              'Source B'
+            }
           />
           <div className="flex justify-between">
             <Button variant="outline" onClick={() => setStep('matchingRules')}>
