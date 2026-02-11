@@ -44,6 +44,7 @@ import type { ParsedCsv, ReconciliationResult } from '@/features/reconciliation/
 import { nextRuleId, getDefaultRules } from './defaultRules';
 import { getMaxFixedTolerance } from './numericToleranceUtils';
 import { buildSuggestedRules } from './smartColumnSuggestions';
+import { enhanceSuggestedRules } from '@/features/patterns/patternApply';
 import {
   applyTemplate,
   applyFuzzyColumnMapping,
@@ -204,6 +205,7 @@ export interface MatchingRulesPageProps {
   isPreviewLoading: boolean;
   onDismissPreview: () => void;
   onConfirmPreview: () => void;
+  organizationId?: string | null;
   className?: string;
 }
 
@@ -336,10 +338,12 @@ export function MatchingRulesPage({
   isPreviewLoading,
   onDismissPreview,
   onConfirmPreview,
+  organizationId,
   className,
 }: MatchingRulesPageProps) {
   const headersA = sourceA?.headers ?? [];
   const headersB = sourceB?.headers ?? [];
+  const [rulesInfluencedByLearning, setRulesInfluencedByLearning] = useState(false);
 
   useEffect(() => {
     if (
@@ -350,9 +354,31 @@ export function MatchingRulesPage({
       sourceB.headers.length > 0
     ) {
       const suggested = buildSuggestedRules(sourceA, sourceB);
-      const rules =
+      const baseRules =
         suggested.length > 0 ? suggested : getDefaultRules(headersA, headersB);
-      onConfigChange({ ...config, rules });
+
+      if (organizationId) {
+        enhanceSuggestedRules(
+          organizationId,
+          baseRules,
+          sourceA.headers,
+          sourceB.headers
+        )
+          .then(({ rules: enhancedRules, influenced }) => {
+            setRulesInfluencedByLearning(influenced);
+            onConfigChange({
+              ...config,
+              rules: enhancedRules.length > 0 ? enhancedRules : baseRules,
+            });
+          })
+          .catch(() => {
+            setRulesInfluencedByLearning(false);
+            onConfigChange({ ...config, rules: baseRules });
+          });
+      } else {
+        setRulesInfluencedByLearning(false);
+        onConfigChange({ ...config, rules: baseRules });
+      }
     }
   }, [
     config.rules.length,
@@ -362,6 +388,7 @@ export function MatchingRulesPage({
     headersB.length,
     config,
     onConfigChange,
+    organizationId,
   ]);
 
   const effectiveRules =
@@ -573,6 +600,11 @@ export function MatchingRulesPage({
               We detected {suggestedCount} potential matching rule{suggestedCount !== 1 ? 's' : ''} based on your column names. Review and adjust as needed.
             </p>
           )}
+          {rulesInfluencedByLearning && (
+            <p className="text-sm text-muted-foreground pt-1">
+              Rules enhanced based on your previous reconciliations.
+            </p>
+          )}
         </CardHeader>
         <CardContent className="space-y-6">
           {showAutoMapBanner && (() => {
@@ -631,6 +663,11 @@ export function MatchingRulesPage({
                 {rule.suggested && (
                   <Badge variant="secondary" className="text-xs font-normal bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
                     Suggested
+                  </Badge>
+                )}
+                {rule.learned && (
+                  <Badge variant="secondary" className="text-xs font-normal bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
+                    Learned
                   </Badge>
                 )}
                 <Button

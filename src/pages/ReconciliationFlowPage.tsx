@@ -3,8 +3,10 @@ import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { saveReconciliation } from '@/lib/database';
+import { captureRuleConfiguration } from '@/features/patterns/patternCapture';
 import { Button } from '@/components/ui/button';
 import { UploadPage } from '@/features/upload/UploadPage';
+import { NormalizationPage } from '@/features/normalization/NormalizationPage';
 import { PreviewPage } from '@/features/preview/PreviewPage';
 import { MatchingRulesPage } from '@/features/matching-rules/MatchingRulesPage';
 import { ResultsPage } from '@/features/results/ResultsPage';
@@ -16,9 +18,10 @@ import type {
   MatchingRule,
   UploadSlot,
 } from '@/features/reconciliation/types';
+import type { ParsedCsv } from '@/features/reconciliation/types';
 import { withSource } from '@/features/reconciliation/utils/parseCsv';
 
-type Step = 'upload' | 'preview' | 'matchingRules' | 'results';
+type Step = 'upload' | 'normalize' | 'preview' | 'matchingRules' | 'results';
 
 function weightsSumTo100(rules: MatchingRule[]): boolean {
   if (rules.length === 0) return false;
@@ -49,6 +52,8 @@ export function ReconciliationFlowPage() {
   const [currentReconciliationId, setCurrentReconciliationId] = useState<string | null>(null);
   const [previewResult, setPreviewResult] = useState<ReconciliationResult | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [normalizedA, setNormalizedA] = useState<ParsedCsv | null>(null);
+  const [normalizedB, setNormalizedB] = useState<ParsedCsv | null>(null);
 
   const sourceA = useMemo(() => {
     const slot = uploadSlots[pairIndices[0]];
@@ -61,17 +66,20 @@ export function ReconciliationFlowPage() {
     return p ? withSource(p, 'sourceB') : null;
   }, [uploadSlots, pairIndices]);
 
+  const effectiveSourceA = normalizedA ?? sourceA;
+  const effectiveSourceB = normalizedB ?? sourceB;
+
   const effectiveConfig = useMemo((): MatchingConfig => {
     if (config.rules.length > 0) return config;
-    const headersA = sourceA?.headers ?? [];
-    const headersB = sourceB?.headers ?? [];
+    const headersA = effectiveSourceA?.headers ?? [];
+    const headersB = effectiveSourceB?.headers ?? [];
     const defaultRules = getDefaultRules(headersA, headersB);
     return { ...config, rules: defaultRules };
-  }, [config, sourceA?.headers, sourceB?.headers]);
+  }, [config, effectiveSourceA?.headers, effectiveSourceB?.headers]);
 
   const { run } = useMatching({
-    sourceA,
-    sourceB,
+    sourceA: effectiveSourceA,
+    sourceB: effectiveSourceB,
     config: effectiveConfig,
   });
 
@@ -79,20 +87,20 @@ export function ReconciliationFlowPage() {
     sourceA != null && sourceB != null && pairIndices[0] !== pairIndices[1];
 
   const canRunMatching =
-    sourceA?.rows.length &&
-    sourceB?.rows.length &&
+    effectiveSourceA?.rows.length &&
+    effectiveSourceB?.rows.length &&
     effectiveConfig.rules.length >= 1 &&
     weightsSumTo100(effectiveConfig.rules);
 
   const persistReconciliation = useCallback(
     async (r: ReconciliationResult): Promise<string | null> => {
-      if (!organizationId || !sourceA || !sourceB) return null;
+      if (!organizationId || !effectiveSourceA || !effectiveSourceB) return null;
       const slotA = uploadSlots[pairIndices[0]];
       const slotB = uploadSlots[pairIndices[1]];
-      const sourceAName = sourceA.filename ?? slotA?.label ?? 'Source A';
-      const sourceBName = sourceB.filename ?? slotB?.label ?? 'Source B';
-      const sourceARows = sourceA.rows.length;
-      const sourceBRows = sourceB.rows.length;
+      const sourceAName = effectiveSourceA.filename ?? slotA?.label ?? 'Source A';
+      const sourceBName = effectiveSourceB.filename ?? slotB?.label ?? 'Source B';
+      const sourceARows = effectiveSourceA.rows.length;
+      const sourceBRows = effectiveSourceB.rows.length;
       const matchedCount = r.matched.length;
       const totalRows = sourceARows + sourceBRows;
       const matchRatePct = totalRows > 0 ? (matchedCount * 2 / totalRows) * 100 : 0;
@@ -122,7 +130,7 @@ export function ReconciliationFlowPage() {
       });
       return id;
     },
-    [organizationId, sourceA, sourceB, uploadSlots, pairIndices]
+    [organizationId, effectiveSourceA, effectiveSourceB, uploadSlots, pairIndices]
   );
 
   const handleRunMatching = async () => {
@@ -132,6 +140,9 @@ export function ReconciliationFlowPage() {
       setCurrentReconciliationId(id);
       setResult(r);
       setStep('results');
+      if (organizationId) {
+        captureRuleConfiguration(organizationId, r.config.rules);
+      }
     }
   };
 
@@ -153,6 +164,9 @@ export function ReconciliationFlowPage() {
       setResult(previewResult);
       setPreviewResult(null);
       setStep('results');
+      if (organizationId) {
+        captureRuleConfiguration(organizationId, previewResult.config.rules);
+      }
     }
   };
 
@@ -160,13 +174,21 @@ export function ReconciliationFlowPage() {
     setPreviewResult(null);
   }, [config]);
 
+  useEffect(() => {
+    if (step === 'upload') {
+      setNormalizedA(null);
+      setNormalizedB(null);
+    }
+  }, [step]);
+
   const steps: { id: Step; label: string; number: number }[] = [
     { id: 'upload', label: 'Upload', number: 1 },
-    { id: 'preview', label: 'Preview', number: 2 },
-    { id: 'matchingRules', label: 'Matching Rules', number: 3 },
-    { id: 'results', label: 'Results', number: 4 },
+    { id: 'normalize', label: 'Normalize', number: 2 },
+    { id: 'preview', label: 'Preview', number: 3 },
+    { id: 'matchingRules', label: 'Matching Rules', number: 4 },
+    { id: 'results', label: 'Results', number: 5 },
   ];
-  const stepOrder: Step[] = ['upload', 'preview', 'matchingRules', 'results'];
+  const stepOrder: Step[] = ['upload', 'normalize', 'preview', 'matchingRules', 'results'];
   const currentStepIndex = stepOrder.indexOf(step);
 
   return (
@@ -237,17 +259,41 @@ export function ReconciliationFlowPage() {
           />
           {canProceedFromUpload && (
             <div className="flex justify-center">
-              <Button onClick={() => setStep('preview')}>Continue to Preview</Button>
+              <Button onClick={() => setStep('normalize')}>Continue</Button>
             </div>
           )}
         </>
       )}
 
-      {step === 'preview' && (
+      {step === 'normalize' && sourceA && sourceB && (
         <>
-          <PreviewPage sourceA={sourceA} sourceB={sourceB} />
+          <NormalizationPage
+            sourceA={sourceA}
+            sourceB={sourceB}
+            onComplete={(a, b) => {
+              setNormalizedA(a);
+              setNormalizedB(b);
+              setStep('preview');
+            }}
+            onSkip={() => {
+              setNormalizedA(null);
+              setNormalizedB(null);
+              setStep('preview');
+            }}
+          />
           <div className="flex justify-between">
             <Button variant="outline" onClick={() => setStep('upload')}>
+              Back
+            </Button>
+          </div>
+        </>
+      )}
+
+      {step === 'preview' && (
+        <>
+          <PreviewPage sourceA={effectiveSourceA} sourceB={effectiveSourceB} />
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={() => setStep('normalize')}>
               Back
             </Button>
             <Button onClick={() => setStep('matchingRules')}>
@@ -260,14 +306,15 @@ export function ReconciliationFlowPage() {
       {step === 'matchingRules' && (
         <>
           <MatchingRulesPage
-            sourceA={sourceA}
-            sourceB={sourceB}
+            sourceA={effectiveSourceA}
+            sourceB={effectiveSourceB}
             config={config}
             onConfigChange={setConfig}
             previewResult={previewResult}
             isPreviewLoading={isPreviewLoading}
             onDismissPreview={() => setPreviewResult(null)}
             onConfirmPreview={handleConfirmPreview}
+            organizationId={organizationId}
           />
           <div className="flex flex-wrap items-center justify-between gap-4">
             <Button variant="outline" onClick={() => setStep('preview')}>
@@ -291,7 +338,11 @@ export function ReconciliationFlowPage() {
 
       {step === 'results' && result && (
         <>
-          <ResultsPage result={result} reconciliationId={currentReconciliationId} />
+          <ResultsPage
+            result={result}
+            reconciliationId={currentReconciliationId}
+            organizationId={organizationId}
+          />
           <div className="flex justify-between">
             <Button variant="outline" onClick={() => setStep('matchingRules')}>
               Back to Matching Rules

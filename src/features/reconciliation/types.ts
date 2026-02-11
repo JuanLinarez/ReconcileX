@@ -58,6 +58,8 @@ export interface MatchingRule {
   weight: number;
   /** True when rule was auto-suggested; show "Suggested" badge. */
   suggested?: boolean;
+  /** True when rule was boosted by learned patterns; show "Learned" badge. */
+  learned?: boolean;
 }
 
 /** Full matching config: rules + threshold + matching type. */

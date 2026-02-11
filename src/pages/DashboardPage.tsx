@@ -19,8 +19,28 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  Cell,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+} from 'recharts';
 import { getCustomTemplates } from '@/features/matching-rules/templates';
-import { getReconciliationStats, getReconciliations } from '@/lib/database';
+import {
+  getReconciliationStats,
+  getReconciliations,
+  getReconciliationsByPeriod,
+  getMatchRateDistribution,
+  getTopSourcePairs,
+  getAiAnalysesByPeriod,
+} from '@/lib/database';
 import type { ReconciliationRow } from '@/lib/database';
 
 function getGreeting(): string {
@@ -74,6 +94,12 @@ export function DashboardPage() {
   const [statsLoading, setStatsLoading] = useState(true);
   const [recentLoading, setRecentLoading] = useState(true);
 
+  const [recsByPeriod, setRecsByPeriod] = useState<Array<{ date: string; count: number; avgMatchRate: number }>>([]);
+  const [matchRateDist, setMatchRateDist] = useState<Array<{ range: string; count: number }>>([]);
+  const [topSourcePairs, setTopSourcePairs] = useState<Array<{ pair: string; count: number; avgMatchRate: number }>>([]);
+  const [aiByPeriod, setAiByPeriod] = useState<Array<{ date: string; count: number }>>([]);
+  const [analyticsLoading, setAnalyticsLoading] = useState(true);
+
   useEffect(() => {
     if (!organizationId) {
       setStats({ total: 0, avgMatchRate: null, aiAnalyses: 0 });
@@ -100,6 +126,31 @@ export function DashboardPage() {
     getReconciliations(organizationId)
       .then((rows) => setRecentRows(rows.slice(0, 5)))
       .finally(() => setRecentLoading(false));
+  }, [organizationId]);
+
+  useEffect(() => {
+    if (!organizationId) {
+      setRecsByPeriod([]);
+      setMatchRateDist([]);
+      setTopSourcePairs([]);
+      setAiByPeriod([]);
+      setAnalyticsLoading(false);
+      return;
+    }
+    setAnalyticsLoading(true);
+    Promise.all([
+      getReconciliationsByPeriod(organizationId),
+      getMatchRateDistribution(organizationId),
+      getTopSourcePairs(organizationId),
+      getAiAnalysesByPeriod(organizationId),
+    ])
+      .then(([byPeriod, dist, pairs, ai]) => {
+        setRecsByPeriod(byPeriod);
+        setMatchRateDist(dist);
+        setTopSourcePairs(pairs);
+        setAiByPeriod(ai);
+      })
+      .finally(() => setAnalyticsLoading(false));
   }, [organizationId]);
 
   const statsCards = useMemo(
@@ -256,6 +307,178 @@ export function DashboardPage() {
             </CardContent>
           )}
         </Card>
+      </section>
+
+      {/* Analytics */}
+      <section>
+        <h2 className="mb-4 text-lg font-semibold text-[var(--app-heading)]" style={headingStyle}>
+          Analytics
+        </h2>
+        <div className="grid gap-4 md:grid-cols-2">
+          <Card className="border-[var(--app-border)] bg-white transition-shadow hover:shadow-md">
+            <CardHeader>
+              <CardTitle className="text-base" style={headingStyle}>
+                Reconciliations Over Time
+              </CardTitle>
+              <CardDescription className="text-[var(--app-body)]">
+                Last 30 days
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {analyticsLoading ? (
+                <div className="h-[200px] rounded bg-muted animate-pulse" />
+              ) : recsByPeriod.length === 0 || recsByPeriod.every((d) => d.count === 0) ? (
+                <div className="flex h-[200px] items-center justify-center text-sm text-[var(--app-body)]">
+                  No data yet
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={200}>
+                  <AreaChart data={recsByPeriod}>
+                    <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={(v) => v.slice(5)} />
+                    <YAxis tick={{ fontSize: 10 }} />
+                    <Tooltip
+                      formatter={(value: number) => [value, 'Count']}
+                      labelFormatter={(label) => `Date: ${label}`}
+                    />
+                    <Area
+                      type="monotone"
+                      dataKey="count"
+                      stroke="#2563EB"
+                      fill="#2563EB"
+                      fillOpacity={0.2}
+                      strokeWidth={2}
+                    />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-[var(--app-border)] bg-white transition-shadow hover:shadow-md">
+            <CardHeader>
+              <CardTitle className="text-base" style={headingStyle}>
+                Match Rate Distribution
+              </CardTitle>
+              <CardDescription className="text-[var(--app-body)]">
+                Reconciliations by match rate
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {analyticsLoading ? (
+                <div className="h-[200px] rounded bg-muted animate-pulse" />
+              ) : matchRateDist.every((d) => d.count === 0) ? (
+                <div className="flex h-[200px] items-center justify-center text-sm text-[var(--app-body)]">
+                  No data yet
+                </div>
+              ) : (
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={matchRateDist} margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
+                    <XAxis dataKey="range" tick={{ fontSize: 10 }} />
+                    <YAxis tick={{ fontSize: 10 }} />
+                    <Tooltip />
+                    <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                      {matchRateDist.map((_, i) => (
+                        <Cell key={i} fill={['#E11D48', '#D97706', '#F59E0B', '#059669'][i]} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-[var(--app-border)] bg-white transition-shadow hover:shadow-md">
+            <CardHeader>
+              <CardTitle className="text-base" style={headingStyle}>
+                AI Usage
+              </CardTitle>
+              <CardDescription className="text-[var(--app-body)]">
+                Exception analyses and estimated cost
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {analyticsLoading || statsLoading ? (
+                <div className="space-y-3">
+                  <div className="h-8 w-24 rounded bg-muted animate-pulse" />
+                  <div className="h-6 w-32 rounded bg-muted animate-pulse" />
+                  <div className="h-[100px] rounded bg-muted animate-pulse" />
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <div className="text-2xl font-semibold text-[var(--app-heading)]" style={headingStyle}>
+                    {stats.aiAnalyses}
+                  </div>
+                  <p className="text-xs text-[var(--app-body)]">
+                    Estimated cost: ${(stats.aiAnalyses * 0.003).toFixed(2)}
+                  </p>
+                  {aiByPeriod.length === 0 || aiByPeriod.every((d) => d.count === 0) ? (
+                    <div className="flex h-[100px] items-center justify-center text-sm text-[var(--app-body)]">
+                      No data yet
+                    </div>
+                  ) : (
+                    <ResponsiveContainer width="100%" height={100}>
+                      <LineChart data={aiByPeriod}>
+                        <XAxis dataKey="date" hide tickFormatter={(v) => v.slice(5)} />
+                        <YAxis hide width={1} />
+                        <Tooltip
+                          formatter={(value: number) => [value, 'AI calls']}
+                          labelFormatter={(label) => `Date: ${label}`}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="count"
+                          stroke="#2563EB"
+                          strokeWidth={2}
+                          dot={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card className="border-[var(--app-border)] bg-white transition-shadow hover:shadow-md">
+            <CardHeader>
+              <CardTitle className="text-base" style={headingStyle}>
+                Most Reconciled Sources
+              </CardTitle>
+              <CardDescription className="text-[var(--app-body)]">
+                Top 5 source pairs
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {analyticsLoading ? (
+                <div className="space-y-3">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <div key={i} className="h-10 rounded bg-muted animate-pulse" />
+                  ))}
+                </div>
+              ) : topSourcePairs.length === 0 ? (
+                <div className="flex h-[120px] items-center justify-center text-sm text-[var(--app-body)]">
+                  No data yet
+                </div>
+              ) : (
+                <ul className="space-y-3">
+                  {topSourcePairs.map(({ pair, count, avgMatchRate }) => (
+                    <li key={pair} className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-[var(--app-heading)] truncate max-w-[200px]">
+                        {pair}
+                      </span>
+                      <span className="text-xs text-[var(--app-body)] shrink-0 ml-2">
+                        <span className="font-medium">{count}</span> runs
+                        <span className="ml-1.5 inline-flex items-center rounded px-1.5 py-0.5 bg-muted text-xs font-medium">
+                          {Math.round(avgMatchRate * 100)}% avg
+                        </span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </CardContent>
+          </Card>
+        </div>
       </section>
 
       {/* Getting Started */}
