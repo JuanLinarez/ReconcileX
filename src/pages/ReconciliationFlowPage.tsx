@@ -1,6 +1,8 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/contexts/AuthContext';
+import { saveReconciliation } from '@/lib/database';
 import { Button } from '@/components/ui/button';
 import { UploadPage } from '@/features/upload/UploadPage';
 import { PreviewPage } from '@/features/preview/PreviewPage';
@@ -38,11 +40,13 @@ function createInitialSlots(): UploadSlot[] {
 }
 
 export function ReconciliationFlowPage() {
+  const { organizationId } = useAuth();
   const [step, setStep] = useState<Step>('upload');
   const [uploadSlots, setUploadSlots] = useState<UploadSlot[]>(createInitialSlots);
   const [pairIndices, setPairIndices] = useState<[number, number]>([0, 1]);
   const [config, setConfig] = useState<MatchingConfig>(DEFAULT_MATCHING_CONFIG);
   const [result, setResult] = useState<ReconciliationResult | null>(null);
+  const [currentReconciliationId, setCurrentReconciliationId] = useState<string | null>(null);
   const [previewResult, setPreviewResult] = useState<ReconciliationResult | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
 
@@ -80,9 +84,52 @@ export function ReconciliationFlowPage() {
     effectiveConfig.rules.length >= 1 &&
     weightsSumTo100(effectiveConfig.rules);
 
-  const handleRunMatching = () => {
+  const persistReconciliation = useCallback(
+    async (r: ReconciliationResult): Promise<string | null> => {
+      if (!organizationId || !sourceA || !sourceB) return null;
+      const slotA = uploadSlots[pairIndices[0]];
+      const slotB = uploadSlots[pairIndices[1]];
+      const sourceAName = sourceA.filename ?? slotA?.label ?? 'Source A';
+      const sourceBName = sourceB.filename ?? slotB?.label ?? 'Source B';
+      const sourceARows = sourceA.rows.length;
+      const sourceBRows = sourceB.rows.length;
+      const matchedCount = r.matched.length;
+      const totalRows = sourceARows + sourceBRows;
+      const matchRatePct = totalRows > 0 ? (matchedCount * 2 / totalRows) * 100 : 0;
+      const matchedAmount = r.matched.reduce((sum, m) => {
+        const amounts = [...m.transactionsA, ...m.transactionsB].map((t) => t.amount);
+        return sum + amounts.reduce((a, b) => a + b, 0) / Math.max(amounts.length, 1);
+      }, 0);
+      const id = await saveReconciliation({
+        organization_id: organizationId,
+        source_a_name: sourceAName,
+        source_b_name: sourceBName,
+        source_a_rows: sourceARows,
+        source_b_rows: sourceBRows,
+        matched_count: matchedCount,
+        unmatched_a_count: r.unmatchedA.length,
+        unmatched_b_count: r.unmatchedB.length,
+        match_rate: Math.min(100, matchRatePct),
+        matched_amount: matchedAmount,
+        matching_type: r.config.matchingType === 'oneToOne' ? '1:1' : 'group',
+        rules_config: r.config,
+        results_summary: {
+          matched_count: matchedCount,
+          unmatched_a_count: r.unmatchedA.length,
+          unmatched_b_count: r.unmatchedB.length,
+          match_rate_pct: Math.min(100, matchRatePct),
+        },
+      });
+      return id;
+    },
+    [organizationId, sourceA, sourceB, uploadSlots, pairIndices]
+  );
+
+  const handleRunMatching = async () => {
     const r = run();
     if (r) {
+      const id = await persistReconciliation(r);
+      setCurrentReconciliationId(id);
       setResult(r);
       setStep('results');
     }
@@ -99,8 +146,10 @@ export function ReconciliationFlowPage() {
     }, 0);
   };
 
-  const handleConfirmPreview = () => {
+  const handleConfirmPreview = async () => {
     if (previewResult) {
+      const id = await persistReconciliation(previewResult);
+      setCurrentReconciliationId(id);
       setResult(previewResult);
       setPreviewResult(null);
       setStep('results');
@@ -242,7 +291,7 @@ export function ReconciliationFlowPage() {
 
       {step === 'results' && result && (
         <>
-          <ResultsPage result={result} />
+          <ResultsPage result={result} reconciliationId={currentReconciliationId} />
           <div className="flex justify-between">
             <Button variant="outline" onClick={() => setStep('matchingRules')}>
               Back to Matching Rules

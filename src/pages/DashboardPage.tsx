@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import {
@@ -20,6 +20,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { getCustomTemplates } from '@/features/matching-rules/templates';
+import { getReconciliationStats, getReconciliations } from '@/lib/database';
+import type { ReconciliationRow } from '@/lib/database';
 
 function getGreeting(): string {
   const hour = new Date().getHours();
@@ -52,28 +54,71 @@ function getDisplayFirstName(user: { user_metadata?: { full_name?: string }; ema
   return 'there';
 }
 
+function formatRecDate(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
 export function DashboardPage() {
-  const { user } = useAuth();
+  const { user, organizationId } = useAuth();
   const templateCount = useMemo(() => getCustomTemplates().length, []);
   const displayName = getDisplayFirstName(user);
 
-  const stats = useMemo(
+  const [stats, setStats] = useState<{
+    total: number;
+    avgMatchRate: number | null;
+    aiAnalyses: number;
+  }>({ total: 0, avgMatchRate: null, aiAnalyses: 0 });
+  const [recentRows, setRecentRows] = useState<ReconciliationRow[]>([]);
+  const [statsLoading, setStatsLoading] = useState(true);
+  const [recentLoading, setRecentLoading] = useState(true);
+
+  useEffect(() => {
+    if (!organizationId) {
+      setStats({ total: 0, avgMatchRate: null, aiAnalyses: 0 });
+      setStatsLoading(false);
+      return;
+    }
+    setStatsLoading(true);
+    getReconciliationStats(organizationId)
+      .then((s) => setStats({
+        total: s.total_reconciliations,
+        avgMatchRate: s.average_match_rate,
+        aiAnalyses: s.total_ai_analyses,
+      }))
+      .finally(() => setStatsLoading(false));
+  }, [organizationId]);
+
+  useEffect(() => {
+    if (!organizationId) {
+      setRecentRows([]);
+      setRecentLoading(false);
+      return;
+    }
+    setRecentLoading(true);
+    getReconciliations(organizationId)
+      .then((rows) => setRecentRows(rows.slice(0, 5)))
+      .finally(() => setRecentLoading(false));
+  }, [organizationId]);
+
+  const statsCards = useMemo(
     () => [
       {
         label: 'Total Reconciliations',
-        value: '0',
+        value: statsLoading ? '…' : String(stats.total),
         icon: FileText,
         description: 'All time',
       },
       {
         label: 'Average Match Rate',
-        value: '—',
+        value: statsLoading ? '…' : stats.avgMatchRate != null ? `${Math.round(stats.avgMatchRate)}%` : '—',
         icon: Target,
         description: 'Across runs',
       },
       {
         label: 'AI Analyses',
-        value: '0',
+        value: statsLoading ? '…' : String(stats.aiAnalyses),
         icon: Brain,
         description: 'Exception analyses',
       },
@@ -84,7 +129,7 @@ export function DashboardPage() {
         description: 'Custom rule templates',
       },
     ],
-    [templateCount]
+    [statsLoading, stats.total, stats.avgMatchRate, stats.aiAnalyses, templateCount]
   );
 
   const tips = useMemo(
@@ -139,7 +184,7 @@ export function DashboardPage() {
 
       {/* Stats Cards */}
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map(({ label, value, icon: Icon, description }) => (
+        {statsCards.map(({ label, value, icon: Icon, description }) => (
           <Card
             key={label}
             className="transition-shadow hover:shadow-md border-[var(--app-border)] bg-white"
@@ -166,17 +211,50 @@ export function DashboardPage() {
           Recent Activity
         </h2>
         <Card className="border-[var(--app-border)] bg-white overflow-hidden">
-          <CardContent className="flex flex-col items-center justify-center py-14 text-center">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--app-bg-subtle)] text-[var(--app-body)]">
-              <ClipboardList className="h-7 w-7" />
-            </div>
-            <p className="mt-4 max-w-sm text-[var(--app-body)]">
-              No reconciliations yet. Start your first one to see activity here.
-            </p>
-            <Link to="/reconciliation/new" className="mt-4">
-              <Button>Get Started</Button>
-            </Link>
-          </CardContent>
+          {recentLoading ? (
+            <CardContent className="py-10">
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-12 rounded bg-muted animate-pulse" />
+                ))}
+              </div>
+            </CardContent>
+          ) : recentRows.length === 0 ? (
+            <CardContent className="flex flex-col items-center justify-center py-14 text-center">
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--app-bg-subtle)] text-[var(--app-body)]">
+                <ClipboardList className="h-7 w-7" />
+              </div>
+              <p className="mt-4 max-w-sm text-[var(--app-body)]">
+                No reconciliations yet. Start your first one to see activity here.
+              </p>
+              <Link to="/reconciliation/new" className="mt-4">
+                <Button>Get Started</Button>
+              </Link>
+            </CardContent>
+          ) : (
+            <CardContent className="p-0">
+              <ul className="divide-y divide-[var(--app-border)]">
+                {recentRows.map((r) => (
+                  <li key={r.id} className="flex items-center justify-between px-6 py-4">
+                    <div>
+                      <p className="font-medium text-[var(--app-heading)]">
+                        {r.source_a_name} vs {r.source_b_name}
+                      </p>
+                      <p className="text-sm text-[var(--app-body)]">{formatRecDate(r.created_at)}</p>
+                    </div>
+                    <span className="text-sm font-medium text-[var(--app-body)]">
+                      {Math.round(r.match_rate)}% match
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              <div className="border-t border-[var(--app-border)] px-6 py-3">
+                <Link to="/history">
+                  <Button variant="ghost" size="sm">View all</Button>
+                </Link>
+              </div>
+            </CardContent>
+          )}
         </Card>
       </section>
 

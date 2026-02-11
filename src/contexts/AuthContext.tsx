@@ -8,10 +8,12 @@ import {
 } from 'react';
 import type { Session, User } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
+import { getUserOrganization } from '@/lib/database';
 
 interface AuthContextValue {
   user: User | null;
   session: Session | null;
+  organizationId: string | null;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (params: {
@@ -28,6 +30,7 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -46,6 +49,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  useEffect(() => {
+    if (!user?.id) {
+      setOrganizationId(null);
+      return;
+    }
+    let cancelled = false;
+    getUserOrganization(user.id).then((orgId) => {
+      if (!cancelled) setOrganizationId(orgId);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
 
   const signIn = useCallback(async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -98,6 +115,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const value: AuthContextValue = {
     user,
     session,
+    organizationId,
     loading,
     signIn,
     signUp,

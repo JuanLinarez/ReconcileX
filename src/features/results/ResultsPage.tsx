@@ -39,9 +39,11 @@ import { exportToExcel, exportToCsv } from './exportResults';
 import type { ExceptionAnalysis } from './exceptionAnalysis';
 import { fetchAnalyzeException } from './exceptionAnalysis';
 import { ExceptionAnalysisPanel } from './ExceptionAnalysisPanel';
+import { saveAiAnalysis } from '@/lib/database';
 
 export interface ResultsPageProps {
   result: ReconciliationResult;
+  reconciliationId?: string | null;
   className?: string;
 }
 
@@ -180,7 +182,7 @@ function MatchDetailPanel({ match }: MatchDetailPanelProps) {
 
 const MATCHED_TABLE_COLUMNS = 8; // chevron + confidence + 6 data columns
 
-export function ResultsPage({ result, className }: ResultsPageProps) {
+export function ResultsPage({ result, reconciliationId, className }: ResultsPageProps) {
   const { matched, unmatchedA, unmatchedB } = result;
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [augmentation, setAugmentation] = useState(createInitialAugmentation);
@@ -321,6 +323,38 @@ export function ResultsPage({ result, className }: ResultsPageProps) {
         delete next[t.id];
         return next as Record<string, string>;
       });
+      if (reconciliationId) {
+        const transaction_data = {
+          id: t.id,
+          source: t.source,
+          amount: t.amount,
+          date: t.date instanceof Date ? t.date.toISOString() : String(t.date),
+          reference: t.reference,
+          rowIndex: t.rowIndex,
+          raw: t.raw,
+        };
+        const analysis_result = {
+          probableCause: fetchResult.analysis.probableCause,
+          recommendedAction: fetchResult.analysis.recommendedAction,
+          suggestedMatch: fetchResult.analysis.suggestedMatch
+            ? {
+                reason: fetchResult.analysis.suggestedMatch.reason,
+                confidence: fetchResult.analysis.suggestedMatch.confidence,
+                amountDiff: fetchResult.analysis.suggestedMatch.amountDiff,
+                dateDiffDays: fetchResult.analysis.suggestedMatch.dateDiffDays,
+                nameSimilarityPct: fetchResult.analysis.suggestedMatch.nameSimilarityPct,
+                transaction: {
+                  ...fetchResult.analysis.suggestedMatch.transaction,
+                  date:
+                    fetchResult.analysis.suggestedMatch.transaction.date instanceof Date
+                      ? fetchResult.analysis.suggestedMatch.transaction.date.toISOString()
+                      : String(fetchResult.analysis.suggestedMatch.transaction.date),
+                },
+              }
+            : undefined,
+        };
+        void saveAiAnalysis({ reconciliation_id: reconciliationId, transaction_data, analysis_result });
+      }
     } else {
       setErrorByTxId((prev) => ({ ...prev, [t.id]: fetchResult.error }));
       setOpenAnalysisTxId(t.id);
