@@ -1,6 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogClose,
+} from '@/components/ui/dialog';
+import { ArrowLeft } from 'lucide-react';
+import type { MatchingConfig } from '@/features/reconciliation/types';
 import { getReconciliations } from '@/lib/database';
 import type { ReconciliationRow } from '@/lib/database';
 import { Button } from '@/components/ui/button';
@@ -31,8 +42,23 @@ function formatDate(iso: string): string {
   });
 }
 
+function formatCurrency(amount: number): string {
+  return amount.toLocaleString('en-US', { style: 'currency', currency: 'USD', minimumFractionDigits: 2 });
+}
+
+function formatMatchType(mt: string): string {
+  const map: Record<string, string> = {
+    exact: 'Exact',
+    tolerance_numeric: 'Tolerance (numeric)',
+    tolerance_date: 'Tolerance (date)',
+    similar_text: 'Similar text',
+    contains: 'Contains',
+  };
+  return map[mt] ?? mt;
+}
+
 function MatchRateBadge({ rate }: { rate: number }) {
-  const pct = Math.round(rate);
+  const pct = Math.round(rate <= 1 ? rate * 100 : rate);
   const bgClass =
     pct >= 80
       ? 'bg-[var(--app-success)]/15 text-[var(--app-success)]'
@@ -78,10 +104,12 @@ function TableSkeleton() {
 }
 
 export function HistoryPage() {
+  const navigate = useNavigate();
   const { organizationId } = useAuth();
   const [rows, setRows] = useState<ReconciliationRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedRec, setSelectedRec] = useState<ReconciliationRow | null>(null);
 
   useEffect(() => {
     if (!organizationId) {
@@ -101,6 +129,9 @@ export function HistoryPage() {
 
   return (
     <div className="space-y-6">
+      <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="mb-2">
+        <ArrowLeft className="h-4 w-4 mr-1" /> Dashboard
+      </Button>
       <h1 className="text-2xl font-semibold text-[var(--app-heading)]" style={headingStyle}>
         Reconciliation History
       </h1>
@@ -154,7 +185,7 @@ export function HistoryPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Button variant="outline" size="sm" disabled>
+                      <Button variant="outline" size="sm" onClick={() => setSelectedRec(r)}>
                         View Details
                       </Button>
                     </TableCell>
@@ -189,6 +220,81 @@ export function HistoryPage() {
           </CardContent>
         </Card>
       )}
+
+      <Dialog open={selectedRec !== null} onOpenChange={(open) => { if (!open) setSelectedRec(null); }}>
+        <DialogContent className="max-w-md">
+          {selectedRec && (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-[var(--app-heading)]" style={headingStyle}>
+                  Reconciliation Details
+                </DialogTitle>
+                <DialogDescription className="text-muted-foreground">
+                  Summary for {selectedRec.source_a_name} vs {selectedRec.source_b_name}
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 text-sm">
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                  <span className="text-muted-foreground">Source A</span>
+                  <span className="font-medium">{selectedRec.source_a_name}</span>
+                  <span className="text-muted-foreground">Source B</span>
+                  <span className="font-medium">{selectedRec.source_b_name}</span>
+                  <span className="text-muted-foreground">Date created</span>
+                  <span className="font-medium">{formatDate(selectedRec.created_at)}</span>
+                  <span className="text-muted-foreground">Source A rows</span>
+                  <span className="font-medium">{selectedRec.source_a_rows}</span>
+                  <span className="text-muted-foreground">Source B rows</span>
+                  <span className="font-medium">{selectedRec.source_b_rows}</span>
+                  <span className="text-muted-foreground">Matched count</span>
+                  <span className="font-medium">{selectedRec.matched_count}</span>
+                  <span className="text-muted-foreground">Unmatched A</span>
+                  <span className="font-medium">{selectedRec.unmatched_a_count}</span>
+                  <span className="text-muted-foreground">Unmatched B</span>
+                  <span className="font-medium">{selectedRec.unmatched_b_count}</span>
+                  <span className="text-muted-foreground">Match rate</span>
+                  <span className="font-medium">
+                    <MatchRateBadge rate={selectedRec.match_rate} />
+                  </span>
+                  <span className="text-muted-foreground">Matched amount</span>
+                  <span className="font-medium">{formatCurrency(selectedRec.matched_amount ?? 0)}</span>
+                  <span className="text-muted-foreground">Matching type</span>
+                  <span className="font-medium">
+                    {selectedRec.matching_type === 'oneToOne' ? '1:1' : selectedRec.matching_type === 'group' ? 'Group' : selectedRec.matching_type}
+                  </span>
+                </div>
+                {(() => {
+                  const config = selectedRec.rules_config as MatchingConfig | undefined;
+                  const rules = config?.rules ?? [];
+                  if (rules.length === 0) return null;
+                  return (
+                    <div className="space-y-2">
+                      <span className="text-muted-foreground">Rules used</span>
+                      <ul className="space-y-2 rounded-md border border-[var(--app-border)] p-3">
+                        {rules.map((rule) => (
+                          <li key={rule.id} className="flex flex-wrap items-center gap-x-1 gap-y-1 text-sm">
+                            <span className="font-medium">{rule.columnA}</span>
+                            <span className="text-muted-foreground">↔</span>
+                            <span className="font-medium">{rule.columnB}</span>
+                            <span className="text-muted-foreground">·</span>
+                            <span>{formatMatchType(rule.matchType)}</span>
+                            <span className="text-muted-foreground">·</span>
+                            <span>Weight: {Math.round((rule.weight ?? 1) * 100)}%</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  );
+                })()}
+              </div>
+              <DialogFooter>
+                <DialogClose asChild>
+                  <Button variant="outline">Close</Button>
+                </DialogClose>
+              </DialogFooter>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
