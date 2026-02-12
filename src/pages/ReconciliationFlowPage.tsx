@@ -11,6 +11,7 @@ import { PreviewPage } from '@/features/preview/PreviewPage';
 import { MatchingRulesPage } from '@/features/matching-rules/MatchingRulesPage';
 import { ResultsPage } from '@/features/results/ResultsPage';
 import { useMatching } from '@/features/reconciliation/hooks/useMatching';
+import { runServerMatching } from '@/features/reconciliation/services/serverMatching';
 import { getDefaultRules } from '@/features/matching-rules/defaultRules';
 import type {
   ReconciliationResult,
@@ -22,6 +23,8 @@ import type { ParsedCsv } from '@/features/reconciliation/types';
 import { withSource } from '@/features/reconciliation/utils/parseCsv';
 
 type Step = 'upload' | 'normalize' | 'preview' | 'matchingRules' | 'results';
+
+const SERVER_MATCHING_THRESHOLD = 1500;
 
 function weightsSumTo100(rules: MatchingRule[]): boolean {
   if (rules.length === 0) return false;
@@ -52,6 +55,8 @@ export function ReconciliationFlowPage() {
   const [currentReconciliationId, setCurrentReconciliationId] = useState<string | null>(null);
   const [previewResult, setPreviewResult] = useState<ReconciliationResult | null>(null);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
+  const [isMatching, setIsMatching] = useState(false);
+  const [matchingProgress, setMatchingProgress] = useState<string>('');
   const [normalizedA, setNormalizedA] = useState<ParsedCsv | null>(null);
   const [normalizedB, setNormalizedB] = useState<ParsedCsv | null>(null);
 
@@ -76,6 +81,11 @@ export function ReconciliationFlowPage() {
     const defaultRules = getDefaultRules(headersA, headersB);
     return { ...config, rules: defaultRules };
   }, [config, effectiveSourceA?.headers, effectiveSourceB?.headers]);
+
+  const shouldUseServerMatching = useMemo(() => {
+    const totalRows = (effectiveSourceA?.rows.length ?? 0) + (effectiveSourceB?.rows.length ?? 0);
+    return totalRows >= SERVER_MATCHING_THRESHOLD;
+  }, [effectiveSourceA, effectiveSourceB]);
 
   const { run } = useMatching({
     sourceA: effectiveSourceA,
@@ -134,8 +144,27 @@ export function ReconciliationFlowPage() {
   );
 
   const handleRunMatching = async () => {
-    const r = run();
-    if (r) {
+    if (!canRunMatching || !effectiveSourceA || !effectiveSourceB) return;
+    setIsMatching(true);
+    setMatchingProgress('');
+
+    try {
+      let r: ReconciliationResult;
+
+      if (shouldUseServerMatching) {
+        const totalRows = effectiveSourceA.rows.length + effectiveSourceB.rows.length;
+        setMatchingProgress(`Processing ${totalRows.toLocaleString()} records on server...`);
+        r = await runServerMatching(effectiveSourceA, effectiveSourceB, effectiveConfig);
+      } else {
+        setMatchingProgress('Processing...');
+        const result = run();
+        if (!result) {
+          setIsMatching(false);
+          return;
+        }
+        r = result;
+      }
+
       const id = await persistReconciliation(r);
       setCurrentReconciliationId(id);
       setResult(r);
@@ -143,18 +172,43 @@ export function ReconciliationFlowPage() {
       if (organizationId) {
         captureRuleConfiguration(organizationId, r.config.rules);
       }
+    } catch (error) {
+      console.error('Matching failed:', error);
+      setMatchingProgress(
+        error instanceof Error ? error.message : 'Matching failed. Please try again.'
+      );
+      setTimeout(() => {
+        setIsMatching(false);
+        setMatchingProgress('');
+      }, 5000);
+      return;
     }
+    setIsMatching(false);
+    setMatchingProgress('');
   };
 
-  const handlePreview = () => {
-    if (!canRunMatching) return;
+  const handlePreview = async () => {
+    if (!canRunMatching || !effectiveSourceA || !effectiveSourceB) return;
     setIsPreviewLoading(true);
     setPreviewResult(null);
-    setTimeout(() => {
-      const r = run();
-      setPreviewResult(r ?? null);
+    setMatchingProgress('');
+
+    try {
+      if (shouldUseServerMatching) {
+        const totalRows = effectiveSourceA.rows.length + effectiveSourceB.rows.length;
+        setMatchingProgress(`Previewing ${totalRows.toLocaleString()} records on server...`);
+        const r = await runServerMatching(effectiveSourceA, effectiveSourceB, effectiveConfig);
+        setPreviewResult(r);
+      } else {
+        const r = run();
+        setPreviewResult(r ?? null);
+      }
+    } catch (error) {
+      console.error('Preview failed:', error);
+    } finally {
       setIsPreviewLoading(false);
-    }, 0);
+      setMatchingProgress('');
+    }
   };
 
   const handleConfirmPreview = async () => {
@@ -316,6 +370,21 @@ export function ReconciliationFlowPage() {
             onConfirmPreview={handleConfirmPreview}
             organizationId={organizationId}
           />
+
+          {(isMatching || matchingProgress) && (
+            <div className="flex items-center justify-center gap-3 rounded-lg border border-[var(--app-border)] bg-white p-6">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--app-primary)] border-t-transparent" />
+              <span className="text-sm font-medium text-[var(--app-body)]">
+                {matchingProgress || 'Processing...'}
+              </span>
+              {shouldUseServerMatching && (
+                <span className="text-xs text-[var(--app-body)]/60">
+                  (Large dataset — processing on server)
+                </span>
+              )}
+            </div>
+          )}
+
           <div className="flex flex-wrap items-center justify-between gap-4">
             <Button variant="outline" onClick={() => setStep('preview')}>
               Back
@@ -323,13 +392,13 @@ export function ReconciliationFlowPage() {
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
-                disabled={!canRunMatching || isPreviewLoading}
+                disabled={!canRunMatching || isPreviewLoading || isMatching}
                 onClick={handlePreview}
               >
                 {isPreviewLoading ? 'Calculating…' : 'Preview Results'}
               </Button>
-              <Button disabled={!canRunMatching} onClick={handleRunMatching}>
-                Run Matching
+              <Button disabled={!canRunMatching || isMatching} onClick={handleRunMatching}>
+                {isMatching ? 'Processing…' : 'Run Matching'}
               </Button>
             </div>
           </div>
@@ -338,6 +407,20 @@ export function ReconciliationFlowPage() {
 
       {step === 'results' && result && (
         <>
+          {(isMatching || matchingProgress) && (
+            <div className="flex items-center justify-center gap-3 rounded-lg border border-[var(--app-border)] bg-white p-6">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--app-primary)] border-t-transparent" />
+              <span className="text-sm font-medium text-[var(--app-body)]">
+                {matchingProgress || 'Processing...'}
+              </span>
+              {shouldUseServerMatching && (
+                <span className="text-xs text-[var(--app-body)]/60">
+                  (Large dataset — processing on server)
+                </span>
+              )}
+            </div>
+          )}
+
           <ResultsPage
             result={result}
             reconciliationId={currentReconciliationId}
@@ -357,7 +440,9 @@ export function ReconciliationFlowPage() {
             <Button variant="outline" onClick={() => setStep('matchingRules')}>
               Back to Matching Rules
             </Button>
-            <Button onClick={handleRunMatching}>Run again</Button>
+            <Button onClick={handleRunMatching} disabled={isMatching}>
+              {isMatching ? 'Processing…' : 'Run again'}
+            </Button>
           </div>
         </>
       )}
