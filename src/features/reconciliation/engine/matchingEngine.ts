@@ -320,12 +320,82 @@ function runOneToOnePass(
   const rules = config.rules;
   type Pair = { a: Transaction; b: Transaction; score: number };
   const pairs: Pair[] = [];
-  for (const a of transactionsA) {
-    for (const b of transactionsB) {
-      const score = pairScore(a, b, rules);
-      if (score >= config.minConfidenceThreshold) pairs.push({ a, b, score });
+
+  const numericRule = rules.find((r) => r.matchType === 'tolerance_numeric');
+
+  if (numericRule) {
+    const colA = numericRule.columnA;
+    const colB = numericRule.columnB;
+    const mode = numericRule.toleranceNumericMode ?? 'percentage';
+    const rawTol = numericRule.toleranceValue ?? 0.1;
+
+    const indexedB = transactionsB
+      .map((b) => ({
+        tx: b,
+        amount: parseAmount(String(b.raw[colB] ?? '')),
+      }))
+      .sort((a, b) => a.amount - b.amount);
+
+    const bAmounts = indexedB.map((x) => x.amount);
+
+    function lowerBound(arr: number[], target: number): number {
+      let lo = 0;
+      let hi = arr.length;
+      while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (arr[mid] < target) lo = mid + 1;
+        else hi = mid;
+      }
+      return lo;
+    }
+
+    function upperBound(arr: number[], target: number): number {
+      let lo = 0;
+      let hi = arr.length;
+      while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (arr[mid] <= target) lo = mid + 1;
+        else hi = mid;
+      }
+      return lo;
+    }
+
+    for (const a of transactionsA) {
+      const amtA = parseAmount(String(a.raw[colA] ?? ''));
+      const filterTol =
+        mode === 'fixed'
+          ? rawTol * 5
+          : Math.max(amtA, 1) * rawTol * 5;
+
+      const lo = lowerBound(bAmounts, amtA - filterTol);
+      const hi = upperBound(bAmounts, amtA + filterTol);
+
+      for (let i = lo; i < hi; i++) {
+        const b = indexedB[i].tx;
+        const score = pairScore(a, b, rules);
+        if (score >= config.minConfidenceThreshold) {
+          pairs.push({ a, b, score });
+        }
+      }
+    }
+  } else {
+    const totalComparisons = transactionsA.length * transactionsB.length;
+    if (totalComparisons > 10_000_000) {
+      throw new Error(
+        `Dataset too large for matching without amount rules: ${transactionsA.length} × ${transactionsB.length} = ${totalComparisons.toLocaleString()} comparisons. Add an amount matching rule to enable pre-filtering.`
+      );
+    }
+
+    for (const a of transactionsA) {
+      for (const b of transactionsB) {
+        const score = pairScore(a, b, rules);
+        if (score >= config.minConfidenceThreshold) {
+          pairs.push({ a, b, score });
+        }
+      }
     }
   }
+
   pairs.sort((x, y) => y.score - x.score);
 
   const matchedAIds = new Set<string>();
