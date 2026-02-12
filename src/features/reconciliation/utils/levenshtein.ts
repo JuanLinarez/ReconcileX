@@ -1,45 +1,62 @@
 /**
- * Levenshtein (edit) distance between two strings.
- * Returns the minimum number of single-character edits (insertions, deletions, substitutions)
- * needed to change one string into the other.
+ * Levenshtein distance — single-row DP (O(min(n,m)) memory) with early termination.
  */
-export function levenshteinDistance(a: string, b: string): number {
-  const lenA = a.length;
-  const lenB = b.length;
-  if (lenA === 0) return lenB;
-  if (lenB === 0) return lenA;
+export function levenshteinDistance(a: string, b: string, maxDistance?: number): number {
+  if (a === b) return 0;
+  let s1 = a, s2 = b;
+  // Ensure s1 is the shorter string for O(min(n,m)) memory
+  if (s1.length > s2.length) { const tmp = s1; s1 = s2; s2 = tmp; }
+  const len1 = s1.length;
+  const len2 = s2.length;
+  if (len1 === 0) return len2;
+  if (len2 === 0) return len1;
 
-  const matrix: number[][] = Array.from({ length: lenA + 1 }, () =>
-    Array.from({ length: lenB + 1 }, () => 0)
-  );
+  // Early termination: if length difference alone exceeds max, skip
+  if (maxDistance !== undefined && (len2 - len1) > maxDistance) return len2 - len1;
 
-  for (let i = 0; i <= lenA; i++) matrix[i][0] = i;
-  for (let j = 0; j <= lenB; j++) matrix[0][j] = j;
+  const row = new Array<number>(len1 + 1);
+  for (let i = 0; i <= len1; i++) row[i] = i;
 
-  for (let i = 1; i <= lenA; i++) {
-    for (let j = 1; j <= lenB; j++) {
-      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
-      matrix[i][j] = Math.min(
-        matrix[i - 1][j] + 1,
-        matrix[i][j - 1] + 1,
-        matrix[i - 1][j - 1] + cost
+  for (let j = 1; j <= len2; j++) {
+    let prev = row[0];
+    row[0] = j;
+    let rowMin = row[0];
+    for (let i = 1; i <= len1; i++) {
+      const cost = s1[i - 1] === s2[j - 1] ? 0 : 1;
+      const val = Math.min(
+        row[i] + 1,        // deletion
+        row[i - 1] + 1,    // insertion
+        prev + cost         // substitution
       );
+      prev = row[i];
+      row[i] = val;
+      if (val < rowMin) rowMin = val;
     }
+    // Early termination: if minimum value in row exceeds maxDistance, impossible to be within threshold
+    if (maxDistance !== undefined && rowMin > maxDistance) return rowMin;
   }
-  return matrix[lenA][lenB];
+  return row[len1];
 }
 
 /**
- * Normalized similarity score 0–1 based on Levenshtein distance.
- * 1 = identical, 0 = completely different.
- * Uses (1 - distance / maxLength) so that longer strings allow more edits for the same score.
+ * Normalized similarity 0–1 with early termination based on threshold.
  */
-export function normalizedSimilarity(a: string, b: string): number {
-  const trimmedA = a.trim();
-  const trimmedB = b.trim();
-  if (trimmedA === trimmedB) return 1;
-  if (trimmedA.length === 0 || trimmedB.length === 0) return 0;
-  const distance = levenshteinDistance(trimmedA, trimmedB);
-  const maxLen = Math.max(trimmedA.length, trimmedB.length);
+export function normalizedSimilarity(a: string, b: string, threshold?: number): number {
+  const ta = a.trim();
+  const tb = b.trim();
+  if (ta === tb) return 1;
+  if (ta.length === 0 || tb.length === 0) return 0;
+
+  const maxLen = Math.max(ta.length, tb.length);
+
+  // Length pre-filter: if length difference alone makes similarity below threshold, skip
+  if (threshold !== undefined) {
+    const lenDiff = Math.abs(ta.length - tb.length);
+    const bestPossible = 1 - lenDiff / maxLen;
+    if (bestPossible < threshold) return bestPossible;
+  }
+
+  const maxDist = threshold !== undefined ? Math.floor(maxLen * (1 - threshold)) : undefined;
+  const distance = levenshteinDistance(ta, tb, maxDist);
   return 1 - distance / maxLen;
 }
