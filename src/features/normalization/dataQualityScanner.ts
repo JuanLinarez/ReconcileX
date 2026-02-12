@@ -253,24 +253,36 @@ function detectVendorNameVariations(
       ? sourceB.rows.map((r, i) => ({ raw: String(r[col] ?? '').trim(), rowIndex: i }))
       : [];
 
-    const allValues = [...valuesA, ...valuesB].filter((v) => v.raw.length > 2);
-    if (allValues.length < 2) continue;
+    // Deduplicate: only compare UNIQUE values, not every row
+    const uniqueMap = new Map<string, number[]>();
+    for (const v of [...valuesA, ...valuesB]) {
+      if (v.raw.length < 2) continue;
+      const norm = normalizeForComparison(v.raw);
+      const rows = uniqueMap.get(norm) ?? [];
+      rows.push(v.rowIndex);
+      uniqueMap.set(norm, rows);
+    }
+
+    const uniqueValues = Array.from(uniqueMap.keys());
+
+    // Skip if too many unique values (>500) — would still be O(n²)
+    if (uniqueValues.length > 500) continue;
 
     const groups: Set<string>[] = [];
     const used = new Set<number>();
 
-    for (let i = 0; i < allValues.length; i++) {
+    for (let i = 0; i < uniqueValues.length; i++) {
       if (used.has(i)) continue;
-      const normI = normalizeForComparison(allValues[i].raw);
-      const group = new Set<string>([allValues[i].raw]);
+      const normI = uniqueValues[i];
+      const group = new Set<string>([normI]);
       used.add(i);
 
-      for (let j = i + 1; j < allValues.length; j++) {
+      for (let j = i + 1; j < uniqueValues.length; j++) {
         if (used.has(j)) continue;
-        const normJ = normalizeForComparison(allValues[j].raw);
+        const normJ = uniqueValues[j];
         const sim = normalizedSimilarity(normI, normJ);
         if (sim >= 0.7 && normI !== normJ) {
-          group.add(allValues[j].raw);
+          group.add(normJ);
           used.add(j);
         }
       }
@@ -280,12 +292,17 @@ function detectVendorNameVariations(
     }
 
     if (groups.length > 0) {
-      const variantStrings = new Set<string>();
+      const variantNorms = new Set<string>();
       for (const g of groups) {
-        for (const s of g) variantStrings.add(s);
+        for (const s of g) variantNorms.add(s);
       }
-      const affectedA = valuesA.filter((v) => variantStrings.has(v.raw)).map((v) => v.rowIndex);
-      const affectedB = valuesB.filter((v) => variantStrings.has(v.raw)).map((v) => v.rowIndex);
+
+      const affectedA = valuesA
+        .filter((v) => variantNorms.has(normalizeForComparison(v.raw)))
+        .map((v) => v.rowIndex);
+      const affectedB = valuesB
+        .filter((v) => variantNorms.has(normalizeForComparison(v.raw)))
+        .map((v) => v.rowIndex);
 
       if (affectedA.length > 0 && sourceA.headers.includes(col)) {
         issuesA.push({
