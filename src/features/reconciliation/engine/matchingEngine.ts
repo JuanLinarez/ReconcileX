@@ -230,7 +230,7 @@ function buildSimilarityCache(
     const cacheKey = `${rule.columnA}::${rule.columnB}`;
     const pairCache = new Map<string, number>();
 
-    // Collect unique values from each side
+    // Collect unique values to check size
     const uniqueA = new Set<string>();
     const uniqueB = new Set<string>();
     for (const t of transactionsA) {
@@ -242,14 +242,21 @@ function buildSimilarityCache(
       if (v) uniqueB.add(v);
     }
 
-    // Pre-compute all unique pair similarities
-    for (const a of uniqueA) {
-      for (const b of uniqueB) {
-        const key = `${a}\0${b}`;
-        const sim = normalizedSimilarity(a, b, threshold);
-        if (sim > 0) pairCache.set(key, sim);
+    const totalPairs = uniqueA.size * uniqueB.size;
+
+    // Only pre-compute if manageable (< 50,000 pairs)
+    if (totalPairs < 50_000) {
+      for (const a of uniqueA) {
+        for (const b of uniqueB) {
+          const key = `${a}\0${b}`;
+          const sim = normalizedSimilarity(a, b, threshold);
+          if (sim > 0) pairCache.set(key, sim);
+        }
       }
+      // Mark as fully pre-computed
+      pairCache.set('__precomputed__', 1);
     }
+    // If too large, cache stays empty and will be filled lazily in ruleScore
 
     cache.set(cacheKey, pairCache);
   }
@@ -308,7 +315,6 @@ function ruleScore(
       if (!a || !b) return 0;
       const threshold = rule.similarityThreshold ?? 0.8;
 
-      // Try cache first
       if (simCache) {
         const cacheKey = `${rule.columnA}::${rule.columnB}`;
         const pairCache = simCache.get(cacheKey);
@@ -316,7 +322,14 @@ function ruleScore(
           const key = `${a}\0${b}`;
           const cached = pairCache.get(key);
           if (cached !== undefined) return cached >= threshold ? cached : 0;
-          return 0; // Not in cache means similarity was 0 or below threshold
+
+          // If pre-computed, absence means similarity was 0
+          if (pairCache.has('__precomputed__')) return 0;
+
+          // Lazy compute and cache
+          const sim = normalizedSimilarity(a, b, threshold);
+          pairCache.set(key, sim);
+          return sim >= threshold ? sim : 0;
         }
       }
 
