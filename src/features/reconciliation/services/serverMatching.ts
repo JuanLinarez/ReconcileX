@@ -14,6 +14,9 @@ export async function runServerMatching({
   sourceB,
   config,
 }: ServerMatchingInput): Promise<ReconciliationResult> {
+  console.log(`[serverMatching] URL: ${import.meta.env.VITE_SUPABASE_URL}/functions/v1/match-records`);
+  console.log(`[serverMatching] Auth key present: ${!!import.meta.env.VITE_SUPABASE_ANON_KEY}`);
+
   const csvA = serializeToCsv(sourceA.headers, sourceA.rows);
   const csvB = serializeToCsv(sourceB.headers, sourceB.rows);
 
@@ -37,11 +40,22 @@ export async function runServerMatching({
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => null);
-    throw new Error(errorData?.error || `Server matching failed: ${response.status}`);
+    const errorText = await response.text();
+    console.error(`[serverMatching] Error ${response.status}:`, errorText);
+    let errorMessage: string;
+    try {
+      const errorData = JSON.parse(errorText);
+      errorMessage = errorData.error || `Server matching failed: ${response.status}`;
+    } catch {
+      errorMessage = `Server matching failed: ${response.status} - ${errorText.substring(0, 200)}`;
+    }
+    throw new Error(errorMessage);
   }
 
-  const data = await response.json();
+  const data = await response.json().catch((err) => {
+    console.error('[serverMatching] Failed to parse response JSON:', err);
+    throw new Error('Invalid JSON response from server');
+  });
 
   const deserializeTx = (t: unknown): Record<string, unknown> & { date: Date } => {
     const o = t as Record<string, unknown> & { date?: string };
