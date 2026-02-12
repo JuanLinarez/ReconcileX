@@ -185,7 +185,15 @@ export function HistoryPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      <Button variant="outline" size="sm" onClick={() => setSelectedRec(r)}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedRec(r);
+                        }}
+                      >
                         View Details
                       </Button>
                     </TableCell>
