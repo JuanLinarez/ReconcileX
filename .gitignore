@@ -24,3 +24,6 @@ dist-ssr
 *.sw?
 
 .vercel
+
+reconcilex-src/
+reconcilex-src.zip

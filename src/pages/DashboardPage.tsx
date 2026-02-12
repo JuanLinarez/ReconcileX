@@ -469,7 +469,7 @@ export function DashboardPage() {
                       <span className="text-xs text-[var(--app-body)] shrink-0 ml-2">
                         <span className="font-medium">{count}</span> runs
                         <span className="ml-1.5 inline-flex items-center rounded px-1.5 py-0.5 bg-muted text-xs font-medium">
-                          {Math.round(avgMatchRate * 100)}% avg
+                          {Math.round(avgMatchRate)}% avg
                         </span>
                       </span>
                     </li>
