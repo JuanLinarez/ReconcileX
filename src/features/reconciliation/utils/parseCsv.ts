@@ -137,3 +137,23 @@ export function parseSourceFile(file: File, source: DataSource): Promise<ParseFi
 export function withSource(data: ParsedCsv, source: DataSource): ParsedCsv {
   return { ...data, source };
 }
+
+/**
+ * Re-serialize parsed CSV data back to CSV text string.
+ * RFC 4180 compliant: quotes fields containing comma, quote, or newline.
+ * Used to send data to server-side matching as compact CSV instead of verbose JSON.
+ */
+export function serializeToCsv(headers: string[], rows: Record<string, string>[]): string {
+  const escapeField = (field: string): string => {
+    if (field.includes(',') || field.includes('"') || field.includes('\n') || field.includes('\r')) {
+      return '"' + field.replace(/"/g, '""') + '"';
+    }
+    return field;
+  };
+
+  const headerLine = headers.map(escapeField).join(',');
+  const dataLines = rows.map(row =>
+    headers.map(h => escapeField(row[h] ?? '')).join(',')
+  );
+  return [headerLine, ...dataLines].join('\n');
+}

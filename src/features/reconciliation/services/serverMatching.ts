@@ -1,65 +1,64 @@
-import type {
-  MatchingConfig,
-  ReconciliationResult,
-  ParsedCsv,
-  Transaction,
-} from '../types';
+import type { MatchingConfig, ParsedCsv, ReconciliationResult } from '../types';
+import { serializeToCsv } from '../utils/parseCsv';
 
-export interface ServerMatchingResponse {
-  matched: Array<{
-    transactionsA: Array<Transaction & { date: string }>;
-    transactionsB: Array<Transaction & { date: string }>;
-    confidence: number;
-  }>;
-  unmatchedA: Array<Transaction & { date: string }>;
-  unmatchedB: Array<Transaction & { date: string }>;
+const MATCH_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/match-records`;
+
+interface ServerMatchingInput {
+  sourceA: ParsedCsv;
+  sourceB: ParsedCsv;
   config: MatchingConfig;
-  stats: {
-    matchedCount: number;
-    unmatchedACount: number;
-    unmatchedBCount: number;
-    matchRate: number;
-    processingTimeMs: number;
-  };
 }
 
-function convertDates<T extends { date: string }>(transactions: T[]): (Omit<T, 'date'> & { date: Date })[] {
-  return transactions.map((t) => ({
-    ...t,
-    date: new Date(t.date),
-  }));
-}
+export async function runServerMatching({
+  sourceA,
+  sourceB,
+  config,
+}: ServerMatchingInput): Promise<ReconciliationResult> {
+  const csvA = serializeToCsv(sourceA.headers, sourceA.rows);
+  const csvB = serializeToCsv(sourceB.headers, sourceB.rows);
 
-export async function runServerMatching(
-  sourceA: ParsedCsv,
-  sourceB: ParsedCsv,
-  config: MatchingConfig
-): Promise<ReconciliationResult> {
-  const response = await fetch('/api/match', {
+  console.log(
+    `[serverMatching] Sending ${sourceA.rows.length} + ${sourceB.rows.length} rows as CSV (${((csvA.length + csvB.length) / 1024).toFixed(0)}KB)`
+  );
+
+  const response = await fetch(MATCH_FUNCTION_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+    },
     body: JSON.stringify({
-      sourceA: { headers: sourceA.headers, rows: sourceA.rows, filename: sourceA.filename },
-      sourceB: { headers: sourceB.headers, rows: sourceB.rows, filename: sourceB.filename },
+      csvA,
+      csvB,
+      filenameA: sourceA.filename ?? 'Source A',
+      filenameB: sourceB.filename ?? 'Source B',
       config,
     }),
   });
 
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Server matching failed' }));
-    throw new Error(error.message || `Server error: ${response.status}`);
+    const errorData = await response.json().catch(() => null);
+    throw new Error(errorData?.error || `Server matching failed: ${response.status}`);
   }
 
-  const data: ServerMatchingResponse = await response.json();
+  const data = await response.json();
+
+  const deserializeTx = (t: unknown): Record<string, unknown> & { date: Date } => {
+    const o = t as Record<string, unknown> & { date?: string };
+    return {
+      ...o,
+      date: o.date ? new Date(o.date) : new Date(NaN),
+    };
+  };
 
   return {
-    matched: data.matched.map((m) => ({
-      transactionsA: convertDates(m.transactionsA) as Transaction[],
-      transactionsB: convertDates(m.transactionsB) as Transaction[],
+    matched: data.matched.map((m: { transactionsA: unknown[]; transactionsB: unknown[]; confidence: number }) => ({
+      transactionsA: m.transactionsA.map(deserializeTx),
+      transactionsB: m.transactionsB.map(deserializeTx),
       confidence: m.confidence,
     })),
-    unmatchedA: convertDates(data.unmatchedA) as Transaction[],
-    unmatchedB: convertDates(data.unmatchedB) as Transaction[],
+    unmatchedA: data.unmatchedA.map(deserializeTx),
+    unmatchedB: data.unmatchedB.map(deserializeTx),
     config: data.config,
   };
 }
