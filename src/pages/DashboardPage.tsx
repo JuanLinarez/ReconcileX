@@ -337,7 +337,7 @@ export function DashboardPage() {
                     <XAxis dataKey="date" tick={{ fontSize: 10 }} tickFormatter={(v) => v.slice(5)} />
                     <YAxis tick={{ fontSize: 10 }} />
                     <Tooltip
-                      formatter={(value: number) => [value, 'Count']}
+                      formatter={(value) => [value ?? 0, 'Count']}
                       labelFormatter={(label) => `Date: ${label}`}
                     />
                     <Area
@@ -421,7 +421,7 @@ export function DashboardPage() {
                         <XAxis dataKey="date" hide tickFormatter={(v) => v.slice(5)} />
                         <YAxis hide width={1} />
                         <Tooltip
-                          formatter={(value: number) => [value, 'AI calls']}
+                          formatter={(value) => [value ?? 0, 'AI calls']}
                           labelFormatter={(label) => `Date: ${label}`}
                         />
                         <Line

@@ -5,7 +5,6 @@ import { AuthPage } from '@/pages/AuthPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { ReconciliationFlowPage } from '@/pages/ReconciliationFlowPage';
 import { HistoryPage } from '@/pages/HistoryPage';
-import { PlaceholderPage } from '@/pages/PlaceholderPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { TemplatesPage } from '@/pages/TemplatesPage';
 

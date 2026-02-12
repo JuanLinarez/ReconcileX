@@ -88,7 +88,7 @@ function formatDate(iso: string): string {
 }
 
 export function TemplatesPage() {
-  const { user, organizationId } = useAuth();
+  const { organizationId } = useAuth();
   const [customTemplates, setCustomTemplates] = useState<MatchingTemplateRow[]>([]);
   const [loading, setLoading] = useState(true);
 
