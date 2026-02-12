@@ -1,8 +1,6 @@
 import type { MatchingConfig, ParsedCsv, ReconciliationResult } from '../types';
 import { serializeToCsv } from '../utils/parseCsv';
 
-const MATCH_FUNCTION_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/match-records`;
-
 interface ServerMatchingInput {
   sourceA: ParsedCsv;
   sourceB: ParsedCsv;
@@ -14,22 +12,17 @@ export async function runServerMatching({
   sourceB,
   config,
 }: ServerMatchingInput): Promise<ReconciliationResult> {
-  console.log(`[serverMatching] URL: ${import.meta.env.VITE_SUPABASE_URL}/functions/v1/match-records`);
-  console.log(`[serverMatching] Auth key present: ${!!import.meta.env.VITE_SUPABASE_ANON_KEY}`);
-
   const csvA = serializeToCsv(sourceA.headers, sourceA.rows);
   const csvB = serializeToCsv(sourceB.headers, sourceB.rows);
 
+  const payloadSizeKB = ((csvA.length + csvB.length) / 1024).toFixed(0);
   console.log(
-    `[serverMatching] Sending ${sourceA.rows.length} + ${sourceB.rows.length} rows as CSV (${((csvA.length + csvB.length) / 1024).toFixed(0)}KB)`
+    `[serverMatching] Sending ${sourceA.rows.length} + ${sourceB.rows.length} rows as CSV (${payloadSizeKB}KB) to Vercel /api/match`
   );
 
-  const response = await fetch(MATCH_FUNCTION_URL, {
+  const response = await fetch('/api/match', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       csvA,
       csvB,
@@ -52,10 +45,7 @@ export async function runServerMatching({
     throw new Error(errorMessage);
   }
 
-  const data = await response.json().catch((err) => {
-    console.error('[serverMatching] Failed to parse response JSON:', err);
-    throw new Error('Invalid JSON response from server');
-  });
+  const data = await response.json();
 
   const deserializeTx = (t: unknown): Record<string, unknown> & { date: Date } => {
     const o = t as Record<string, unknown> & { date?: string };

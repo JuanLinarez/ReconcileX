@@ -6,7 +6,7 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
 export const config = {
-  maxDuration: 55,
+  maxDuration: 300,
   api: {
     bodyParser: {
       sizeLimit: '20mb',
@@ -15,6 +15,54 @@ export const config = {
 };
 
 const MAX_TOTAL_ROWS = 50_000;
+
+function parseCsvText(csv: string): { headers: string[]; rows: Record<string, string>[] } {
+  const lines: string[] = [];
+  let current = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < csv.length; i++) {
+    const ch = csv[i];
+    if (ch === '"') {
+      if (inQuotes && csv[i + 1] === '"') { current += '"'; i++; }
+      else { inQuotes = !inQuotes; }
+    } else if ((ch === '\n' || ch === '\r') && !inQuotes) {
+      if (current.length > 0) lines.push(current);
+      current = '';
+      if (ch === '\r' && csv[i + 1] === '\n') i++;
+    } else {
+      current += ch;
+    }
+  }
+  if (current.length > 0) lines.push(current);
+  if (lines.length === 0) return { headers: [], rows: [] };
+
+  const parseRow = (line: string): string[] => {
+    const fields: string[] = [];
+    let field = '';
+    let inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') {
+        if (inQ && line[i + 1] === '"') { field += '"'; i++; }
+        else { inQ = !inQ; }
+      } else if (c === ',' && !inQ) {
+        fields.push(field); field = '';
+      } else { field += c; }
+    }
+    fields.push(field);
+    return fields;
+  };
+
+  const headers = parseRow(lines[0]);
+  const rows = lines.slice(1).map(line => {
+    const values = parseRow(line);
+    const row: Record<string, string> = {};
+    headers.forEach((h, i) => { row[h] = (values[i] ?? '').trim(); });
+    return row;
+  });
+  return { headers, rows };
+}
 
 // --- Inline types (no @/ or src/ imports) ---
 
@@ -631,18 +679,6 @@ function toPayloadMatch(m: MatchResult): MatchResultPayload {
   };
 }
 
-// --- Request/Response types ---
-
-interface MatchRequestBody {
-  sourceA: { headers: string[]; rows: Record<string, string>[]; filename?: string };
-  sourceB: { headers: string[]; rows: Record<string, string>[]; filename?: string };
-  config: {
-    rules: MatchingRule[];
-    minConfidenceThreshold: number;
-    matchingType: 'oneToOne' | 'group';
-  };
-}
-
 export default async function handler(
   req: VercelRequest,
   res: VercelResponse
@@ -654,22 +690,13 @@ export default async function handler(
     return;
   }
 
-  let body: MatchRequestBody;
+  let body: Record<string, unknown>;
   try {
-    body = req.body as MatchRequestBody;
-    if (
-      !body ||
-      !body.sourceA ||
-      !body.sourceB ||
-      !body.config ||
-      !Array.isArray(body.sourceA.rows) ||
-      !Array.isArray(body.sourceB.rows) ||
-      !Array.isArray(body.config.rules) ||
-      body.config.rules.length === 0
-    ) {
+    body = req.body as Record<string, unknown>;
+    if (!body || !body.config || !Array.isArray((body.config as { rules?: unknown[] }).rules) || (body.config as { rules: unknown[] }).rules.length === 0) {
       res.status(400).json({
         error: 'Bad request',
-        message: 'Request body must include sourceA, sourceB, config with rules',
+        message: 'Request body must include config with rules. Provide csvA/csvB or sourceA/sourceB.',
       });
       return;
     }
@@ -678,7 +705,34 @@ export default async function handler(
     return;
   }
 
-  const totalRows = body.sourceA.rows.length + body.sourceB.rows.length;
+  let rowsA: Record<string, string>[];
+  let rowsB: Record<string, string>[];
+  let headersA: string[];
+  let headersB: string[];
+  const config = body.config as MatchingConfig;
+
+  if (body.csvA && body.csvB) {
+    const parsedA = parseCsvText(body.csvA as string);
+    const parsedB = parseCsvText(body.csvB as string);
+    rowsA = parsedA.rows;
+    rowsB = parsedB.rows;
+    headersA = parsedA.headers;
+    headersB = parsedB.headers;
+    console.log(`[match] CSV format: ${rowsA.length} + ${rowsB.length} rows`);
+  } else if (body.sourceA && body.sourceB) {
+    const sa = body.sourceA as { headers: string[]; rows: Record<string, string>[] };
+    const sb = body.sourceB as { headers: string[]; rows: Record<string, string>[] };
+    rowsA = sa.rows;
+    rowsB = sb.rows;
+    headersA = sa.headers;
+    headersB = sb.headers;
+    console.log(`[match] JSON format: ${rowsA.length} + ${rowsB.length} rows`);
+  } else {
+    res.status(400).json({ error: 'Provide csvA/csvB or sourceA/sourceB' });
+    return;
+  }
+
+  const totalRows = rowsA.length + rowsB.length;
   if (totalRows > MAX_TOTAL_ROWS) {
     res.status(400).json({
       error: 'Bad request',
@@ -688,34 +742,25 @@ export default async function handler(
   }
 
   const startTime = Date.now();
-  const potentialComparisons =
-    body.sourceA.rows.length * body.sourceB.rows.length;
+  const potentialComparisons = rowsA.length * rowsB.length;
   console.log(
-    `[match] Starting: ${body.sourceA.rows.length} × ${body.sourceB.rows.length} = ${potentialComparisons.toLocaleString()} potential comparisons`
+    `[match] Starting: ${rowsA.length} × ${rowsB.length} = ${potentialComparisons.toLocaleString()} potential comparisons`
   );
 
   try {
     const { mappingA, mappingB } = deriveColumnMappingFromRules(
-      body.config.rules,
-      body.sourceA.headers,
-      body.sourceB.headers
+      config.rules,
+      headersA,
+      headersB
     );
 
-    const transactionsA = normalizeToTransactions(
-      body.sourceA.rows,
-      mappingA,
-      'sourceA'
-    );
-    const transactionsB = normalizeToTransactions(
-      body.sourceB.rows,
-      mappingB,
-      'sourceB'
-    );
+    const transactionsA = normalizeToTransactions(rowsA, mappingA, 'sourceA');
+    const transactionsB = normalizeToTransactions(rowsB, mappingB, 'sourceB');
 
     const { matched, unmatchedA, unmatchedB } = runMatching(
       transactionsA,
       transactionsB,
-      body.config
+      config
     );
 
     const processingTimeMs = Date.now() - startTime;
@@ -730,7 +775,7 @@ export default async function handler(
       matched: matched.map(toPayloadMatch),
       unmatchedA: unmatchedA.map(toPayload),
       unmatchedB: unmatchedB.map(toPayload),
-      config: body.config,
+      config,
       stats: {
         matchedCount: matched.length,
         unmatchedACount: unmatchedA.length,

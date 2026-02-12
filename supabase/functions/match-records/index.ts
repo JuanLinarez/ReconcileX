@@ -49,7 +49,10 @@ function parseCsvText(csv: string): { headers: string[]; rows: Record<string, st
   const rows = lines.slice(1).map(line => {
     const values = parseRow(line);
     const row: Record<string, string> = {};
-    headers.forEach((h, i) => { row[h] = (values[i] ?? '').trim(); });
+    headers.forEach((h, i) => {
+      const v = (values[i] ?? '').trim();
+      if (v) row[h] = v;
+    });
     return row;
   });
   return { headers, rows };
@@ -665,14 +668,37 @@ serve(async (req) => {
     const transactionsA = normalizeToTransactions(parsedA.rows, mappingA, 'sourceA');
     const transactionsB = normalizeToTransactions(parsedB.rows, mappingB, 'sourceB');
 
+    // Free CSV text memory
+    (body as Record<string, unknown>).csvA = null;
+    (body as Record<string, unknown>).csvB = null;
+
+    console.log(`[match] Memory before matching - Transactions: ${transactionsA.length} + ${transactionsB.length}`);
+
     const startTime = Date.now();
-    const result = runMatching(transactionsA, transactionsB, config);
+    let result;
+    try {
+      result = runMatching(transactionsA, transactionsB, config);
+    } catch (e) {
+      console.error(`[match] Matching failed:`, e);
+      return new Response(
+        JSON.stringify({
+          error: `Matching failed: ${(e as Error).message}. Try reducing dataset size or simplifying rules.`,
+        }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const elapsed = Date.now() - startTime;
     console.log(`[match] Completed in ${elapsed}ms`);
 
     const serializeTx = (t: Transaction) => ({
-      ...t,
+      id: t.id,
+      source: t.source,
+      amount: t.amount,
       date: t.date instanceof Date ? t.date.toISOString() : t.date,
+      reference: t.reference,
+      rowIndex: t.rowIndex,
+      raw: t.raw,
     });
 
     const total = transactionsA.length + transactionsB.length;
