@@ -5,9 +5,16 @@
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-export const config = { maxDuration: 55 };
+export const config = {
+  maxDuration: 55,
+  api: {
+    bodyParser: {
+      sizeLimit: '20mb',
+    },
+  },
+};
 
-const MAX_TOTAL_ROWS = 100_000;
+const MAX_TOTAL_ROWS = 50_000;
 
 // --- Inline types (no @/ or src/ imports) ---
 
@@ -227,7 +234,6 @@ function buildSimilarityCache(
     const cacheKey = `${rule.columnA}::${rule.columnB}`;
     const pairCache = new Map<string, number>();
 
-    // Collect unique values to check size
     const uniqueA = new Set<string>();
     const uniqueB = new Set<string>();
     for (const t of transactionsA) {
@@ -241,8 +247,8 @@ function buildSimilarityCache(
 
     const totalPairs = uniqueA.size * uniqueB.size;
 
-    // Only pre-compute if manageable (< 50,000 pairs)
     if (totalPairs < 50_000) {
+      // Small enough to pre-compute
       for (const a of uniqueA) {
         for (const b of uniqueB) {
           const key = `${a}\0${b}`;
@@ -250,10 +256,11 @@ function buildSimilarityCache(
           if (sim > 0) pairCache.set(key, sim);
         }
       }
-      // Mark as fully pre-computed
       pairCache.set('__precomputed__', 1);
+    } else {
+      // Too large — mark as skip, no caching at all
+      pairCache.set('__skip_cache__', 1);
     }
-    // If too large, cache stays empty and will be filled lazily in ruleScore
 
     cache.set(cacheKey, pairCache);
   }
@@ -313,17 +320,17 @@ function ruleScore(
         const cacheKey = `${rule.columnA}::${rule.columnB}`;
         const pairCache = simCache.get(cacheKey);
         if (pairCache) {
+          // Skip cache mode — just compute directly, no caching
+          if (pairCache.has('__skip_cache__')) {
+            const sim = normalizedSimilarity(a, b, threshold);
+            return sim >= threshold ? sim : 0;
+          }
+
           const key = `${a}\0${b}`;
           const cached = pairCache.get(key);
           if (cached !== undefined) return cached >= threshold ? cached : 0;
 
-          // If pre-computed, absence means similarity was 0
           if (pairCache.has('__precomputed__')) return 0;
-
-          // Lazy compute and cache
-          const sim = normalizedSimilarity(a, b, threshold);
-          pairCache.set(key, sim);
-          return sim >= threshold ? sim : 0;
         }
       }
 
@@ -673,9 +680,9 @@ export default async function handler(
 
   const totalRows = body.sourceA.rows.length + body.sourceB.rows.length;
   if (totalRows > MAX_TOTAL_ROWS) {
-    res.status(413).json({
-      error: 'Payload too large',
-      message: `Total rows (${totalRows}) exceeds limit of ${MAX_TOTAL_ROWS}`,
+    res.status(400).json({
+      error: 'Bad request',
+      message: 'Dataset too large. Maximum 50,000 total rows supported.',
     });
     return;
   }

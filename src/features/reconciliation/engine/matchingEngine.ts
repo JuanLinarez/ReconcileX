@@ -230,7 +230,6 @@ function buildSimilarityCache(
     const cacheKey = `${rule.columnA}::${rule.columnB}`;
     const pairCache = new Map<string, number>();
 
-    // Collect unique values to check size
     const uniqueA = new Set<string>();
     const uniqueB = new Set<string>();
     for (const t of transactionsA) {
@@ -244,8 +243,8 @@ function buildSimilarityCache(
 
     const totalPairs = uniqueA.size * uniqueB.size;
 
-    // Only pre-compute if manageable (< 50,000 pairs)
     if (totalPairs < 50_000) {
+      // Small enough to pre-compute
       for (const a of uniqueA) {
         for (const b of uniqueB) {
           const key = `${a}\0${b}`;
@@ -253,10 +252,11 @@ function buildSimilarityCache(
           if (sim > 0) pairCache.set(key, sim);
         }
       }
-      // Mark as fully pre-computed
       pairCache.set('__precomputed__', 1);
+    } else {
+      // Too large — mark as skip, no caching at all
+      pairCache.set('__skip_cache__', 1);
     }
-    // If too large, cache stays empty and will be filled lazily in ruleScore
 
     cache.set(cacheKey, pairCache);
   }
@@ -319,17 +319,17 @@ function ruleScore(
         const cacheKey = `${rule.columnA}::${rule.columnB}`;
         const pairCache = simCache.get(cacheKey);
         if (pairCache) {
+          // Skip cache mode — just compute directly, no caching
+          if (pairCache.has('__skip_cache__')) {
+            const sim = normalizedSimilarity(a, b, threshold);
+            return sim >= threshold ? sim : 0;
+          }
+
           const key = `${a}\0${b}`;
           const cached = pairCache.get(key);
           if (cached !== undefined) return cached >= threshold ? cached : 0;
 
-          // If pre-computed, absence means similarity was 0
           if (pairCache.has('__precomputed__')) return 0;
-
-          // Lazy compute and cache
-          const sim = normalizedSimilarity(a, b, threshold);
-          pairCache.set(key, sim);
-          return sim >= threshold ? sim : 0;
         }
       }
 
