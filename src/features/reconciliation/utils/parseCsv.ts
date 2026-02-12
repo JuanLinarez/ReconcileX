@@ -21,6 +21,7 @@ export function parseCsvFile(file: File, source: DataSource): Promise<ParseFileR
     Papa.parse<RawCsvRow>(file, {
       header: true,
       skipEmptyLines: true,
+      worker: true,
       complete(results) {
         if (results.errors.length > 0) {
           const first = results.errors[0];

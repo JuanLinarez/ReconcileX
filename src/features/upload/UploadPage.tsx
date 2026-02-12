@@ -44,20 +44,31 @@ export function UploadPage({
 }: UploadPageProps) {
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const [parseError, setParseError] = useState<string | null>(null);
+  const [loadingSlots, setLoadingSlots] = useState<Set<number>>(new Set());
 
   const handleFile = useCallback(
     async (file: File | null, slotIndex: number) => {
       if (!file) return;
       setParseError(null);
-      const result = await parseSourceFile(file, 'sourceA');
-      if (!result.success) {
-        setParseError(result.error);
-        return;
+      setLoadingSlots(prev => new Set(prev).add(slotIndex));
+      await new Promise(resolve => setTimeout(resolve, 50));
+      try {
+        const result = await parseSourceFile(file, 'sourceA');
+        if (!result.success) {
+          setParseError(result.error);
+          return;
+        }
+        const next = slots.map((s, i) =>
+          i === slotIndex ? { ...s, parsed: result.data } : s
+        );
+        onSlotsChange(next);
+      } finally {
+        setLoadingSlots(prev => {
+          const next = new Set(prev);
+          next.delete(slotIndex);
+          return next;
+        });
       }
-      const next = slots.map((s, i) =>
-        i === slotIndex ? { ...s, parsed: result.data } : s
-      );
-      onSlotsChange(next);
     },
     [slots, onSlotsChange]
   );
@@ -196,14 +207,23 @@ export function UploadPage({
                 className="hidden"
                 onChange={(e) => handleInputChange(index, e)}
               />
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => inputRefs.current[index]?.click()}
-              >
-                <Upload className="size-4 mr-2" />
-                Choose file (CSV or Excel)
-              </Button>
+              {loadingSlots.has(index) ? (
+                <div className="flex items-center justify-center gap-3 py-3">
+                  <div className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--app-primary)] border-t-transparent" />
+                  <span className="text-sm font-medium text-[var(--app-body)]">
+                    Parsing file...
+                  </span>
+                </div>
+              ) : (
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => inputRefs.current[index]?.click()}
+                >
+                  <Upload className="size-4 mr-2" />
+                  Choose file (CSV or Excel)
+                </Button>
+              )}
               {slot.parsed && (
                 <>
                   <p
