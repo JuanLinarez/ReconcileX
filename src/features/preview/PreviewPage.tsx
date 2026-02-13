@@ -1,11 +1,3 @@
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import type { ParsedCsv } from '@/features/reconciliation/types';
 
@@ -41,28 +33,31 @@ export function PreviewPage({
             </p>
           </CardHeader>
           <div className="border-t border-border" style={{ height: '300px', overflow: 'auto' }}>
-            <Table style={{ minWidth: '1200px' }}>
-              <TableHeader>
-                <TableRow>
+            <table className="text-sm" style={{ minWidth: '900px' }}>
+              <thead className="sticky top-0 bg-white z-10">
+                <tr className="border-b">
                   {headersA.map((h) => (
-                    <TableHead key={h} className="whitespace-nowrap">
+                    <th
+                      key={h}
+                      className="px-3 py-2 text-left font-medium text-[var(--app-heading)] whitespace-nowrap"
+                    >
                       {h}
-                    </TableHead>
+                    </th>
                   ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+                </tr>
+              </thead>
+              <tbody>
                 {rowsA.map((row, i) => (
-                  <TableRow key={i}>
+                  <tr key={i} className="border-b hover:bg-gray-50">
                     {headersA.map((h) => (
-                      <TableCell key={h} className="max-w-[200px] truncate">
+                      <td key={h} className="px-3 py-2 whitespace-nowrap text-[var(--app-body)]">
                         {row[h] ?? ''}
-                      </TableCell>
+                      </td>
                     ))}
-                  </TableRow>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
+              </tbody>
+            </table>
           </div>
         </Card>
 
@@ -75,28 +70,31 @@ export function PreviewPage({
             </p>
           </CardHeader>
           <div className="border-t border-border" style={{ height: '300px', overflow: 'auto' }}>
-            <Table style={{ minWidth: '1200px' }}>
-              <TableHeader>
-                <TableRow>
+            <table className="text-sm" style={{ minWidth: '900px' }}>
+              <thead className="sticky top-0 bg-white z-10">
+                <tr className="border-b">
                   {headersB.map((h) => (
-                    <TableHead key={h} className="whitespace-nowrap">
+                    <th
+                      key={h}
+                      className="px-3 py-2 text-left font-medium text-[var(--app-heading)] whitespace-nowrap"
+                    >
                       {h}
-                    </TableHead>
+                    </th>
                   ))}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+                </tr>
+              </thead>
+              <tbody>
                 {rowsB.map((row, i) => (
-                  <TableRow key={i}>
+                  <tr key={i} className="border-b hover:bg-gray-50">
                     {headersB.map((h) => (
-                      <TableCell key={h} className="max-w-[200px] truncate">
+                      <td key={h} className="px-3 py-2 whitespace-nowrap text-[var(--app-body)]">
                         {row[h] ?? ''}
-                      </TableCell>
+                      </td>
                     ))}
-                  </TableRow>
+                  </tr>
                 ))}
-              </TableBody>
-            </Table>
+              </tbody>
+            </table>
           </div>
         </Card>
       </div>
