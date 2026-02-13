@@ -789,42 +789,88 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
         {/* Counters + filter + export */}
         <div className="flex flex-wrap items-center justify-between gap-4">
           <div className="flex flex-wrap items-center gap-4">
-            <span className="text-muted-foreground text-sm">
-              Reviewed: {reviewedCount} | Ignored: {ignoredCount} | Manually Matched: {manualMatches.length}
+            <span className="text-muted-foreground text-sm flex items-center gap-1">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="cursor-help">Reviewed: {reviewedCount}</span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Number of matched pairs you have reviewed and confirmed</p>
+                </TooltipContent>
+              </Tooltip>
+              <span>|</span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="cursor-help">Ignored: {ignoredCount}</span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Number of transactions you have marked to ignore (not relevant for this reconciliation)</p>
+                </TooltipContent>
+              </Tooltip>
+              <span>|</span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="cursor-help">Manually Matched: {manualMatches.length}</span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Number of pairs you have matched manually that the engine did not catch</p>
+                </TooltipContent>
+              </Tooltip>
             </span>
-            <label className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="checkbox"
-                checked={showIgnored}
-                onChange={(e) =>
-                  setAugmentation((prev) => ({ ...prev, showIgnored: e.target.checked }))
-                }
-                className="rounded border-input"
-              />
-              <span>Show ignored items</span>
-            </label>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={showIgnored}
+                    onChange={(e) =>
+                      setAugmentation((prev) => ({ ...prev, showIgnored: e.target.checked }))
+                    }
+                    className="rounded border-input"
+                  />
+                  <span>Show ignored items</span>
+                </label>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Toggle visibility of transactions you marked as ignored</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-2"
-            onClick={() => setCopilotOpen(true)}
-          >
-            <Sparkles className="size-4 shrink-0" />
-            Ask Copilot
-          </Button>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="flex items-center gap-2">
-                <Download className="size-4 shrink-0" />
-                <span>
-                  Export Results (Matched & Unmatched)
-                  <span className="ml-1.5 text-muted-foreground font-normal">
-                    ({totalMatched} matched, {totalUnmatchedA}+{totalUnmatchedB} unmatched)
-                  </span>
-                </span>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-2"
+                onClick={() => setCopilotOpen(true)}
+              >
+                <Sparkles className="size-4 shrink-0" />
+                Ask Copilot
               </Button>
-            </DropdownMenuTrigger>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Chat with the AI assistant about your reconciliation results — ask questions, get insights, and investigate exceptions</p>
+            </TooltipContent>
+          </Tooltip>
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm" className="flex items-center gap-2">
+                    <Download className="size-4 shrink-0" />
+                    <span>
+                      Export Results (Matched & Unmatched)
+                      <span className="ml-1.5 text-muted-foreground font-normal">
+                        ({totalMatched} matched, {totalUnmatchedA}+{totalUnmatchedB} unmatched)
+                      </span>
+                    </span>
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Download all matched and unmatched transactions as a CSV or Excel file for your records</p>
+              </TooltipContent>
+            </Tooltip>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onClick={handleExportExcel}>
                 Export as Excel (.xlsx)
@@ -841,17 +887,45 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList>
-          <TabsTrigger value="matched">Matched</TabsTrigger>
-          <TabsTrigger value="unmatchedA">Unmatched Source A</TabsTrigger>
-          <TabsTrigger value="unmatchedB">Unmatched Source B</TabsTrigger>
-          <TabsTrigger value="anomalies">
-            Anomalies
-            {anomalyReport && anomalyReport.summary.critical + anomalyReport.summary.high > 0 && (
-              <Badge variant="destructive" className="ml-2 text-xs">
-                {anomalyReport.summary.critical + anomalyReport.summary.high}
-              </Badge>
-            )}
-          </TabsTrigger>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <TabsTrigger value="matched">Matched</TabsTrigger>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Transaction pairs that were automatically matched by the engine</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <TabsTrigger value="unmatchedA">Unmatched Source A</TabsTrigger>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Transactions from Source A that could not be matched to any transaction in Source B</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <TabsTrigger value="unmatchedB">Unmatched Source B</TabsTrigger>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Transactions from Source B that could not be matched to any transaction in Source A</p>
+            </TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <TabsTrigger value="anomalies">
+                Anomalies
+                {anomalyReport && anomalyReport.summary.critical + anomalyReport.summary.high > 0 && (
+                  <Badge variant="destructive" className="ml-2 text-xs">
+                    {anomalyReport.summary.critical + anomalyReport.summary.high}
+                  </Badge>
+                )}
+              </TabsTrigger>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Potential issues detected in your data: duplicates, unusual amounts, and other red flags</p>
+            </TooltipContent>
+          </Tooltip>
         </TabsList>
 
         <TabsContent value="matched" className="mt-4">

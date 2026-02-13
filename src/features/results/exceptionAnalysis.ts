@@ -16,10 +16,18 @@ export interface SuggestedMatchCandidate {
   nameSimilarityPct?: number;
 }
 
+export interface RuleRecommendation {
+  type: 'add_rule' | 'modify_rule' | 'adjust_tolerance' | 'adjust_threshold' | 'use_fuzzy';
+  description: string;
+  impact: 'high' | 'medium' | 'low';
+  details: string;
+}
+
 export interface ExceptionAnalysis {
   probableCause: string;
   suggestedMatch?: SuggestedMatchCandidate;
   recommendedAction: string;
+  ruleRecommendations?: RuleRecommendation[];
 }
 
 /** Payload sent to API (dates as ISO strings). */
@@ -45,6 +53,7 @@ interface AnalyzeApiResponse {
     nameSimilarityPct?: number;
   };
   recommendedAction: string;
+  ruleRecommendations?: RuleRecommendation[];
 }
 
 function transactionToPayload(t: Transaction): TransactionPayload {
@@ -90,6 +99,7 @@ function mapApiResponseToAnalysis(
     probableCause: res.probableCause,
     suggestedMatch,
     recommendedAction: res.recommendedAction,
+    ruleRecommendations: res.ruleRecommendations,
   };
 }
 
@@ -158,6 +168,7 @@ export async function fetchAnalyzeException(
                 }
               : undefined,
             recommendedAction: previousAnalysis.recommendedAction,
+            ruleRecommendations: previousAnalysis.ruleRecommendations,
           },
         }
       : {}),

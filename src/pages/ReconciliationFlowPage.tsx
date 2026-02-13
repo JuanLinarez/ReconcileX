@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Check, ChevronDown, ChevronRight, Eye, Settings2 } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { saveReconciliation } from '@/lib/database';
 import { captureRuleConfiguration } from '@/features/patterns/patternCapture';
 import { Button } from '@/components/ui/button';
 import { UploadPage } from '@/features/upload/UploadPage';
-import { NormalizationPage } from '@/features/normalization/NormalizationPage';
 import { PreviewPage } from '@/features/preview/PreviewPage';
 import { MatchingRulesPage } from '@/features/matching-rules/MatchingRulesPage';
 import { ResultsPage } from '@/features/results/ResultsPage';
@@ -61,7 +60,6 @@ export function ReconciliationFlowPage() {
   const [matchingProgress, setMatchingProgress] = useState<string>('');
   const [normalizedA, setNormalizedA] = useState<ParsedCsv | null>(null);
   const [normalizedB, setNormalizedB] = useState<ParsedCsv | null>(null);
-  const [showAdvancedNormalization, setShowAdvancedNormalization] = useState(false);
   const [showDataPreview, setShowDataPreview] = useState(false);
 
   const sourceA = useMemo(() => {
@@ -237,7 +235,6 @@ export function ReconciliationFlowPage() {
     if (step === 'upload') {
       setNormalizedA(null);
       setNormalizedB(null);
-      setShowAdvancedNormalization(false);
       setShowDataPreview(false);
     }
   }, [step]);
@@ -403,27 +400,6 @@ export function ReconciliationFlowPage() {
             )}
           </div>
 
-          {/* Advanced Data Preparation */}
-          {showAdvancedNormalization && sourceA && sourceB && (
-            <>
-              <NormalizationPage
-                sourceA={sourceA}
-                sourceB={sourceB}
-                onComplete={(a, b) => {
-                  setNormalizedA(a);
-                  setNormalizedB(b);
-                  setShowAdvancedNormalization(false);
-                }}
-                onSkip={() => setShowAdvancedNormalization(false)}
-              />
-              <div className="flex justify-between">
-                <Button variant="outline" onClick={() => setShowAdvancedNormalization(false)}>
-                  Back to Matching Rules
-                </Button>
-              </div>
-            </>
-          )}
-
           <MatchingRulesPage
             sourceA={effectiveSourceA}
             sourceB={effectiveSourceB}
@@ -462,21 +438,9 @@ export function ReconciliationFlowPage() {
           )}
 
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <Button variant="outline" onClick={() => setStep('upload')}>
-                Back
-              </Button>
-              {!showAdvancedNormalization && (
-                <button
-                  type="button"
-                  onClick={() => setShowAdvancedNormalization(true)}
-                  className="inline-flex items-center gap-1.5 text-xs text-[var(--app-body)]/60 hover:text-[var(--app-primary)] transition-colors cursor-pointer"
-                >
-                  <Settings2 className="h-3.5 w-3.5" />
-                  Advanced Data Preparation
-                </button>
-              )}
-            </div>
+            <Button variant="outline" onClick={() => setStep('upload')}>
+              Back
+            </Button>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
