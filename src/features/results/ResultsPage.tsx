@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useMemo, useState } from 'react';
+import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
@@ -410,6 +410,7 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
       delete next[t.id];
       return next as Record<string, string>;
     });
+    setOpenAnalysisTxId(t.id);
     if (isFollowUp) {
       setLoadingFollowUpTxId(t.id);
     } else {
@@ -486,6 +487,11 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
   };
 
   const handleAnalyzeException = (source: 'sourceA' | 'sourceB', t: Transaction, forceReAnalyze = false) => {
+    // Toggle off if same row is already open
+    if (openAnalysisTxId === t.id && analysisByTxId[t.id]) {
+      setOpenAnalysisTxId(null);
+      return;
+    }
     if (!forceReAnalyze && analysisByTxId[t.id]) {
       setOpenAnalysisTxId(t.id);
       setErrorByTxId((prev) => {
@@ -584,6 +590,19 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
 
   const handleExportExcel = () => exportToExcel(result, augmentation);
   const handleExportCsv = () => exportToCsv(result, augmentation);
+
+  // Clear analysis panel when changing pages
+  useEffect(() => {
+    setOpenAnalysisTxId(null);
+  }, [unmatchedAPage, unmatchedBPage]);
+
+  // Scroll to analysis panel when it loads
+  useEffect(() => {
+    if (openAnalysisTxId && analysisByTxId[openAnalysisTxId]) {
+      const el = document.getElementById(`analysis-${openAnalysisTxId}`);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, [openAnalysisTxId, analysisByTxId]);
 
   const totalMatched = matchedDisplay.length;
   const totalUnmatchedA = unmatchedADisplay.length;
@@ -1079,6 +1098,7 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                         ? 'bg-green-100/70 dark:bg-green-900/20'
                         : undefined;
                     const isLoading = loadingAnalysisTxId === t.id;
+                    const showInlinePanel = openAnalysisTxId === t.id;
                     return (
                       <Fragment key={t.id}>
                         <TableRow className={rowBg}>
@@ -1149,40 +1169,45 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                             </div>
                           </TableCell>
                         </TableRow>
+                        {showInlinePanel && (
+                          <TableRow
+                            id={`analysis-${t.id}`}
+                            className="bg-blue-50/50 hover:bg-blue-50/50 border-l-4 border-l-blue-200 animate-in fade-in-0 slide-in-from-top-1 duration-200"
+                          >
+                            <TableCell colSpan={5} className="p-0 align-top">
+                              <div className="p-4 border-t border-b border-blue-200">
+                                {isLoading ? (
+                                  <div className="flex items-center gap-2 py-6 text-muted-foreground">
+                                    <Loader2 className="size-5 animate-spin" />
+                                    <span>Analyzing with AI...</span>
+                                  </div>
+                                ) : (
+                                  <ExceptionAnalysisPanel
+                                    analysis={analysisByTxId[t.id] ?? null}
+                                    followUpAnalysis={followUpAnalysisByTxId[t.id]}
+                                    followUpLoading={loadingFollowUpTxId === t.id}
+                                    error={errorByTxId[t.id]}
+                                    sourceTransaction={t}
+                                    onAcceptMatch={
+                                      analysisByTxId[t.id]?.suggestedMatch
+                                        ? (candidate) => handleAcceptAIMatch('sourceA', t, candidate)
+                                        : undefined
+                                    }
+                                    onDismiss={(candidate) => handleDismissAnalysis(t.id, candidate)}
+                                    onRetry={() => handleRetryAnalysis('sourceA', t)}
+                                    onReAnalyze={() => handleReAnalyze('sourceA', t)}
+                                    onAskFollowUp={(q) => handleAskFollowUp(t.id, q)}
+                                  />
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
                       </Fragment>
                     );
                   })}
                 </TableBody>
               </Table>
-              {(() => {
-                const activeTx = unmatchedADisplay.find((t) => {
-                  const analysis = analysisByTxId[t.id];
-                  const isAnalysisOpen = openAnalysisTxId === t.id;
-                  return analysis || (isAnalysisOpen && errorByTxId[t.id]);
-                });
-                if (!activeTx) return null;
-                const analysis = analysisByTxId[activeTx.id];
-                return (
-                  <div className="mt-3 max-w-full">
-                    <ExceptionAnalysisPanel
-                      analysis={analysis ?? null}
-                      followUpAnalysis={followUpAnalysisByTxId[activeTx.id]}
-                      followUpLoading={loadingFollowUpTxId === activeTx.id}
-                      error={errorByTxId[activeTx.id]}
-                      sourceTransaction={activeTx}
-                      onAcceptMatch={
-                        analysis?.suggestedMatch
-                          ? (candidate) => handleAcceptAIMatch('sourceA', activeTx, candidate)
-                          : undefined
-                      }
-                      onDismiss={(candidate) => handleDismissAnalysis(activeTx.id, candidate)}
-                      onRetry={() => handleRetryAnalysis('sourceA', activeTx)}
-                      onReAnalyze={() => handleReAnalyze('sourceA', activeTx)}
-                      onAskFollowUp={(q) => handleAskFollowUp(activeTx.id, q)}
-                    />
-                  </div>
-                );
-              })()}
               {unmatchedADisplay.length === 0 && (
                 <p className="py-8 text-center text-muted-foreground">All Source A matched.</p>
               )}
@@ -1228,6 +1253,7 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                         ? 'bg-green-100/70 dark:bg-green-900/20'
                         : undefined;
                     const isLoading = loadingAnalysisTxId === t.id;
+                    const showInlinePanel = openAnalysisTxId === t.id;
                     return (
                       <Fragment key={t.id}>
                         <TableRow className={rowBg}>
@@ -1298,40 +1324,45 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                             </div>
                           </TableCell>
                         </TableRow>
+                        {showInlinePanel && (
+                          <TableRow
+                            id={`analysis-${t.id}`}
+                            className="bg-blue-50/50 hover:bg-blue-50/50 border-l-4 border-l-blue-200 animate-in fade-in-0 slide-in-from-top-1 duration-200"
+                          >
+                            <TableCell colSpan={5} className="p-0 align-top">
+                              <div className="p-4 border-t border-b border-blue-200">
+                                {isLoading ? (
+                                  <div className="flex items-center gap-2 py-6 text-muted-foreground">
+                                    <Loader2 className="size-5 animate-spin" />
+                                    <span>Analyzing with AI...</span>
+                                  </div>
+                                ) : (
+                                  <ExceptionAnalysisPanel
+                                    analysis={analysisByTxId[t.id] ?? null}
+                                    followUpAnalysis={followUpAnalysisByTxId[t.id]}
+                                    followUpLoading={loadingFollowUpTxId === t.id}
+                                    error={errorByTxId[t.id]}
+                                    sourceTransaction={t}
+                                    onAcceptMatch={
+                                      analysisByTxId[t.id]?.suggestedMatch
+                                        ? (candidate) => handleAcceptAIMatch('sourceB', t, candidate)
+                                        : undefined
+                                    }
+                                    onDismiss={(candidate) => handleDismissAnalysis(t.id, candidate)}
+                                    onRetry={() => handleRetryAnalysis('sourceB', t)}
+                                    onReAnalyze={() => handleReAnalyze('sourceB', t)}
+                                    onAskFollowUp={(q) => handleAskFollowUp(t.id, q)}
+                                  />
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        )}
                       </Fragment>
                     );
                   })}
                 </TableBody>
               </Table>
-              {(() => {
-                const activeTx = unmatchedBDisplay.find((t) => {
-                  const analysis = analysisByTxId[t.id];
-                  const isAnalysisOpen = openAnalysisTxId === t.id;
-                  return analysis || (isAnalysisOpen && errorByTxId[t.id]);
-                });
-                if (!activeTx) return null;
-                const analysis = analysisByTxId[activeTx.id];
-                return (
-                  <div className="mt-3 max-w-full">
-                    <ExceptionAnalysisPanel
-                      analysis={analysis ?? null}
-                      followUpAnalysis={followUpAnalysisByTxId[activeTx.id]}
-                      followUpLoading={loadingFollowUpTxId === activeTx.id}
-                      error={errorByTxId[activeTx.id]}
-                      sourceTransaction={activeTx}
-                      onAcceptMatch={
-                        analysis?.suggestedMatch
-                          ? (candidate) => handleAcceptAIMatch('sourceB', activeTx, candidate)
-                          : undefined
-                      }
-                      onDismiss={(candidate) => handleDismissAnalysis(activeTx.id, candidate)}
-                      onRetry={() => handleRetryAnalysis('sourceB', activeTx)}
-                      onReAnalyze={() => handleReAnalyze('sourceB', activeTx)}
-                      onAskFollowUp={(q) => handleAskFollowUp(activeTx.id, q)}
-                    />
-                  </div>
-                );
-              })()}
               {unmatchedBDisplay.length === 0 && (
                 <p className="py-8 text-center text-muted-foreground">All Source B matched.</p>
               )}

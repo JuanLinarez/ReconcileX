@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
-import { AlertCircle, ChevronDown, Loader2, MessageSquare, RefreshCw, X } from 'lucide-react';
+import { AlertCircle, ChevronDown, Loader2, MessageSquare, RefreshCw, Sparkles, X } from 'lucide-react';
 import type { ExceptionAnalysis, ConfidenceLevel } from './exceptionAnalysis';
 import type { Transaction } from '@/features/reconciliation/types';
 
@@ -83,12 +82,13 @@ export function ExceptionAnalysisPanel({
   };
 
   return (
-    <Card className="border-blue-200 dark:border-blue-800 bg-blue-50/80 dark:bg-blue-950/30 min-w-0 overflow-visible">
+    <div className="min-w-0 overflow-visible">
       <Collapsible defaultOpen>
-        <CardContent className="pt-4 pb-4 overflow-visible">
+        <div className="pt-1 pb-2 overflow-visible">
           <div className="flex items-center justify-between gap-2 mb-3">
             <CollapsibleTrigger asChild>
               <Button variant="ghost" size="sm" className="gap-1 text-blue-800 dark:text-blue-200">
+                <Sparkles className="size-4" />
                 <ChevronDown className="size-4" />
                 AI Exception Analysis
               </Button>
@@ -274,8 +274,8 @@ export function ExceptionAnalysisPanel({
               </div>
             </div>
           </CollapsibleContent>
-        </CardContent>
+        </div>
       </Collapsible>
-    </Card>
+    </div>
   );
 }
