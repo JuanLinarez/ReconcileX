@@ -41,7 +41,7 @@ export function PreviewPage({
             </p>
           </CardHeader>
           <div className="border-t border-border" style={{ height: '300px', overflow: 'auto' }}>
-            <Table style={{ minWidth: '600px' }}>
+            <Table style={{ minWidth: '1200px' }}>
               <TableHeader>
                 <TableRow>
                   {headersA.map((h) => (
@@ -75,7 +75,7 @@ export function PreviewPage({
             </p>
           </CardHeader>
           <div className="border-t border-border" style={{ height: '300px', overflow: 'auto' }}>
-            <Table style={{ minWidth: '600px' }}>
+            <Table style={{ minWidth: '1200px' }}>
               <TableHeader>
                 <TableRow>
                   {headersB.map((h) => (
