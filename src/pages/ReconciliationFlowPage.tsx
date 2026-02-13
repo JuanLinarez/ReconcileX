@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Check, Settings2 } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, Eye, Settings2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { saveReconciliation } from '@/lib/database';
@@ -62,6 +62,7 @@ export function ReconciliationFlowPage() {
   const [normalizedA, setNormalizedA] = useState<ParsedCsv | null>(null);
   const [normalizedB, setNormalizedB] = useState<ParsedCsv | null>(null);
   const [showAdvancedNormalization, setShowAdvancedNormalization] = useState(false);
+  const [showDataPreview, setShowDataPreview] = useState(false);
 
   const sourceA = useMemo(() => {
     const slot = uploadSlots[pairIndices[0]];
@@ -237,10 +238,11 @@ export function ReconciliationFlowPage() {
       setNormalizedA(null);
       setNormalizedB(null);
       setShowAdvancedNormalization(false);
+      setShowDataPreview(false);
     }
   }, [step]);
 
-  // Auto-normalize when step is 'normalize': scan, apply safe fixes, advance to preview
+  // Auto-normalize when step is 'normalize': scan, apply safe fixes, advance to matchingRules
   useEffect(() => {
     if (step !== 'normalize' || !sourceA || !sourceB) return;
 
@@ -263,7 +265,7 @@ export function ReconciliationFlowPage() {
 
       const elapsed = Date.now() - start;
       const remaining = Math.max(0, MIN_DELAY_MS - elapsed);
-      setTimeout(() => setStep('preview'), remaining);
+      setTimeout(() => setStep('matchingRules'), remaining);
     };
 
     run();
@@ -271,12 +273,16 @@ export function ReconciliationFlowPage() {
 
   const steps: { id: Step; label: string; number: number }[] = [
     { id: 'upload', label: 'Upload', number: 1 },
-    { id: 'preview', label: 'Preview', number: 2 },
-    { id: 'matchingRules', label: 'Matching Rules', number: 3 },
-    { id: 'results', label: 'Results', number: 4 },
+    { id: 'matchingRules', label: 'Matching Rules', number: 2 },
+    { id: 'results', label: 'Results', number: 3 },
   ];
-  const visualStepOrder: Step[] = ['upload', 'preview', 'matchingRules', 'results'];
-  const currentVisualIndex = step === 'normalize' ? 0 : visualStepOrder.indexOf(step);
+  const currentVisualIndex = (() => {
+    if (step === 'upload') return 0;
+    if (step === 'normalize' || step === 'preview') return 0;
+    if (step === 'matchingRules') return 1;
+    if (step === 'results') return 2;
+    return 0;
+  })();
 
   return (
     <div className="space-y-8">
@@ -362,13 +368,43 @@ export function ReconciliationFlowPage() {
         </div>
       )}
 
-      {step === 'preview' && (
+      {step === 'matchingRules' && (
         <>
-          {showAdvancedNormalization ? (
+          {/* Collapsible Data Preview */}
+          <div className="rounded-lg border border-[var(--app-border)] bg-white">
+            <button
+              type="button"
+              onClick={() => setShowDataPreview(!showDataPreview)}
+              className="flex w-full items-center justify-between p-4 text-left cursor-pointer hover:bg-gray-50 transition-colors"
+            >
+              <div className="flex items-center gap-2">
+                <Eye className="h-4 w-4 text-[var(--app-body)]" />
+                <span className="text-sm font-medium text-[var(--app-heading)]">
+                  Preview Uploaded Data
+                </span>
+                <span className="text-xs text-[var(--app-body)]/60">
+                  {effectiveSourceA?.rows.length ?? 0} + {effectiveSourceB?.rows.length ?? 0} rows
+                </span>
+              </div>
+              {showDataPreview ? (
+                <ChevronDown className="h-4 w-4 text-[var(--app-body)]" />
+              ) : (
+                <ChevronRight className="h-4 w-4 text-[var(--app-body)]" />
+              )}
+            </button>
+            {showDataPreview && (
+              <div className="border-t border-[var(--app-border)] p-4">
+                <PreviewPage sourceA={effectiveSourceA} sourceB={effectiveSourceB} />
+              </div>
+            )}
+          </div>
+
+          {/* Advanced Data Preparation */}
+          {showAdvancedNormalization && sourceA && sourceB && (
             <>
               <NormalizationPage
-                sourceA={effectiveSourceA!}
-                sourceB={effectiveSourceB!}
+                sourceA={sourceA}
+                sourceB={sourceB}
                 onComplete={(a, b) => {
                   setNormalizedA(a);
                   setNormalizedB(b);
@@ -378,38 +414,12 @@ export function ReconciliationFlowPage() {
               />
               <div className="flex justify-between">
                 <Button variant="outline" onClick={() => setShowAdvancedNormalization(false)}>
-                  Back to Preview
-                </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              <PreviewPage sourceA={effectiveSourceA} sourceB={effectiveSourceB} />
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                  <Button variant="outline" onClick={() => setStep('upload')}>
-                    Back
-                  </Button>
-                  <button
-                    type="button"
-                    onClick={() => setShowAdvancedNormalization(true)}
-                    className="inline-flex items-center gap-1.5 text-xs text-[var(--app-body)]/60 hover:text-[var(--app-primary)] transition-colors cursor-pointer"
-                  >
-                    <Settings2 className="h-3.5 w-3.5" />
-                    Advanced Data Preparation
-                  </button>
-                </div>
-                <Button onClick={() => setStep('matchingRules')}>
-                  Continue to Matching Rules
+                  Back to Matching Rules
                 </Button>
               </div>
             </>
           )}
-        </>
-      )}
 
-      {step === 'matchingRules' && (
-        <>
           <MatchingRulesPage
             sourceA={effectiveSourceA}
             sourceB={effectiveSourceB}
@@ -448,9 +458,21 @@ export function ReconciliationFlowPage() {
           )}
 
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <Button variant="outline" onClick={() => setStep('preview')}>
-              Back
-            </Button>
+            <div className="flex items-center gap-3">
+              <Button variant="outline" onClick={() => setStep('upload')}>
+                Back
+              </Button>
+              {!showAdvancedNormalization && (
+                <button
+                  type="button"
+                  onClick={() => setShowAdvancedNormalization(true)}
+                  className="inline-flex items-center gap-1.5 text-xs text-[var(--app-body)]/60 hover:text-[var(--app-primary)] transition-colors cursor-pointer"
+                >
+                  <Settings2 className="h-3.5 w-3.5" />
+                  Advanced Data Preparation
+                </button>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
