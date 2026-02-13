@@ -14,7 +14,7 @@ export const config = {
   },
 };
 
-const MAX_TOTAL_ROWS = 50_000;
+const MAX_TOTAL_ROWS = 200_000;
 
 function parseCsvText(csv: string): { headers: string[]; rows: Record<string, string>[] } {
   const lines: string[] = [];
@@ -774,7 +774,7 @@ export default async function handler(
   if (totalRows > MAX_TOTAL_ROWS) {
     res.status(400).json({
       error: 'Bad request',
-      message: 'Dataset too large. Maximum 50,000 total rows supported.',
+      message: 'Dataset too large. Maximum 200,000 total rows supported.',
     });
     return;
   }
