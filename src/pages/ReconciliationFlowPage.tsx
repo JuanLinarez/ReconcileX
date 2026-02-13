@@ -377,14 +377,18 @@ export function ReconciliationFlowPage() {
               onClick={() => setShowDataPreview(!showDataPreview)}
               className="flex w-full items-center justify-between p-4 text-left cursor-pointer hover:bg-gray-50 transition-colors"
             >
-              <div className="flex items-center gap-2">
-                <Eye className="h-4 w-4 text-[var(--app-body)]" />
-                <span className="text-sm font-medium text-[var(--app-heading)]">
-                  Preview Uploaded Data
-                </span>
-                <span className="text-xs text-[var(--app-body)]/60">
-                  {effectiveSourceA?.rows.length ?? 0} + {effectiveSourceB?.rows.length ?? 0} rows
-                </span>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 text-blue-600">
+                  <Eye className="h-4 w-4" />
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-[var(--app-heading)]">
+                    Review Your Uploaded Files
+                  </span>
+                  <p className="text-xs text-[var(--app-body)]/60">
+                    {effectiveSourceA?.filename ?? 'Source A'} ({effectiveSourceA?.rows.length ?? 0} rows) &bull; {effectiveSourceB?.filename ?? 'Source B'} ({effectiveSourceB?.rows.length ?? 0} rows)
+                  </p>
+                </div>
               </div>
               {showDataPreview ? (
                 <ChevronDown className="h-4 w-4 text-[var(--app-body)]" />
