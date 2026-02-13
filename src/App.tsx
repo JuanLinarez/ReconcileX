@@ -5,6 +5,7 @@ import { AuthPage } from '@/pages/AuthPage';
 import { DashboardPage } from '@/pages/DashboardPage';
 import { ReconciliationFlowPage } from '@/pages/ReconciliationFlowPage';
 import { HistoryPage } from '@/pages/HistoryPage';
+import { SecurityPage } from '@/pages/SecurityPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 import { TemplatesPage } from '@/pages/TemplatesPage';
 
@@ -31,6 +32,7 @@ function App() {
           <Route path="/reconciliation/new" element={<ReconciliationFlowPage />} />
           <Route path="/history" element={<HistoryPage />} />
           <Route path="/templates" element={<TemplatesPage />} />
+          <Route path="/security" element={<SecurityPage />} />
           <Route path="/settings" element={<SettingsPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -5,6 +5,7 @@ import {
   PlusCircle,
   Clock,
   Bookmark,
+  Shield,
   Settings,
   Menu,
   X,
@@ -34,6 +35,7 @@ const navItems = [
   { to: '/reconciliation/new', label: 'New Reconciliation', icon: PlusCircle },
   { to: '/history', label: 'History', icon: Clock },
   { to: '/templates', label: 'Templates', icon: Bookmark },
+  { to: '/security', label: 'Security', icon: Shield },
   { to: '/settings', label: 'Settings', icon: Settings },
 ] as const;
 
@@ -42,6 +44,7 @@ function breadcrumbFromPath(pathname: string): string {
   if (pathname.startsWith('/reconciliation/new')) return 'New Reconciliation';
   if (pathname === '/history') return 'History';
   if (pathname === '/templates') return 'Templates';
+  if (pathname === '/security') return 'Security';
   if (pathname === '/settings') return 'Settings';
   return 'Dashboard';
 }
