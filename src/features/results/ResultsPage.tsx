@@ -30,7 +30,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, ChevronDown, ChevronRight, Check, Download, Info, Link2, Loader2, MinusCircle, Sparkles } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronRight, Check, Download, Eye, EyeOff, Info, Link2, Loader2, MinusCircle, Sparkles } from 'lucide-react';
 import type {
   MatchResult,
   ReconciliationResult,
@@ -663,28 +663,11 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
     [unmatchedB, manualMatchIds]
   );
 
-  const matchBreakdown = useMemo(() => {
-    let oneToOne = 0;
-    let group = 0;
-    let manual = 0;
-    for (const m of matchedDisplay) {
-      const isManual = 'isManual' in m && m.isManual;
-      if (isManual) manual += 1;
-      else if (m.transactionsA.length === 1 && m.transactionsB.length === 1) oneToOne += 1;
-      else group += 1;
-    }
-    return { oneToOne, group, manual };
-  }, [matchedDisplay]);
-  const breakdownTotal = matchBreakdown.oneToOne + matchBreakdown.group + matchBreakdown.manual;
-  const breakdownOnePct = breakdownTotal > 0 ? (matchBreakdown.oneToOne / breakdownTotal) * 100 : 0;
-  const breakdownGroupPct = breakdownTotal > 0 ? (matchBreakdown.group / breakdownTotal) * 100 : 0;
-  const breakdownManualPct = breakdownTotal > 0 ? (matchBreakdown.manual / breakdownTotal) * 100 : 0;
-
   return (
     <div className={className}>
       {/* Summary dashboard */}
       <section className="mb-6 space-y-4">
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {/* 1. Reconciliation Rate */}
           <Card className="flex flex-col items-center justify-center py-4">
             <CardContent className="flex flex-col items-center gap-2 p-0">
@@ -755,99 +738,60 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
               <p className="text-muted-foreground text-xs">{unmatchedCountB} transactions</p>
             </CardContent>
           </Card>
-
-          {/* 5. Match Breakdown */}
-          <Card className="py-4">
-            <CardContent className="p-4">
-              <p className="text-muted-foreground text-xs font-medium mb-2">Match Breakdown</p>
-              <div className="h-3 w-full overflow-hidden rounded-full bg-muted flex">
-                {breakdownTotal > 0 && (
-                  <>
-                    {breakdownOnePct > 0 && (
-                      <div
-                        className="bg-blue-500 shrink-0 transition-[flex]"
-                        style={{ flex: breakdownOnePct }}
-                        title="1:1"
-                      />
-                    )}
-                    {breakdownGroupPct > 0 && (
-                      <div
-                        className="bg-purple-500 shrink-0 transition-[flex]"
-                        style={{ flex: breakdownGroupPct }}
-                        title="Group"
-                      />
-                    )}
-                    {breakdownManualPct > 0 && (
-                      <div
-                        className="bg-green-500 shrink-0 transition-[flex]"
-                        style={{ flex: breakdownManualPct }}
-                        title="Manual"
-                      />
-                    )}
-                  </>
-                )}
-              </div>
-              <div className="mt-2 flex flex-wrap gap-x-3 gap-y-0.5 text-xs">
-                <span className="flex items-center gap-1">
-                  <span className="size-2 rounded-sm bg-blue-500" />
-                  1:1 ({matchBreakdown.oneToOne})
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="size-2 rounded-sm bg-purple-500" />
-                  Group ({matchBreakdown.group})
-                </span>
-                <span className="flex items-center gap-1">
-                  <span className="size-2 rounded-sm bg-green-500" />
-                  Manual ({matchBreakdown.manual})
-                </span>
-              </div>
-            </CardContent>
-          </Card>
         </div>
 
-        {/* Counters + filter + export */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex flex-wrap items-center gap-4">
-            <span className="text-muted-foreground text-sm flex items-center gap-1">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="cursor-help">Reviewed: {reviewedCount}</span>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Number of matched pairs you have reviewed and confirmed</p>
-                </TooltipContent>
-              </Tooltip>
-              <span>|</span>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="cursor-help">Ignored: {ignoredCount}</span>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Number of transactions you have marked to ignore (not relevant for this reconciliation)</p>
-                </TooltipContent>
-              </Tooltip>
-              <span>|</span>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <span className="cursor-help">Manually Matched: {manualMatches.length}</span>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Number of pairs you have matched manually that the engine did not catch</p>
-                </TooltipContent>
-              </Tooltip>
-            </span>
+        {/* Action bar — two groups: left = review stats, right = actions */}
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+          {/* Left group: Review progress counters as styled badges */}
+          <div className="flex flex-wrap items-center gap-3">
             <Tooltip>
               <TooltipTrigger asChild>
-                <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <div className="flex items-center gap-1.5 rounded-md bg-gray-50 px-3 py-1.5 text-sm">
+                  <Eye className="h-3.5 w-3.5 text-gray-400" />
+                  <span className="text-gray-500">Reviewed</span>
+                  <span className="font-semibold text-[var(--app-heading)]">{reviewedCount}</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Number of matched pairs you have reviewed and confirmed</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1.5 rounded-md bg-gray-50 px-3 py-1.5 text-sm">
+                  <EyeOff className="h-3.5 w-3.5 text-gray-400" />
+                  <span className="text-gray-500">Ignored</span>
+                  <span className="font-semibold text-[var(--app-heading)]">{ignoredCount}</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Number of transactions you have marked to ignore (not relevant for this reconciliation)</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1.5 rounded-md bg-gray-50 px-3 py-1.5 text-sm">
+                  <Link2 className="h-3.5 w-3.5 text-gray-400" />
+                  <span className="text-gray-500">Manually Matched</span>
+                  <span className="font-semibold text-[var(--app-heading)]">{manualMatches.length}</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Number of pairs you have matched manually that the engine did not catch</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <label className="flex cursor-pointer items-center gap-2 rounded-md bg-gray-50 px-3 py-1.5 text-sm text-gray-500 transition-colors hover:bg-gray-100">
                   <input
                     type="checkbox"
                     checked={showIgnored}
                     onChange={(e) =>
                       setAugmentation((prev) => ({ ...prev, showIgnored: e.target.checked }))
                     }
-                    className="rounded border-input"
+                    className="h-3.5 w-3.5 rounded border-gray-300 text-[var(--app-primary)] focus:ring-[var(--app-primary)]"
                   />
-                  <span>Show ignored items</span>
+                  Show ignored
                 </label>
               </TooltipTrigger>
               <TooltipContent>
@@ -855,50 +799,54 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
               </TooltipContent>
             </Tooltip>
           </div>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="flex items-center gap-2"
-                onClick={() => setCopilotOpen(true)}
-              >
-                <Sparkles className="size-4 shrink-0" />
-                Ask Copilot
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              <p>Chat with the AI assistant about your reconciliation results — ask questions, get insights, and investigate exceptions</p>
-            </TooltipContent>
-          </Tooltip>
-          <DropdownMenu>
+
+          {/* Right group: Action buttons — styled like the tab buttons */}
+          <div className="flex flex-wrap items-center gap-3">
             <Tooltip>
               <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    <Download className="size-4 shrink-0" />
-                    <span>
-                      Export Results (Matched & Unmatched)
-                      <span className="ml-1.5 text-muted-foreground font-normal">
-                        ({totalMatched} matched, {totalUnmatchedA}+{totalUnmatchedB} unmatched)
-                      </span>
-                    </span>
-                  </Button>
-                </DropdownMenuTrigger>
+                <Button
+                  variant="outline"
+                  onClick={() => setCopilotOpen(true)}
+                  className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-[var(--app-body)] shadow-sm transition-all hover:border-purple-400 hover:text-purple-600 hover:shadow-md"
+                >
+                  <Sparkles className="mr-1.5 h-4 w-4 text-purple-500" />
+                  Ask Copilot
+                </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Download all matched and unmatched transactions as a CSV or Excel file for your records</p>
+                <p>Chat with the AI assistant about your reconciliation results — ask questions, get insights, and investigate exceptions</p>
               </TooltipContent>
             </Tooltip>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleExportExcel}>
-                Export as Excel (.xlsx)
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={handleExportCsv}>
-                Export as CSV (.csv)
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-[var(--app-body)] shadow-sm transition-all hover:border-[var(--app-primary)] hover:text-[var(--app-primary)] hover:shadow-md"
+                    >
+                      <Download className="mr-1.5 h-4 w-4" />
+                      Export Results
+                      <span className="ml-1.5 text-xs font-normal text-gray-400">
+                        ({totalMatched} matched, {totalUnmatchedA + totalUnmatchedB} unmatched)
+                      </span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Download all matched and unmatched transactions as a CSV or Excel file for your records</p>
+                </TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleExportExcel}>
+                  Export as Excel (.xlsx)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportCsv}>
+                  Export as CSV (.csv)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </section>
 
