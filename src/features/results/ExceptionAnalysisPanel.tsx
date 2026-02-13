@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Input } from '@/components/ui/input';
-import { AlertCircle, ChevronDown, Lightbulb, Loader2, MessageSquare, RefreshCw, X } from 'lucide-react';
+import { AlertCircle, ChevronDown, Loader2, MessageSquare, RefreshCw, X } from 'lucide-react';
 import type { ExceptionAnalysis, ConfidenceLevel } from './exceptionAnalysis';
 import type { Transaction } from '@/features/reconciliation/types';
 
@@ -172,36 +172,6 @@ export function ExceptionAnalysisPanel({
                     <p className="text-sm break-words">{recommendedAction}</p>
                   </section>
 
-                  {analysis.ruleRecommendations && analysis.ruleRecommendations.length > 0 && (
-                    <div className="mt-4 rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950/30 p-4">
-                      <p className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-3 flex items-center gap-2">
-                        <Lightbulb className="h-4 w-4" />
-                        Suggested Rule Improvements
-                      </p>
-                      <div className="space-y-2">
-                        {analysis.ruleRecommendations.map((rec, idx) => (
-                          <div key={idx} className="flex items-start gap-3 text-sm">
-                            <span
-                              className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium shrink-0 ${
-                                rec.impact === 'high'
-                                  ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
-                                  : rec.impact === 'medium'
-                                    ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
-                                    : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
-                              }`}
-                            >
-                              {rec.impact}
-                            </span>
-                            <div className="min-w-0">
-                              <p className="font-medium text-blue-900 dark:text-blue-100">{rec.description}</p>
-                              <p className="text-blue-700/80 dark:text-blue-300/80 text-xs mt-0.5">{rec.details}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
                   {(followUpLoading || followUpAnalysis) && (
                     <section className="rounded-md border border-blue-200 dark:border-blue-800 bg-blue-100/50 dark:bg-blue-900/20 p-3 mt-2">
                       <h4 className="text-xs font-semibold uppercase tracking-wide text-blue-800 dark:text-blue-200 mb-2">
@@ -228,35 +198,6 @@ export function ExceptionAnalysisPanel({
                             <p className="text-xs font-medium text-muted-foreground mb-0.5">Recommended action</p>
                             <p className="text-sm break-words">{followUpAnalysis.recommendedAction}</p>
                           </div>
-                          {followUpAnalysis.ruleRecommendations && followUpAnalysis.ruleRecommendations.length > 0 && (
-                            <div className="mt-3 rounded-lg border border-blue-200 bg-blue-50/80 dark:border-blue-800 dark:bg-blue-950/20 p-3">
-                              <p className="text-xs font-semibold text-blue-900 dark:text-blue-100 mb-2 flex items-center gap-1.5">
-                                <Lightbulb className="h-3.5 w-3.5" />
-                                Suggested Rule Improvements
-                              </p>
-                              <div className="space-y-1.5">
-                                {followUpAnalysis.ruleRecommendations.map((rec, idx) => (
-                                  <div key={idx} className="flex items-start gap-2 text-xs">
-                                    <span
-                                      className={`inline-flex shrink-0 items-center rounded-full px-1.5 py-0.5 font-medium ${
-                                        rec.impact === 'high'
-                                          ? 'bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-300'
-                                          : rec.impact === 'medium'
-                                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/40 dark:text-yellow-300'
-                                            : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
-                                      }`}
-                                    >
-                                      {rec.impact}
-                                    </span>
-                                    <div>
-                                      <p className="font-medium text-blue-900 dark:text-blue-100">{rec.description}</p>
-                                      <p className="text-blue-700/80 dark:text-blue-300/80 mt-0.5">{rec.details}</p>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          )}
                         </div>
                       ) : null}
                     </section>

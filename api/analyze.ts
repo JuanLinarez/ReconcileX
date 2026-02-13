@@ -62,14 +62,6 @@ interface SuggestedMatchResponse {
   nameSimilarityPct?: number;
 }
 
-/** Rule change recommendation from AI. */
-interface RuleRecommendation {
-  type: 'add_rule' | 'modify_rule' | 'adjust_tolerance' | 'adjust_threshold' | 'use_fuzzy';
-  description: string;
-  impact: 'high' | 'medium' | 'low';
-  details: string;
-}
-
 /** API response shape. */
 interface AnalyzeResponse {
   probableCause: string;
@@ -81,7 +73,6 @@ interface AnalyzeResponse {
     referenceSimilarity?: number;
     [key: string]: unknown;
   };
-  ruleRecommendations?: RuleRecommendation[];
 }
 
 function buildPrompt(body: AnalyzeRequestBody): string {
@@ -108,8 +99,7 @@ Answer the user's question and, if appropriate, update your analysis. Respond wi
   "probableCause": "string",
   "suggestedMatch": { "candidate": <transaction object>, "reason": "string", "confidence": "High"|"Medium"|"Low", "amountDiff": number or null, "dateDiffDays": number or null, "nameSimilarityPct": number or null } or null,
   "recommendedAction": "string",
-  "differenceDetails": { "amountDiff": number or null, "dateDiffDays": number or null, "referenceSimilarity": number or null } or null,
-  "ruleRecommendations": [{ "type": "string", "description": "string", "impact": "high"|"medium"|"low", "details": "string" }]
+  "differenceDetails": { "amountDiff": number or null, "dateDiffDays": number or null, "referenceSimilarity": number or null } or null
 }`;
   }
 
@@ -145,28 +135,14 @@ ${otherJson}
 ## Your task
 1. Explain the **probable cause** of why this transaction didn't match (e.g. no matching amount within tolerance, date mismatch, reference mismatch).
 2. If you can identify the **most likely match** from the other source list, provide it with: the candidate object, a short reason, and a confidence level (High/Medium/Low). Include differenceDetails: amountDiff, dateDiffDays, referenceSimilarity if applicable.
-3. Give a **recommended action** for the user (e.g. "Manual match with row Y", "This appears to be a new transaction with no counterpart").
-4. Provide **ruleRecommendations** — specific changes to the matching rules that could help this transaction (and similar ones) match automatically. For each recommendation include:
-   - type: one of "add_rule", "modify_rule", "adjust_tolerance", "adjust_threshold", "use_fuzzy"
-   - description: a short user-friendly label (e.g. "Increase amount tolerance to ±$10")
-   - impact: "high" if it would likely match many unmatched transactions, "medium" if a few, "low" if just this one
-   - details: a longer explanation of why this change would help
-
-   Examples of good recommendations:
-   - { "type": "adjust_tolerance", "description": "Increase amount tolerance to ±$5.00", "impact": "high", "details": "The amount difference with the closest candidate is $3.50. Increasing tolerance from $0 to $5 would catch this and similar rounding differences." }
-   - { "type": "use_fuzzy", "description": "Use fuzzy matching on vendor names (85% similarity)", "impact": "medium", "details": "The vendor 'Apex Corp' in Source A is similar to 'Apex Consulting' in Source B (82% match). Adding fuzzy text matching would capture vendor name variations." }
-   - { "type": "adjust_threshold", "description": "Lower confidence threshold to 65%", "impact": "low", "details": "This pair scores 68% confidence, just below your 70% threshold. Lowering it slightly would include borderline matches for manual review." }
-   - { "type": "add_rule", "description": "Add a date tolerance of ±3 days", "impact": "high", "details": "Many unmatched transactions have dates within 1-3 days of potential matches. Adding date tolerance would capture timing differences from processing delays." }
-
-   Only include recommendations that are relevant to THIS transaction. Do not include generic advice. If no rule changes would help (e.g. the transaction truly has no counterpart), return an empty array.
+3. Give a **recommended action** for the user (e.g. "Increase amount tolerance to $X", "Manual match with row Y", "This appears to be a new transaction with no counterpart").
 
 Respond with a single JSON object only, no markdown or extra text. Use this exact shape:
 {
   "probableCause": "string",
   "suggestedMatch": { "candidate": <one transaction from other list>, "reason": "string", "confidence": "High"|"Medium"|"Low", "amountDiff": number or null, "dateDiffDays": number or null, "nameSimilarityPct": number or null } or null,
   "recommendedAction": "string",
-  "differenceDetails": { "amountDiff": number or null, "dateDiffDays": number or null, "referenceSimilarity": number or null } or null,
-  "ruleRecommendations": [{ "type": "string", "description": "string", "impact": "high"|"medium"|"low", "details": "string" }]
+  "differenceDetails": { "amountDiff": number or null, "dateDiffDays": number or null, "referenceSimilarity": number or null } or null
 }`;
 }
 
