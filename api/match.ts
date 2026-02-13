@@ -709,15 +709,51 @@ export default async function handler(
   let rowsB: Record<string, string>[];
   let headersA: string[];
   let headersB: string[];
-  const config = body.config as MatchingConfig;
+  let config: MatchingConfig;
+  let responseMode: string | undefined;
 
-  if (body.csvA && body.csvB) {
+  if (body.storageUrlA && body.storageUrlB) {
+    // TIER 3: Download CSV from Supabase Storage signed URLs
+    console.log(`[match] Storage transport: downloading files...`);
+
+    const [responseA, responseB] = await Promise.all([
+      fetch(body.storageUrlA as string),
+      fetch(body.storageUrlB as string),
+    ]);
+
+    if (!responseA.ok) {
+      res.status(400).json({ error: `Failed to download sourceA: ${responseA.status}` });
+      return;
+    }
+    if (!responseB.ok) {
+      res.status(400).json({ error: `Failed to download sourceB: ${responseB.status}` });
+      return;
+    }
+
+    const csvTextA = await responseA.text();
+    const csvTextB = await responseB.text();
+    console.log(
+      `[match] Downloaded: ${(csvTextA.length / 1024).toFixed(0)}KB + ${(csvTextB.length / 1024).toFixed(0)}KB`
+    );
+
+    const parsedA = parseCsvText(csvTextA);
+    const parsedB = parseCsvText(csvTextB);
+    rowsA = parsedA.rows;
+    rowsB = parsedB.rows;
+    headersA = parsedA.headers;
+    headersB = parsedB.headers;
+    config = body.config as MatchingConfig;
+    responseMode = body.responseMode as string | undefined;
+    console.log(`[match] Storage format: ${rowsA.length} + ${rowsB.length} rows`);
+  } else if (body.csvA && body.csvB) {
     const parsedA = parseCsvText(body.csvA as string);
     const parsedB = parseCsvText(body.csvB as string);
     rowsA = parsedA.rows;
     rowsB = parsedB.rows;
     headersA = parsedA.headers;
     headersB = parsedB.headers;
+    config = body.config as MatchingConfig;
+    responseMode = body.responseMode as string | undefined;
     console.log(`[match] CSV format: ${rowsA.length} + ${rowsB.length} rows`);
   } else if (body.sourceA && body.sourceB) {
     const sa = body.sourceA as { headers: string[]; rows: Record<string, string>[] };
@@ -726,9 +762,11 @@ export default async function handler(
     rowsB = sb.rows;
     headersA = sa.headers;
     headersB = sb.headers;
+    config = body.config as MatchingConfig;
+    responseMode = body.responseMode as string | undefined;
     console.log(`[match] JSON format: ${rowsA.length} + ${rowsB.length} rows`);
   } else {
-    res.status(400).json({ error: 'Provide csvA/csvB or sourceA/sourceB' });
+    res.status(400).json({ error: 'Provide storageUrlA/storageUrlB, csvA/csvB, or sourceA/sourceB' });
     return;
   }
 
@@ -764,6 +802,7 @@ export default async function handler(
     );
 
     const processingTimeMs = Date.now() - startTime;
+    const elapsed = processingTimeMs;
     const total = transactionsA.length + transactionsB.length;
     const matchRate = total > 0 ? matched.length * 2 / total : 0;
 
@@ -771,6 +810,47 @@ export default async function handler(
       `[match] Completed in ${processingTimeMs}ms. Matched: ${matched.length}, Unmatched: ${unmatchedA.length + unmatchedB.length}`
     );
 
+    // Check if client requested index-based response (for large datasets)
+    if (responseMode === 'indices') {
+      const matchedPairs = matched.map((m) => {
+        const txA = m.transactionsA?.[0];
+        const txB = m.transactionsB?.[0];
+        return {
+          indexA: ((txA?.rowIndex ?? 1) - 1) as number,
+          indexB: ((txB?.rowIndex ?? 1) - 1) as number,
+          confidence: m.confidence,
+        };
+      });
+
+      const unmatchedIndicesA = unmatchedA.map((t) => (t.rowIndex ?? 1) - 1);
+      const unmatchedIndicesB = unmatchedB.map((t) => (t.rowIndex ?? 1) - 1);
+
+      const indexResponse = {
+        mode: 'indices',
+        matchedPairs,
+        unmatchedIndicesA,
+        unmatchedIndicesB,
+        config,
+        stats: {
+          totalA: rowsA.length,
+          totalB: rowsB.length,
+          matchedCount: matchedPairs.length,
+          unmatchedACount: unmatchedIndicesA.length,
+          unmatchedBCount: unmatchedIndicesB.length,
+          elapsedMs: elapsed,
+          engine: 'vercel-storage',
+        },
+      };
+
+      console.log(
+        `[match] Index response: ${matchedPairs.length} pairs, ${JSON.stringify(indexResponse).length} bytes`
+      );
+
+      res.status(200).json(indexResponse);
+      return;
+    }
+
+    // Full response format (Tier 2 / legacy)
     res.status(200).json({
       matched: matched.map(toPayloadMatch),
       unmatchedA: unmatchedA.map(toPayload),

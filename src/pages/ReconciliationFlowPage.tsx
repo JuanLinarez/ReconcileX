@@ -154,7 +154,7 @@ export function ReconciliationFlowPage() {
       if (shouldUseServerMatching) {
         const totalRows = effectiveSourceA.rows.length + effectiveSourceB.rows.length;
         setMatchingProgress(`Processing ${totalRows.toLocaleString()} records on server...`);
-        r = await runServerMatching({ sourceA: effectiveSourceA, sourceB: effectiveSourceB, config: effectiveConfig });
+        r = await runServerMatching({ sourceA: effectiveSourceA, sourceB: effectiveSourceB, config: effectiveConfig, organizationId: organizationId ?? undefined });
       } else {
         setMatchingProgress('Processing...');
         const result = run();
@@ -197,7 +197,7 @@ export function ReconciliationFlowPage() {
       if (shouldUseServerMatching) {
         const totalRows = effectiveSourceA.rows.length + effectiveSourceB.rows.length;
         setMatchingProgress(`Previewing ${totalRows.toLocaleString()} records on server...`);
-        const r = await runServerMatching({ sourceA: effectiveSourceA, sourceB: effectiveSourceB, config: effectiveConfig });
+        const r = await runServerMatching({ sourceA: effectiveSourceA, sourceB: effectiveSourceB, config: effectiveConfig, organizationId: organizationId ?? undefined });
         setPreviewResult(r);
       } else {
         const r = run();
