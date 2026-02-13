@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Check } from 'lucide-react';
+import { Check, Settings2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { saveReconciliation } from '@/lib/database';
@@ -22,6 +22,7 @@ import type {
 import type { ParsedCsv } from '@/features/reconciliation/types';
 import { withSource } from '@/features/reconciliation/utils/parseCsv';
 import { getFriendlyErrorMessage } from '@/lib/errorMessages';
+import { scanDataQuality, applyAutoFix } from '@/features/normalization/dataQualityScanner';
 
 type Step = 'upload' | 'normalize' | 'preview' | 'matchingRules' | 'results';
 
@@ -60,6 +61,7 @@ export function ReconciliationFlowPage() {
   const [matchingProgress, setMatchingProgress] = useState<string>('');
   const [normalizedA, setNormalizedA] = useState<ParsedCsv | null>(null);
   const [normalizedB, setNormalizedB] = useState<ParsedCsv | null>(null);
+  const [showAdvancedNormalization, setShowAdvancedNormalization] = useState(false);
 
   const sourceA = useMemo(() => {
     const slot = uploadSlots[pairIndices[0]];
@@ -234,18 +236,47 @@ export function ReconciliationFlowPage() {
     if (step === 'upload') {
       setNormalizedA(null);
       setNormalizedB(null);
+      setShowAdvancedNormalization(false);
     }
   }, [step]);
 
+  // Auto-normalize when step is 'normalize': scan, apply safe fixes, advance to preview
+  useEffect(() => {
+    if (step !== 'normalize' || !sourceA || !sourceB) return;
+
+    const MIN_DELAY_MS = 1500;
+    const start = Date.now();
+
+    const run = (): void => {
+      try {
+        const scanResult = scanDataQuality(sourceA, sourceB);
+        const autoFixableA = scanResult.sourceA.filter((i) => i.autoFixable);
+        const autoFixableB = scanResult.sourceB.filter((i) => i.autoFixable);
+        const outA = applyAutoFix(sourceA, autoFixableA);
+        const outB = applyAutoFix(sourceB, autoFixableB);
+        setNormalizedA(outA);
+        setNormalizedB(outB);
+      } catch {
+        setNormalizedA(null);
+        setNormalizedB(null);
+      }
+
+      const elapsed = Date.now() - start;
+      const remaining = Math.max(0, MIN_DELAY_MS - elapsed);
+      setTimeout(() => setStep('preview'), remaining);
+    };
+
+    run();
+  }, [step, sourceA, sourceB]);
+
   const steps: { id: Step; label: string; number: number }[] = [
     { id: 'upload', label: 'Upload', number: 1 },
-    { id: 'normalize', label: 'Normalize', number: 2 },
-    { id: 'preview', label: 'Preview', number: 3 },
-    { id: 'matchingRules', label: 'Matching Rules', number: 4 },
-    { id: 'results', label: 'Results', number: 5 },
+    { id: 'preview', label: 'Preview', number: 2 },
+    { id: 'matchingRules', label: 'Matching Rules', number: 3 },
+    { id: 'results', label: 'Results', number: 4 },
   ];
-  const stepOrder: Step[] = ['upload', 'normalize', 'preview', 'matchingRules', 'results'];
-  const currentStepIndex = stepOrder.indexOf(step);
+  const visualStepOrder: Step[] = ['upload', 'preview', 'matchingRules', 'results'];
+  const currentVisualIndex = step === 'normalize' ? 0 : visualStepOrder.indexOf(step);
 
   return (
     <div className="space-y-8">
@@ -253,9 +284,9 @@ export function ReconciliationFlowPage() {
       <nav className="w-full" aria-label="Reconciliation steps">
         <div className="flex items-start justify-between">
           {steps.map(({ id, label, number }, index) => {
-            const isCompleted = index < currentStepIndex;
-            const isCurrent = index === currentStepIndex;
-            const isUpcoming = index > currentStepIndex;
+            const isCompleted = index < currentVisualIndex;
+            const isCurrent = index === currentVisualIndex;
+            const isUpcoming = index > currentVisualIndex;
             const isLast = index === steps.length - 1;
             return (
               <div key={id} className="flex flex-1 flex-col items-center">
@@ -264,7 +295,7 @@ export function ReconciliationFlowPage() {
                     <div
                       className={cn(
                         'h-0.5 flex-1 transition-colors',
-                        index <= currentStepIndex ? 'bg-[#2563EB]' : 'bg-[var(--app-border)]'
+                        index <= currentVisualIndex ? 'bg-[#2563EB]' : 'bg-[var(--app-border)]'
                       )}
                     />
                   )}
@@ -284,7 +315,7 @@ export function ReconciliationFlowPage() {
                     <div
                       className={cn(
                         'h-0.5 flex-1 transition-colors',
-                        index < currentStepIndex ? 'bg-[#2563EB]' : 'bg-[var(--app-border)]'
+                        index < currentVisualIndex ? 'bg-[#2563EB]' : 'bg-[var(--app-border)]'
                       )}
                     />
                   )}
@@ -322,40 +353,58 @@ export function ReconciliationFlowPage() {
       )}
 
       {step === 'normalize' && sourceA && sourceB && (
-        <>
-          <NormalizationPage
-            sourceA={sourceA}
-            sourceB={sourceB}
-            onComplete={(a, b) => {
-              setNormalizedA(a);
-              setNormalizedB(b);
-              setStep('preview');
-            }}
-            onSkip={() => {
-              setNormalizedA(null);
-              setNormalizedB(null);
-              setStep('preview');
-            }}
-          />
-          <div className="flex justify-between">
-            <Button variant="outline" onClick={() => setStep('upload')}>
-              Back
-            </Button>
+        <div className="flex flex-col items-center justify-center gap-4 py-16">
+          <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-blue-600 border-t-transparent" />
+          <div className="text-center">
+            <p className="text-base font-semibold text-[var(--app-heading)]">Preparing your data...</p>
+            <p className="mt-1 text-sm text-[var(--app-body)]">Scanning and optimizing for best matching results</p>
           </div>
-        </>
+        </div>
       )}
 
       {step === 'preview' && (
         <>
-          <PreviewPage sourceA={effectiveSourceA} sourceB={effectiveSourceB} />
-          <div className="flex justify-between">
-            <Button variant="outline" onClick={() => setStep('normalize')}>
-              Back
-            </Button>
-            <Button onClick={() => setStep('matchingRules')}>
-              Continue to Matching Rules
-            </Button>
-          </div>
+          {showAdvancedNormalization ? (
+            <>
+              <NormalizationPage
+                sourceA={effectiveSourceA!}
+                sourceB={effectiveSourceB!}
+                onComplete={(a, b) => {
+                  setNormalizedA(a);
+                  setNormalizedB(b);
+                  setShowAdvancedNormalization(false);
+                }}
+                onSkip={() => setShowAdvancedNormalization(false)}
+              />
+              <div className="flex justify-between">
+                <Button variant="outline" onClick={() => setShowAdvancedNormalization(false)}>
+                  Back to Preview
+                </Button>
+              </div>
+            </>
+          ) : (
+            <>
+              <PreviewPage sourceA={effectiveSourceA} sourceB={effectiveSourceB} />
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-4">
+                  <Button variant="outline" onClick={() => setStep('upload')}>
+                    Back
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => setShowAdvancedNormalization(true)}
+                    className="inline-flex items-center gap-1.5 text-xs text-[var(--app-body)]/60 hover:text-[var(--app-primary)] transition-colors cursor-pointer"
+                  >
+                    <Settings2 className="h-3.5 w-3.5" />
+                    Advanced Data Preparation
+                  </button>
+                </div>
+                <Button onClick={() => setStep('matchingRules')}>
+                  Continue to Matching Rules
+                </Button>
+              </div>
+            </>
+          )}
         </>
       )}
 
