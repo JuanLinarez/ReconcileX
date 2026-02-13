@@ -6,9 +6,6 @@ import {
   Target,
   Brain,
   Bookmark,
-  UploadCloud,
-  Sliders,
-  Sparkles,
   ClipboardList,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -181,30 +178,6 @@ export function DashboardPage() {
       },
     ],
     [statsLoading, stats.total, stats.avgMatchRate, stats.aiAnalyses, templateCount]
-  );
-
-  const tips = useMemo(
-    () => [
-      {
-        title: 'Upload Your Data',
-        description:
-          'Support for CSV and Excel files. Upload up to 4 files and select which pair to reconcile.',
-        icon: UploadCloud,
-      },
-      {
-        title: 'Configure Rules',
-        description:
-          'Set matching rules with flexible tolerances. Save templates for recurring reconciliations.',
-        icon: Sliders,
-      },
-      {
-        title: 'AI-Powered Analysis',
-        description:
-          'Our AI analyzes unmatched transactions and suggests probable matches with explanations.',
-        icon: Sparkles,
-      },
-    ],
-    []
   );
 
   return (
@@ -478,33 +451,6 @@ export function DashboardPage() {
               )}
             </CardContent>
           </Card>
-        </div>
-      </section>
-
-      {/* Getting Started */}
-      <section>
-        <h2 className="mb-4 text-lg font-semibold text-[var(--app-heading)]" style={headingStyle}>
-          Getting Started
-        </h2>
-        <div className="grid gap-4 md:grid-cols-3">
-          {tips.map(({ title, description, icon: Icon }) => (
-            <Card
-              key={title}
-              className="transition-shadow hover:shadow-md border-[var(--app-border)] bg-white"
-            >
-              <CardHeader>
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--app-primary)]/10 text-[var(--app-primary)]">
-                  <Icon className="h-5 w-5" />
-                </div>
-                <CardTitle className="text-base" style={headingStyle}>
-                  {title}
-                </CardTitle>
-                <CardDescription className="text-[var(--app-body)]">
-                  {description}
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          ))}
         </div>
       </section>
     </div>
