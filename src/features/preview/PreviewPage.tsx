@@ -6,7 +6,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardHeader, CardTitle } from '@/components/ui/card';
 import type { ParsedCsv } from '@/features/reconciliation/types';
 
 export interface PreviewPageProps {
@@ -40,8 +40,8 @@ export function PreviewPage({
               {sourceA && sourceA.rows.length > maxRows && ` (showing first ${maxRows})`}
             </p>
           </CardHeader>
-          <CardContent className="overflow-auto max-h-[400px]">
-            <Table>
+          <div className="border-t border-border" style={{ height: '300px', overflow: 'auto' }}>
+            <Table style={{ minWidth: '600px' }}>
               <TableHeader>
                 <TableRow>
                   {headersA.map((h) => (
@@ -63,7 +63,7 @@ export function PreviewPage({
                 ))}
               </TableBody>
             </Table>
-          </CardContent>
+          </div>
         </Card>
 
         <Card>
@@ -74,8 +74,8 @@ export function PreviewPage({
               {sourceB && sourceB.rows.length > maxRows && ` (showing first ${maxRows})`}
             </p>
           </CardHeader>
-          <CardContent className="overflow-auto max-h-[400px]">
-            <Table>
+          <div className="border-t border-border" style={{ height: '300px', overflow: 'auto' }}>
+            <Table style={{ minWidth: '600px' }}>
               <TableHeader>
                 <TableRow>
                   {headersB.map((h) => (
@@ -97,7 +97,7 @@ export function PreviewPage({
                 ))}
               </TableBody>
             </Table>
-          </CardContent>
+          </div>
         </Card>
       </div>
     </div>
