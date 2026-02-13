@@ -129,6 +129,32 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
+/* Pointer cursor for all interactive elements */
+button:not(:disabled),
+[role="button"]:not([aria-disabled="true"]),
+a[href],
+select,
+input[type="checkbox"],
+input[type="radio"],
+label[for],
+[data-clickable="true"],
+.cursor-pointer {
+  cursor: pointer;
+}
+
+button:disabled,
+[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
+[role="slider"] {
+  cursor: grab;
+}
+
+[role="slider"]:active {
+  cursor: grabbing;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

@@ -1,5 +1,12 @@
-import { Fragment, useMemo, useState } from 'react';
+import { Fragment, useCallback, useMemo, useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   Table,
   TableBody,
@@ -189,10 +196,96 @@ function MatchDetailPanel({ match }: MatchDetailPanelProps) {
 
 const MATCHED_TABLE_COLUMNS = 8; // chevron + confidence + 6 data columns
 
+const PAGE_SIZE_OPTIONS = [50, 100, 250] as const;
+
+interface PaginationBarProps {
+  total: number;
+  page: number;
+  pageSize: number;
+  onPageChange: (p: number) => void;
+  onPageSizeChange: (s: number) => void;
+}
+
+function PaginationBar({ total, page, pageSize, onPageChange, onPageSizeChange }: PaginationBarProps) {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize));
+  const start = (page - 1) * pageSize + 1;
+  const end = Math.min(page * pageSize, total);
+
+  return (
+    <div className="flex flex-row flex-wrap items-center justify-between gap-4 border-t pt-4 mt-4">
+      <span className="text-sm text-muted-foreground">
+        Showing {total === 0 ? 0 : start}-{end} of {total.toLocaleString()}
+      </span>
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Rows per page</span>
+          <Select
+            value={String(pageSize)}
+            onValueChange={(v) => {
+              onPageSizeChange(Number(v));
+              onPageChange(1);
+            }}
+          >
+            <SelectTrigger className="w-[80px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {PAGE_SIZE_OPTIONS.map((s) => (
+                <SelectItem key={s} value={String(s)}>
+                  {s}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <span className="text-sm text-muted-foreground">
+          Page {page} of {totalPages}
+        </span>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page <= 1}
+            onClick={() => onPageChange(page - 1)}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page >= totalPages}
+            onClick={() => onPageChange(page + 1)}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+type TabId = 'matched' | 'unmatchedA' | 'unmatchedB' | 'anomalies';
+
 export function ResultsPage({ result, reconciliationId, organizationId, sourceAName = 'Source A', sourceBName = 'Source B', className }: ResultsPageProps) {
   const { matched, unmatchedA, unmatchedB } = result;
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [augmentation, setAugmentation] = useState(createInitialAugmentation);
+  const [activeTab, setActiveTab] = useState<TabId>('matched');
+
+  const [matchedPage, setMatchedPage] = useState(1);
+  const [matchedPageSize, setMatchedPageSize] = useState(100);
+  const [unmatchedAPage, setUnmatchedAPage] = useState(1);
+  const [unmatchedAPageSize, setUnmatchedAPageSize] = useState(100);
+  const [unmatchedBPage, setUnmatchedBPage] = useState(1);
+  const [unmatchedBPageSize, setUnmatchedBPageSize] = useState(100);
+
+  const handleTabChange = useCallback((value: string) => {
+    setActiveTab(value as TabId);
+    if (value === 'matched') setMatchedPage(1);
+    else if (value === 'unmatchedA') setUnmatchedAPage(1);
+    else if (value === 'unmatchedB') setUnmatchedBPage(1);
+    // AnomalyPanel manages its own pagination; resets on mount when tab is selected
+  }, []);
   const [manualMatchOpen, setManualMatchOpen] = useState(false);
   const [manualMatchSource, setManualMatchSource] = useState<'sourceA' | 'sourceB' | null>(null);
   const [manualMatchTransaction, setManualMatchTransaction] = useState<Transaction | null>(null);
@@ -746,7 +839,7 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
 
       <div className="border-b border-border mb-4" aria-hidden />
 
-      <Tabs defaultValue="matched" className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList>
           <TabsTrigger value="matched">Matched</TabsTrigger>
           <TabsTrigger value="unmatchedA">Unmatched Source A</TabsTrigger>
@@ -803,7 +896,10 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {matchedDisplay.map((m, i) => {
+                  {matchedDisplay
+                    .slice((matchedPage - 1) * matchedPageSize, matchedPage * matchedPageSize)
+                    .map((m, idx) => {
+                    const i = (matchedPage - 1) * matchedPageSize + idx;
                     const isExpanded = expandedIndex === i;
                     const isManual = 'isManual' in m && m.isManual;
                     return (
@@ -867,6 +963,13 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
               {matchedDisplay.length === 0 && (
                 <p className="py-8 text-center text-muted-foreground">No matched pairs.</p>
               )}
+              <PaginationBar
+                total={matchedDisplay.length}
+                page={matchedPage}
+                pageSize={matchedPageSize}
+                onPageChange={setMatchedPage}
+                onPageSizeChange={(s) => { setMatchedPageSize(s); setMatchedPage(1); }}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -891,7 +994,9 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {unmatchedADisplay.map((t) => {
+                  {unmatchedADisplay
+                    .slice((unmatchedAPage - 1) * unmatchedAPageSize, unmatchedAPage * unmatchedAPageSize)
+                    .map((t) => {
                     const isReviewed = reviewedIds.has(t.id);
                     const isIgnored = ignoredIds.has(t.id);
                     const rowBg = isIgnored
@@ -1007,6 +1112,13 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
               {unmatchedADisplay.length === 0 && (
                 <p className="py-8 text-center text-muted-foreground">All Source A matched.</p>
               )}
+              <PaginationBar
+                total={unmatchedADisplay.length}
+                page={unmatchedAPage}
+                pageSize={unmatchedAPageSize}
+                onPageChange={setUnmatchedAPage}
+                onPageSizeChange={(s) => { setUnmatchedAPageSize(s); setUnmatchedAPage(1); }}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -1031,7 +1143,9 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {unmatchedBDisplay.map((t) => {
+                  {unmatchedBDisplay
+                    .slice((unmatchedBPage - 1) * unmatchedBPageSize, unmatchedBPage * unmatchedBPageSize)
+                    .map((t) => {
                     const isReviewed = reviewedIds.has(t.id);
                     const isIgnored = ignoredIds.has(t.id);
                     const rowBg = isIgnored
@@ -1147,6 +1261,13 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
               {unmatchedBDisplay.length === 0 && (
                 <p className="py-8 text-center text-muted-foreground">All Source B matched.</p>
               )}
+              <PaginationBar
+                total={unmatchedBDisplay.length}
+                page={unmatchedBPage}
+                pageSize={unmatchedBPageSize}
+                onPageChange={setUnmatchedBPage}
+                onPageSizeChange={(s) => { setUnmatchedBPageSize(s); setUnmatchedBPage(1); }}
+              />
             </CardContent>
           </Card>
         </TabsContent>

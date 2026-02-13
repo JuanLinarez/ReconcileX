@@ -3,6 +3,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   Table,
   TableBody,
   TableCell,
@@ -176,6 +183,12 @@ export function AnomalyPanel({ report, className }: AnomalyPanelProps) {
           ? 'text-yellow-600 dark:text-yellow-500'
           : 'text-blue-600 dark:text-blue-500';
 
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(100);
+  const totalPages = Math.max(1, Math.ceil(anomalies.length / pageSize));
+  const start = (page - 1) * pageSize;
+  const paginatedAnomalies = anomalies.slice(start, start + pageSize);
+
   return (
     <div className={cn('space-y-4', className)}>
       {/* Summary bar */}
@@ -211,10 +224,61 @@ export function AnomalyPanel({ report, className }: AnomalyPanelProps) {
 
       {/* Anomaly list */}
       <div className="space-y-3">
-        {anomalies.map((anomaly) => (
+        {paginatedAnomalies.map((anomaly) => (
           <AnomalyCard key={anomaly.id} anomaly={anomaly} />
         ))}
       </div>
+
+      {/* Pagination */}
+      {anomalies.length > 0 && (
+        <div className="flex flex-row flex-wrap items-center justify-between gap-4 border-t pt-4 mt-4">
+          <span className="text-sm text-muted-foreground">
+            Showing {anomalies.length === 0 ? 0 : start + 1}-{Math.min(start + pageSize, anomalies.length)} of {anomalies.length.toLocaleString()}
+          </span>
+          <div className="flex items-center gap-4">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">Rows per page</span>
+              <Select
+                value={String(pageSize)}
+                onValueChange={(v) => {
+                  setPageSize(Number(v));
+                  setPage(1);
+                }}
+              >
+                <SelectTrigger className="w-[80px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="50">50</SelectItem>
+                  <SelectItem value="100">100</SelectItem>
+                  <SelectItem value="250">250</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <span className="text-sm text-muted-foreground">
+              Page {page} of {totalPages}
+            </span>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page <= 1}
+                onClick={() => setPage(page - 1)}
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages}
+                onClick={() => setPage(page + 1)}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

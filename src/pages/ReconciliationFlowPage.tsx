@@ -372,16 +372,27 @@ export function ReconciliationFlowPage() {
           />
 
           {(isMatching || matchingProgress) && (
-            <div className="flex items-center justify-center gap-3 rounded-lg border border-[var(--app-border)] bg-white p-6">
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--app-primary)] border-t-transparent" />
-              <span className="text-sm font-medium text-[var(--app-body)]">
-                {matchingProgress || 'Processing...'}
-              </span>
-              {shouldUseServerMatching && (
-                <span className="text-xs text-[var(--app-body)]/60">
-                  (Large dataset — processing on server)
-                </span>
-              )}
+            <div className="flex flex-col items-center justify-center gap-4 rounded-lg border-2 border-blue-200 bg-blue-50 p-8">
+              <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-blue-600 border-t-transparent" />
+              <div className="text-center">
+                <p className="text-base font-semibold text-gray-900">
+                  {matchingProgress || 'Processing...'}
+                </p>
+                {shouldUseServerMatching && effectiveSourceA && effectiveSourceB && (
+                  <p className="mt-2 text-sm text-gray-500">
+                    {(() => {
+                      const total = (effectiveSourceA.rows.length ?? 0) + (effectiveSourceB.rows.length ?? 0);
+                      let estimate = '';
+                      if (total <= 5000) estimate = 'less than 30 seconds';
+                      else if (total <= 10000) estimate = 'approximately 30 seconds';
+                      else if (total <= 25000) estimate = 'approximately 1-2 minutes';
+                      else if (total <= 50000) estimate = 'approximately 2-3 minutes';
+                      else estimate = 'approximately 3-5 minutes';
+                      return `Large dataset — estimated time: ${estimate}. Please do not close this tab.`;
+                    })()}
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
@@ -408,16 +419,27 @@ export function ReconciliationFlowPage() {
       {step === 'results' && result && (
         <>
           {(isMatching || matchingProgress) && (
-            <div className="flex items-center justify-center gap-3 rounded-lg border border-[var(--app-border)] bg-white p-6">
-              <div className="h-5 w-5 animate-spin rounded-full border-2 border-[var(--app-primary)] border-t-transparent" />
-              <span className="text-sm font-medium text-[var(--app-body)]">
-                {matchingProgress || 'Processing...'}
-              </span>
-              {shouldUseServerMatching && (
-                <span className="text-xs text-[var(--app-body)]/60">
-                  (Large dataset — processing on server)
-                </span>
-              )}
+            <div className="flex flex-col items-center justify-center gap-4 rounded-lg border-2 border-blue-200 bg-blue-50 p-8">
+              <div className="h-8 w-8 animate-spin rounded-full border-[3px] border-blue-600 border-t-transparent" />
+              <div className="text-center">
+                <p className="text-base font-semibold text-gray-900">
+                  {matchingProgress || 'Processing...'}
+                </p>
+                {shouldUseServerMatching && effectiveSourceA && effectiveSourceB && (
+                  <p className="mt-2 text-sm text-gray-500">
+                    {(() => {
+                      const total = (effectiveSourceA.rows.length ?? 0) + (effectiveSourceB.rows.length ?? 0);
+                      let estimate = '';
+                      if (total <= 5000) estimate = 'less than 30 seconds';
+                      else if (total <= 10000) estimate = 'approximately 30 seconds';
+                      else if (total <= 25000) estimate = 'approximately 1-2 minutes';
+                      else if (total <= 50000) estimate = 'approximately 2-3 minutes';
+                      else estimate = 'approximately 3-5 minutes';
+                      return `Large dataset — estimated time: ${estimate}. Please do not close this tab.`;
+                    })()}
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
