@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { NavLink, useLocation, Outlet } from 'react-router-dom';
 import {
   Home,
@@ -15,6 +15,9 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
+import { useOnboarding } from '@/features/onboarding/useOnboarding';
+import { OnboardingChecklist } from '@/features/onboarding/OnboardingChecklist';
+import { getReconciliationStats, getTemplates } from '@/lib/database';
 
 function getInitials(user: { user_metadata?: { full_name?: string }; email?: string | null }): string {
   const name = user.user_metadata?.full_name?.trim();
@@ -50,12 +53,49 @@ function breadcrumbFromPath(pathname: string): string {
 }
 
 export function AppLayout() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, organizationId } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const breadcrumb = breadcrumbFromPath(location.pathname);
   const displayName = user?.user_metadata?.full_name?.trim() || user?.email || 'User';
   const initials = user ? getInitials(user) : '?';
+
+  const [onboardingContext, setOnboardingContext] = useState({
+    reconciliationCount: 0,
+    templateCount: 0,
+    hasRunAIAnalysis: typeof window !== 'undefined' && localStorage.getItem('rx_has_run_ai_analysis') === 'true',
+    hasExportedResults: typeof window !== 'undefined' && localStorage.getItem('rx_has_exported_results') === 'true',
+  });
+
+  useEffect(() => {
+    if (!organizationId) return;
+    const load = () => {
+      Promise.all([
+        getReconciliationStats(organizationId),
+        getTemplates(organizationId),
+      ]).then(([stats, templates]) => {
+        setOnboardingContext((prev) => ({
+          ...prev,
+          reconciliationCount: stats.total_reconciliations,
+          templateCount: templates.length,
+          hasRunAIAnalysis: localStorage.getItem('rx_has_run_ai_analysis') === 'true',
+          hasExportedResults: localStorage.getItem('rx_has_exported_results') === 'true',
+        }));
+      });
+    };
+    load();
+    const handler = () => load();
+    window.addEventListener('rx-onboarding-update', handler);
+    return () => window.removeEventListener('rx-onboarding-update', handler);
+  }, [organizationId]);
+
+  const {
+    activeStep,
+    completedStepIds,
+    progress,
+    hideOnboarding,
+    isVisible,
+  } = useOnboarding(onboardingContext);
 
   return (
     <div className="flex min-h-screen bg-[var(--app-bg)]">
@@ -178,6 +218,15 @@ export function AppLayout() {
           </div>
         </main>
       </div>
+
+      {isVisible && (
+        <OnboardingChecklist
+          completedStepIds={completedStepIds}
+          activeStepId={activeStep?.id ?? null}
+          progress={progress}
+          onHideOnboarding={hideOnboarding}
+        />
+      )}
     </div>
   );
 }

@@ -435,6 +435,8 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
       if (isFollowUp) {
         setFollowUpAnalysisByTxId((prev) => ({ ...prev, [t.id]: fetchResult.analysis }));
       } else {
+        localStorage.setItem('rx_has_run_ai_analysis', 'true');
+        window.dispatchEvent(new CustomEvent('rx-onboarding-update'));
         setFollowUpAnalysisByTxId((prev) => {
           const next = { ...prev };
           delete next[t.id];
@@ -588,8 +590,16 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
     runAnalyze(source, t, { followUpQuestion: question, previousAnalysis });
   };
 
-  const handleExportExcel = () => exportToExcel(result, augmentation);
-  const handleExportCsv = () => exportToCsv(result, augmentation);
+  const handleExportExcel = () => {
+    exportToExcel(result, augmentation);
+    localStorage.setItem('rx_has_exported_results', 'true');
+    window.dispatchEvent(new CustomEvent('rx-onboarding-update'));
+  };
+  const handleExportCsv = () => {
+    exportToCsv(result, augmentation);
+    localStorage.setItem('rx_has_exported_results', 'true');
+    window.dispatchEvent(new CustomEvent('rx-onboarding-update'));
+  };
 
   // Clear analysis panel when changing pages
   useEffect(() => {
