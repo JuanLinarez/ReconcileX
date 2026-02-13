@@ -159,10 +159,10 @@ export function TemplatesPage() {
   return (
     <div className="space-y-8 pb-8">
       <div>
-        <h1 className="text-2xl font-semibold text-[var(--app-heading)] sm:text-3xl" style={headingStyle}>
+        <h1 className="text-3xl font-bold font-heading text-[var(--app-heading)] mb-8" style={headingStyle}>
           Templates
         </h1>
-        <p className="mt-1 text-sm text-[var(--app-body)]">
+        <p className="mt-1 text-base text-[var(--app-body)]">
           Save and reuse matching rule configurations
         </p>
       </div>

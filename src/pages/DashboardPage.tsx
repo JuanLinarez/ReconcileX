@@ -186,12 +186,12 @@ export function DashboardPage() {
       <section className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h1
-            className="text-2xl font-semibold text-[var(--app-heading)] sm:text-3xl"
+            className="text-3xl font-bold font-heading text-[var(--app-heading)]"
             style={headingStyle}
           >
             {getGreeting()}, {displayName}
           </h1>
-          <p className="mt-1 text-sm text-[var(--app-body)]">{getTodayLabel()}</p>
+          <p className="mt-1 text-base text-[var(--app-body)]">{getTodayLabel()}</p>
         </div>
         <div className="shrink-0">
           <Link to="/reconciliation/new">

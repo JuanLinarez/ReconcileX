@@ -223,10 +223,10 @@ export function SettingsPage() {
   return (
     <div className="space-y-6 pb-8">
       <div>
-        <h1 className="text-2xl font-semibold text-[var(--app-heading)] sm:text-3xl" style={headingStyle}>
+        <h1 className="text-3xl font-bold font-heading text-[var(--app-heading)] mb-8" style={headingStyle}>
           Settings
         </h1>
-        <p className="mt-1 text-sm text-[var(--app-body)]">
+        <p className="mt-1 text-base text-[var(--app-body)]">
           Manage your account, organization, and preferences
         </p>
       </div>

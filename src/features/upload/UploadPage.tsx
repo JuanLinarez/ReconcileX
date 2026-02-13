@@ -150,10 +150,10 @@ export function UploadPage({
   return (
     <div className={cn('space-y-8', className)}>
       <div className="text-center space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight font-heading">
+        <h1 className="text-3xl font-bold font-heading text-[var(--app-heading)] mb-8">
           Select your data sources
         </h1>
-        <p className="text-muted-foreground font-body">
+        <p className="text-base text-[var(--app-body)] mt-1 font-body">
           Upload up to 4 files (CSV or Excel), then choose which pair to reconcile.
         </p>
       </div>

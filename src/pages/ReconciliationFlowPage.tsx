@@ -283,22 +283,22 @@ export function ReconciliationFlowPage() {
 
   return (
     <div className="space-y-8">
-      {/* Visual stepper */}
-      <nav className="w-full" aria-label="Reconciliation steps">
-        <div className="flex items-start justify-between">
+      {/* Visual stepper (Finalytic style) */}
+      <nav className="w-full py-4" aria-label="Reconciliation steps">
+        <div className="flex items-start justify-between gap-4">
           {steps.map(({ id, label, number }, index) => {
             const isCompleted = index < currentVisualIndex;
             const isCurrent = index === currentVisualIndex;
             const isUpcoming = index > currentVisualIndex;
             const isLast = index === steps.length - 1;
             return (
-              <div key={id} className="flex flex-1 flex-col items-center">
+              <div key={id} className="flex flex-1 flex-col items-center min-w-0">
                 <div className="flex w-full items-center">
                   {index > 0 && (
                     <div
                       className={cn(
                         'h-0.5 flex-1 transition-colors',
-                        index <= currentVisualIndex ? 'bg-[#2563EB]' : 'bg-[var(--app-border)]'
+                        index <= currentVisualIndex ? 'bg-[#1E1E2D]' : 'bg-gray-200'
                       )}
                     />
                   )}
@@ -306,10 +306,10 @@ export function ReconciliationFlowPage() {
                     type="button"
                     onClick={() => setStep(id)}
                     className={cn(
-                      'flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-sm font-medium transition-colors',
-                      isCompleted && 'bg-[#2563EB] text-white',
-                      isCurrent && 'bg-[#2563EB] text-white',
-                      isUpcoming && 'border-2 border-[var(--app-border)] bg-white text-[var(--app-body)]'
+                      'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-medium transition-colors',
+                      isCompleted && 'bg-[#1E1E2D] text-white',
+                      isCurrent && 'bg-[#1E1E2D] text-white',
+                      isUpcoming && 'border-2 border-gray-300 bg-white text-gray-400'
                     )}
                   >
                     {isCompleted ? <Check className="h-4 w-4" /> : number}
@@ -318,7 +318,7 @@ export function ReconciliationFlowPage() {
                     <div
                       className={cn(
                         'h-0.5 flex-1 transition-colors',
-                        index < currentVisualIndex ? 'bg-[#2563EB]' : 'bg-[var(--app-border)]'
+                        index < currentVisualIndex ? 'bg-[#1E1E2D]' : 'bg-gray-200'
                       )}
                     />
                   )}
@@ -327,8 +327,9 @@ export function ReconciliationFlowPage() {
                   type="button"
                   onClick={() => setStep(id)}
                   className={cn(
-                    'mt-2 text-center text-xs font-medium transition-colors sm:text-sm',
-                    isCurrent ? 'text-[var(--app-primary)]' : 'text-[var(--app-body)] hover:text-[var(--app-heading)]'
+                    'mt-3 text-center text-sm font-medium transition-colors font-heading',
+                    isCurrent && 'text-[#1E1E2D] font-bold',
+                    !isCurrent && 'text-[var(--app-body)] hover:text-[var(--app-heading)]'
                   )}
                 >
                   {label}
@@ -349,7 +350,7 @@ export function ReconciliationFlowPage() {
           />
           {canProceedFromUpload && (
             <div className="flex justify-center">
-              <Button onClick={() => setStep('normalize')}>Continue</Button>
+              <Button variant="dark" onClick={() => setStep('normalize')}>Continue</Button>
             </div>
           )}
         </>
@@ -449,7 +450,7 @@ export function ReconciliationFlowPage() {
               >
                 {isPreviewLoading ? 'Calculating…' : 'Preview Results'}
               </Button>
-              <Button disabled={!canRunMatching || isMatching} onClick={handleRunMatching}>
+              <Button variant="dark" disabled={!canRunMatching || isMatching} onClick={handleRunMatching}>
                 {isMatching ? 'Processing…' : 'Run Matching'}
               </Button>
             </div>
@@ -503,7 +504,7 @@ export function ReconciliationFlowPage() {
             <Button variant="outline" onClick={() => setStep('matchingRules')}>
               Back to Matching Rules
             </Button>
-            <Button onClick={handleRunMatching} disabled={isMatching}>
+            <Button variant="dark" onClick={handleRunMatching} disabled={isMatching}>
               {isMatching ? 'Processing…' : 'Run again'}
             </Button>
           </div>

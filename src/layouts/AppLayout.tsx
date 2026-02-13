@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { NavLink, useLocation, Outlet } from 'react-router-dom';
+import { NavLink, Link, useLocation, Outlet } from 'react-router-dom';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import {
   Home,
@@ -247,6 +247,13 @@ export function AppLayout() {
               </span>
             </div>
             <div className="flex items-center gap-2">
+              <Link
+                to="/settings"
+                aria-label="Settings"
+                className="rounded-lg p-2 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+              >
+                <Settings className="h-5 w-5" />
+              </Link>
               <button
                 type="button"
                 aria-label="Notifications"

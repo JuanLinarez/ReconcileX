@@ -20,10 +20,10 @@ export function SecurityPage() {
         <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 text-white shadow-lg">
           <Shield className="w-8 h-8" />
         </div>
-        <h1 className="text-3xl font-bold font-heading text-[var(--app-heading)]">
+        <h1 className="text-3xl font-bold font-heading text-[var(--app-heading)] mb-8">
           Security & Data Protection
         </h1>
-        <p className="text-lg text-[var(--app-body)] max-w-2xl mx-auto">
+        <p className="text-base text-[var(--app-body)] mt-1 max-w-2xl mx-auto">
           ReconcileX is built with enterprise-grade security at its core. Your
           financial data deserves the highest level of protection, and we take
           that responsibility seriously.
