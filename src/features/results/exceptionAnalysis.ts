@@ -3,6 +3,7 @@
  */
 
 import type { MatchResult, MatchingConfig, Transaction } from '@/features/reconciliation/types';
+import { getFriendlyErrorMessage } from '@/lib/errorMessages';
 
 export type ConfidenceLevel = 'High' | 'Medium' | 'Low';
 
@@ -172,13 +173,13 @@ export async function fetchAnalyzeException(
     const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      const message =
+      const rawMessage =
         typeof data?.message === 'string'
           ? data.message
           : data?.error ?? `Request failed (${res.status})`;
       return {
         success: false,
-        error: message,
+        error: getFriendlyErrorMessage(new Error(rawMessage)),
         isNetwork: false,
       };
     }
@@ -186,15 +187,14 @@ export async function fetchAnalyzeException(
     const analysis = mapApiResponseToAnalysis(data as AnalyzeApiResponse, otherSource);
     return { success: true, analysis };
   } catch (err) {
-    const message = err instanceof Error ? err.message : 'Unknown error';
     const isNetwork =
-      message.includes('fetch') ||
-      message.includes('NetworkError') ||
-      message.includes('Failed to fetch') ||
+      (err instanceof Error && err.message.toLowerCase().includes('fetch')) ||
+      (err instanceof Error && err.message.toLowerCase().includes('networkerror')) ||
+      (err instanceof Error && err.message.toLowerCase().includes('failed to fetch')) ||
       err instanceof TypeError;
     return {
       success: false,
-      error: isNetwork ? 'Could not connect to AI service. Check your connection.' : message,
+      error: getFriendlyErrorMessage(err),
       isNetwork,
     };
   }

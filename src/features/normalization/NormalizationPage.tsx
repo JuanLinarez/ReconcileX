@@ -10,6 +10,8 @@ import { scanDataQuality, applyAutoFix } from './dataQualityScanner';
 import type { DataQualityIssue, ScanResult } from './dataQualityScanner';
 import { runNormalization } from './normalizationService';
 import type { NormalizeSuggestion } from './normalizationService';
+import { getFriendlyErrorMessage } from '@/lib/errorMessages';
+import { ErrorAlert } from '@/components/ui/error-alert';
 
 const headingStyle = { fontFamily: 'var(--font-heading)' };
 
@@ -95,6 +97,7 @@ export function NormalizationPage({
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
   const [aiSuggestions, setAiSuggestions] = useState<NormalizeSuggestion[] | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
 
   const [acceptAutoFix, setAcceptAutoFix] = useState<Record<string, boolean>>({});
   const [acceptAiMapping, setAcceptAiMapping] = useState<Record<string, boolean>>({});
@@ -123,6 +126,7 @@ export function NormalizationPage({
 
   const handleGetAiSuggestions = async () => {
     setAiLoading(true);
+    setAiError(null);
     try {
       const { aiSuggestions: suggestions } = await runNormalization(sourceA, sourceB);
       if (suggestions?.suggestions) {
@@ -136,6 +140,8 @@ export function NormalizationPage({
         }
         setAcceptAiMapping(initial);
       }
+    } catch (err) {
+      setAiError(getFriendlyErrorMessage(err));
     } finally {
       setAiLoading(false);
     }
@@ -281,6 +287,14 @@ export function NormalizationPage({
           ))}
         </TabsContent>
       </Tabs>
+
+      {aiError && (
+        <ErrorAlert
+          message={aiError}
+          onRetry={handleGetAiSuggestions}
+          onDismiss={() => setAiError(null)}
+        />
+      )}
 
       <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-4 border-t border-[var(--app-border)] bg-white py-4 dark:bg-background">
         <p className="text-sm text-[var(--app-body)]">

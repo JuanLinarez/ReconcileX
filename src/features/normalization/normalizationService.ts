@@ -93,8 +93,11 @@ export async function runNormalization(
     const data = await res.json().catch(() => ({}));
 
     if (!res.ok) {
-      console.error('normalize API error', res.status, data);
-      return { scanResult, aiSuggestions: null };
+      const rawMessage =
+        typeof data?.message === 'string'
+          ? data.message
+          : data?.error ?? `Request failed (${res.status})`;
+      throw new Error(rawMessage);
     }
 
     if (data?.suggestions && Array.isArray(data.suggestions)) {
@@ -104,6 +107,6 @@ export async function runNormalization(
     return { scanResult, aiSuggestions: null };
   } catch (err) {
     console.error('runNormalization', err);
-    return { scanResult, aiSuggestions: null };
+    throw err;
   }
 }

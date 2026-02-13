@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ArrowUp, Sparkles, X } from 'lucide-react';
 import type { ReconciliationResult } from '@/features/reconciliation/types';
+import { getFriendlyErrorMessage } from '@/lib/errorMessages';
 import type { AnomalyReport } from '@/features/anomalies/anomalyDetector';
 import { cn } from '@/lib/utils';
 
@@ -157,7 +158,7 @@ export function CopilotPanel({
         const answer = data?.answer ?? '';
         setMessages((prev) => [...prev, { role: 'assistant', content: answer }]);
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'An error occurred';
+        const message = getFriendlyErrorMessage(err);
         setMessages((prev) => [
           ...prev,
           { role: 'assistant', content: `**Error:** ${message}` },

@@ -21,6 +21,7 @@ import type {
 } from '@/features/reconciliation/types';
 import type { ParsedCsv } from '@/features/reconciliation/types';
 import { withSource } from '@/features/reconciliation/utils/parseCsv';
+import { getFriendlyErrorMessage } from '@/lib/errorMessages';
 
 type Step = 'upload' | 'normalize' | 'preview' | 'matchingRules' | 'results';
 
@@ -174,9 +175,7 @@ export function ReconciliationFlowPage() {
       }
     } catch (error) {
       console.error('Matching failed:', error);
-      setMatchingProgress(
-        error instanceof Error ? error.message : 'Matching failed. Please try again.'
-      );
+      setMatchingProgress(getFriendlyErrorMessage(error));
       setTimeout(() => {
         setIsMatching(false);
         setMatchingProgress('');
@@ -193,6 +192,7 @@ export function ReconciliationFlowPage() {
     setPreviewResult(null);
     setMatchingProgress('');
 
+    let hadError = false;
     try {
       if (shouldUseServerMatching) {
         const totalRows = effectiveSourceA.rows.length + effectiveSourceB.rows.length;
@@ -204,10 +204,12 @@ export function ReconciliationFlowPage() {
         setPreviewResult(r ?? null);
       }
     } catch (error) {
+      hadError = true;
       console.error('Preview failed:', error);
+      setMatchingProgress(getFriendlyErrorMessage(error));
     } finally {
       setIsPreviewLoading(false);
-      setMatchingProgress('');
+      if (!hadError) setMatchingProgress('');
     }
   };
 

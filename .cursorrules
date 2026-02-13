@@ -1,39 +1,142 @@
-You are an expert in financial reconciliation systems, React, TypeScript, Vite, Tailwind CSS, shadcn/ui, and Supabase.
+You are an expert in financial reconciliation systems, React, TypeScript, Vite, Tailwind CSS, shadcn/ui, Supabase, and Vercel serverless functions.
 
-## Project: ReconcileX - Transactional Matching App
+## Project: ReconcileX — AI-Powered Financial Reconciliation SaaS
 
 ## Key Principles
-- Write concise, type-safe TypeScript code
-- Use functional components and React hooks
+- Write concise, type-safe TypeScript code with explicit return types
+- Use functional components and React hooks exclusively
 - Feature-based folder structure under src/features/
 - Define types/interfaces BEFORE implementation
 - All matching logic must be configurable and rule-based
+- Always read ARCHITECTURE.md before making changes to understand the system
+- Never modify the matching engine logic without explicit instructions
+- Prefer composition over inheritance
 
 ## Domain Context
-This app automates transactional reconciliation:
-- Imports transactions from multiple sources (bank, ERP, CSV files)
-- Matches transactions using configurable rules
-- Supports exact match, tolerance-based, and fuzzy matching
-- Handles multi-currency with exchange rate tolerance
-- Generates exception reports for unmatched items
+ReconcileX automates financial reconciliation for Shared Service Centers:
+- Users upload 2 CSV/Excel files (Source A and Source B)
+- System normalizes data quality issues (whitespace, dates, amounts, vendor names)
+- Users configure matching rules with weights (amount, date, reference, vendor name)
+- Matching engine scores all potential pairs and assigns best matches
+- Results show matched pairs, unmatched items, and detected anomalies
+- AI features: exception analysis, copilot chat, natural language rules, smart suggestions
 
 ## Tech Stack
-- React 18 + TypeScript + Vite
-- Tailwind CSS v4 + shadcn/ui
-- Supabase for auth, database, and edge functions
-- Zod for all validation schemas
-- TanStack Query for server state
-- PapaParse for CSV parsing
+- Frontend: React 18 + TypeScript + Vite 7
+- Styling: Tailwind CSS 4 + shadcn/ui components
+- Auth: Supabase Auth (email/password) with organization-based multi-tenancy
+- Database: Supabase PostgreSQL with Row Level Security (RLS)
+- Storage: Supabase Storage (bucket: reconciliation-files) for large dataset transport
+- API: Vercel Serverless Functions (TypeScript, /api directory)
+- AI: Anthropic Claude (claude-sonnet-4-20250514) for AI features
+- Parsing: PapaParse (CSV) + SheetJS/xlsx (Excel)
+- Charts: Recharts
+- Icons: Lucide React
+
+## 3-Tier Matching Architecture
+The system uses 3 tiers based on dataset size. Tier routing is automatic in serverMatching.ts. ReconciliationFlowPage.tsx does NOT know which tier is used.
+
+Tier 1 Client-Side (less than 1500 total rows): matchingEngine.ts runs directly in browser via useMatching hook. Instant results, no server calls.
+
+Tier 2 Vercel Direct (1500 to 30000 total rows): serverMatching.ts serializes data to CSV text via serializeToCsv(). POST /api/match with CSV in body (3x smaller than JSON). Vercel function maxDuration 300s, 1024MB memory. api/match.ts parses CSV, runs matching engine, returns full results.
+
+Tier 3 Storage Transport (30000+ total rows): serverMatching.ts uploads CSV to Supabase Storage bucket. Creates signed URLs (5 min expiry) and sends only URLs to /api/match. api/match.ts downloads CSVs from signed URLs, runs matching. Returns INDEX-BASED response (not full transaction objects) to stay under 4.5MB response limit. Frontend reconstructs full ReconciliationResult from local data plus indices. Temporary files deleted from Storage after processing.
+
+## Matching Engine Optimizations
+- Binary search pre-filter: sorts B by amount, uses binary search to find candidates within tolerance
+- Optimized Levenshtein: single-row dynamic programming with early termination
+- Similarity cache: pre-computed for datasets with less than 50K unique pairs
+- Skip cache mode for more than 50K pairs to save memory
+
+## Project Structure
+reconcilex/
+  api/ — Vercel serverless functions
+    match.ts — Server-side matching (Tier 2 and 3)
+    analyze.ts — AI exception analysis
+    copilot.ts — Reconciliation Copilot
+    nl-rules.ts — Natural Language to MatchingConfig
+    normalize.ts — AI normalization suggestions
+  src/
+    App.tsx — Router
+    main.tsx — Entry point with AuthProvider and ErrorBoundary
+    contexts/AuthContext.tsx — Supabase auth plus organizationId
+    lib/
+      supabase.ts — Supabase client
+      database.ts — All DB functions
+      errorMessages.ts — Friendly error message mapper
+      utils.ts — cn() utility
+    pages/
+      ReconciliationFlowPage.tsx — 5-step orchestrator
+      DashboardPage.tsx
+      HistoryPage.tsx
+      TemplatesPage.tsx
+      SettingsPage.tsx
+      SecurityPage.tsx
+    features/
+      upload/ — File upload (drag and drop, CSV/Excel)
+      normalization/ — Smart Data Normalization
+      preview/ — Side-by-side data preview
+      matching-rules/ — Rule configuration plus smart suggestions
+      nl-rules/ — Natural Language AI Rule Builder
+      reconciliation/
+        engine/matchingEngine.ts — Shared matching engine (client)
+        services/serverMatching.ts — Server matching service (Tier 2 and 3)
+        hooks/useMatching.ts — Client matching hook (Tier 1)
+        utils/parseCsv.ts — CSV parser plus serializeToCsv
+        types.ts — All shared types
+      results/ — Results with pagination
+      anomalies/ — Client-side anomaly detection
+      copilot/ — Slide-out AI chat
+      patterns/ — Pattern learning system
+    components/
+      ui/ — shadcn/ui components
+      ErrorBoundary.tsx — Global error boundary
+
+## API Conventions
+- All Vercel functions in /api directory (standalone, NOT Next.js)
+- Each function is self-contained — no imports from src/ (Vercel limitation)
+- Matching engine code is DUPLICATED in api/match.ts (cannot import from src/)
+- Use export const config = { maxDuration: 300 } for timeout
+- Return proper HTTP status codes with JSON error messages
+
+## Database Conventions
+- All tables have RLS enabled
+- All queries filter by organization_id via RLS policies
+- Use organization_members table to link users to orgs
+- Storage bucket reconciliation-files has RLS by org folder path
 
 ## File Naming
 - Components: PascalCase (TransactionList.tsx)
 - Hooks: camelCase with use prefix (useMatching.ts)
-- Utils: camelCase (parseAmount.ts)
-- Types: PascalCase (Transaction.ts)
+- Utils/services: camelCase (parseAmount.ts, serverMatching.ts)
+- Types: PascalCase in types.ts files
+- API: camelCase (match.ts, analyze.ts)
+- Pages: PascalCase with Page suffix (DashboardPage.tsx)
 
 ## Code Style
 - Always use TypeScript strict mode
-- Prefer const over let
-- Use early returns
+- Prefer const over let, never var
+- Use early returns to reduce nesting
 - Extract complex logic into custom hooks
-- All components must be typed with explicit Props interfaces
+- All components must have typed Props interfaces
+- Use getFriendlyErrorMessage() for user-facing errors
+- Use console.log with [module] prefix for debugging e.g. [serverMatching]
+- Pagination for any table or list that could exceed 100 items
+
+## Design System
+- Colors via CSS custom properties: --app-bg, --app-primary (#2563EB), --app-heading, --app-body, --app-border
+- Font heading: Plus Jakarta Sans
+- Font body: DM Sans
+- Cards: border-[var(--app-border)] bg-white
+- Badges: blue (suggested/learned), purple (AI generated), red (critical), yellow (medium)
+- AI features: purple/gradient accents with Sparkles icon
+- All interactive elements must have cursor-pointer
+- Disabled elements: cursor-not-allowed with reduced opacity
+
+## Critical Rules
+- NEVER send raw user financial data to logs or third parties
+- ALWAYS clean up temporary Storage files after matching (finally block)
+- NEVER exceed Vercel 4.5MB body limit — use Storage transport for large payloads
+- ALWAYS maintain backward compatibility when changing api/match.ts (3 input formats)
+- Matching engine changes must be applied to BOTH matchingEngine.ts AND api/match.ts
+- Test with: npx tsc -b --noEmit (must show 0 errors)

@@ -112,9 +112,7 @@ export function ExceptionAnalysisPanel({
                   <AlertCircle className="size-4 text-red-600 dark:text-red-400 shrink-0 mt-0.5" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-red-800 dark:text-red-200">
-                      {error.includes('connect') || error.includes('connection')
-                        ? 'Could not connect to AI service. Check your connection.'
-                        : 'AI analysis failed. Please try again.'}
+                      {error}
                     </p>
                     {onRetry && (
                       <Button type="button" variant="outline" size="sm" className="mt-2" onClick={onRetry}>

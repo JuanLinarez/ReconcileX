@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from 'react';
 import { Button } from '@/components/ui/button';
 import { Loader2, Sparkles, Check } from 'lucide-react';
 import type { ParsedCsv } from '@/features/reconciliation/types';
+import { getFriendlyErrorMessage } from '@/lib/errorMessages';
 import type { MatchingConfig } from '@/features/reconciliation/types';
 import { nextRuleId } from '@/features/matching-rules/defaultRules';
 import { cn } from '@/lib/utils';
@@ -157,7 +158,7 @@ export function NLRulesInput({
 
       setResult({ config: apiResponse.config, explanation: apiResponse.explanation ?? '' });
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'An error occurred');
+      setError(getFriendlyErrorMessage(err));
     } finally {
       setLoading(false);
     }
