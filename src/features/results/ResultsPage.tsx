@@ -740,130 +740,74 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
           </Card>
         </div>
 
-        {/* Action bar — two groups: left = review stats (hidden when all zero), right = actions (always visible) */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          {/* Left group: Review progress — only visible when user has started reviewing */}
-          {(reviewedCount > 0 || ignoredCount > 0 || manualMatches.length > 0) && (
-            <div className="flex flex-wrap items-center gap-3 rounded-lg border border-gray-200 bg-white p-2 shadow-sm transition-all duration-300">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-1.5 rounded-md bg-gray-50 px-3 py-1.5 text-sm">
-                    <Eye className="h-3.5 w-3.5 text-gray-400" />
-                    <span className="text-gray-500">Reviewed</span>
-                    <span className="font-semibold text-[var(--app-heading)]">{reviewedCount}</span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Number of matched pairs you have reviewed and confirmed</p>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-1.5 rounded-md bg-gray-50 px-3 py-1.5 text-sm">
-                    <EyeOff className="h-3.5 w-3.5 text-gray-400" />
-                    <span className="text-gray-500">Ignored</span>
-                    <span className="font-semibold text-[var(--app-heading)]">{ignoredCount}</span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Number of transactions you have marked to ignore (not relevant for this reconciliation)</p>
-                </TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex items-center gap-1.5 rounded-md bg-gray-50 px-3 py-1.5 text-sm">
-                    <Link2 className="h-3.5 w-3.5 text-gray-400" />
-                    <span className="text-gray-500">Manual</span>
-                    <span className="font-semibold text-[var(--app-heading)]">{manualMatches.length}</span>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Number of pairs you have matched manually that the engine did not catch</p>
-                </TooltipContent>
-              </Tooltip>
-              {ignoredCount > 0 && (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <label className="flex cursor-pointer items-center gap-2 rounded-md bg-gray-50 px-3 py-1.5 text-sm text-gray-500 transition-colors hover:bg-gray-100">
-                      <input
-                        type="checkbox"
-                        checked={showIgnored}
-                        onChange={(e) =>
-                          setAugmentation((prev) => ({ ...prev, showIgnored: e.target.checked }))
-                        }
-                        className="h-3.5 w-3.5 rounded border-gray-300 text-[var(--app-primary)] focus:ring-[var(--app-primary)]"
-                      />
-                      Show ignored
-                    </label>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Toggle visibility of transactions you marked as ignored</p>
-                  </TooltipContent>
-                </Tooltip>
-              )}
-            </div>
-          )}
-
-          {/* Right group: Action buttons — always visible, aligned right when no review stats */}
-          <div
-            className={
-              reviewedCount > 0 || ignoredCount > 0 || manualMatches.length > 0
-                ? 'flex flex-wrap items-center gap-3'
-                : 'ml-auto flex flex-wrap items-center gap-3'
-            }
-          >
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  onClick={() => setCopilotOpen(true)}
-                  className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-[var(--app-body)] shadow-sm transition-all hover:border-purple-400 hover:text-purple-600 hover:shadow-md"
-                >
-                  <Sparkles className="mr-1.5 h-4 w-4 text-purple-500" />
-                  Ask Copilot
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Chat with the AI assistant about your reconciliation results — ask questions, get insights, and investigate exceptions</p>
-              </TooltipContent>
-            </Tooltip>
-            <DropdownMenu>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-[var(--app-body)] shadow-sm transition-all hover:border-[var(--app-primary)] hover:text-[var(--app-primary)] hover:shadow-md"
-                    >
-                      <Download className="mr-1.5 h-4 w-4" />
-                      Export Results
-                      <span className="ml-1.5 text-xs font-normal text-gray-400">
-                        ({totalMatched} matched, {totalUnmatchedA + totalUnmatchedB} unmatched)
-                      </span>
-                    </Button>
-                  </DropdownMenuTrigger>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Download all matched and unmatched transactions as a CSV or Excel file for your records</p>
-                </TooltipContent>
-              </Tooltip>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleExportExcel}>
-                  Export as Excel (.xlsx)
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleExportCsv}>
-                  Export as CSV (.csv)
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
       </section>
 
-      <div className="border-b border-border mb-4" aria-hidden />
-
+      {/* Unified toolbar: tabs left, action buttons right */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList className="bg-transparent border-none p-0 h-auto gap-3 flex flex-wrap w-full sm:w-auto">
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
+          {/* Left: Review stats (when visible) + Tabs */}
+          <div className="flex flex-wrap items-center gap-4">
+            {(reviewedCount > 0 || ignoredCount > 0 || manualMatches.length > 0) && (
+              <div className="flex flex-wrap items-center gap-3">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-1.5 rounded-md bg-gray-50 px-3 py-1.5 text-sm">
+                      <Eye className="h-3.5 w-3.5 text-gray-400" />
+                      <span className="text-gray-500">Reviewed</span>
+                      <span className="font-semibold text-[var(--app-heading)]">{reviewedCount}</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Number of matched pairs you have reviewed and confirmed</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-1.5 rounded-md bg-gray-50 px-3 py-1.5 text-sm">
+                      <EyeOff className="h-3.5 w-3.5 text-gray-400" />
+                      <span className="text-gray-500">Ignored</span>
+                      <span className="font-semibold text-[var(--app-heading)]">{ignoredCount}</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Number of transactions you have marked to ignore (not relevant for this reconciliation)</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center gap-1.5 rounded-md bg-gray-50 px-3 py-1.5 text-sm">
+                      <Link2 className="h-3.5 w-3.5 text-gray-400" />
+                      <span className="text-gray-500">Manual</span>
+                      <span className="font-semibold text-[var(--app-heading)]">{manualMatches.length}</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Number of pairs you have matched manually that the engine did not catch</p>
+                  </TooltipContent>
+                </Tooltip>
+                {ignoredCount > 0 && (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <label className="flex cursor-pointer items-center gap-2 rounded-md bg-gray-50 px-3 py-1.5 text-sm text-gray-500 transition-colors hover:bg-gray-100">
+                        <input
+                          type="checkbox"
+                          checked={showIgnored}
+                          onChange={(e) =>
+                            setAugmentation((prev) => ({ ...prev, showIgnored: e.target.checked }))
+                          }
+                          className="h-3.5 w-3.5 rounded border-gray-300 text-[var(--app-primary)] focus:ring-[var(--app-primary)]"
+                        />
+                        Show ignored
+                      </label>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Toggle visibility of transactions you marked as ignored</p>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
+              </div>
+            )}
+            <TabsList className="bg-transparent border-none p-0 h-auto gap-3 flex flex-wrap w-full sm:w-auto">
           <Tooltip>
             <TooltipTrigger asChild>
               <TabsTrigger
@@ -931,6 +875,56 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
             </TooltipContent>
           </Tooltip>
         </TabsList>
+          </div>
+
+          {/* Right: Action buttons */}
+          <div className="flex flex-wrap items-center gap-3">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  onClick={() => setCopilotOpen(true)}
+                  className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-[var(--app-body)] shadow-sm transition-all hover:border-purple-400 hover:text-purple-600 hover:shadow-md"
+                >
+                  <Sparkles className="mr-1.5 h-4 w-4 text-purple-500" />
+                  Ask Copilot
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Chat with the AI assistant about your reconciliation results — ask questions, get insights, and investigate exceptions</p>
+              </TooltipContent>
+            </Tooltip>
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-[var(--app-body)] shadow-sm transition-all hover:border-[var(--app-primary)] hover:text-[var(--app-primary)] hover:shadow-md"
+                    >
+                      <Download className="mr-1.5 h-4 w-4" />
+                      Export Results
+                      <span className="ml-1.5 text-xs font-normal text-gray-400">
+                        ({totalMatched} matched, {totalUnmatchedA + totalUnmatchedB} unmatched)
+                      </span>
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Download all matched and unmatched transactions as a CSV or Excel file for your records</p>
+                </TooltipContent>
+              </Tooltip>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleExportExcel}>
+                  Export as Excel (.xlsx)
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportCsv}>
+                  Export as CSV (.csv)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
 
         <TabsContent value="matched" className="mt-4">
           <Card>
