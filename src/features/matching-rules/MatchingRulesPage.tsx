@@ -559,25 +559,35 @@ export function MatchingRulesPage({
             className="grid gap-4 sm:grid-cols-2"
           >
             {MATCHING_TYPE_OPTIONS.map((opt) => (
-              <label
-                key={opt.value}
-                htmlFor={`matching-type-${opt.value}`}
-                className={cn(
-                  'flex cursor-pointer flex-col gap-2 rounded-lg border-2 px-4 py-3 transition-colors',
-                  config.matchingType === opt.value
-                    ? 'border-primary bg-primary/5'
-                    : 'border-border hover:border-muted-foreground/50 hover:bg-muted/30'
-                )}
-              >
-                <div className="flex items-center gap-2">
-                  <RadioGroupItem value={opt.value} id={`matching-type-${opt.value}`} />
-                  <span className="font-medium">{opt.title}</span>
-                </div>
-                <p className="text-sm text-muted-foreground">{opt.description}</p>
-                <div className="mt-1 rounded bg-muted/50 px-2 py-1.5 font-mono text-xs">
-                  {opt.visual}
-                </div>
-              </label>
+              <Tooltip key={opt.value}>
+                <TooltipTrigger asChild>
+                  <label
+                    htmlFor={`matching-type-${opt.value}`}
+                    className={cn(
+                      'flex cursor-pointer flex-col gap-2 rounded-lg border-2 px-4 py-3 transition-colors',
+                      config.matchingType === opt.value
+                        ? 'border-primary bg-primary/5'
+                        : 'border-border hover:border-muted-foreground/50 hover:bg-muted/30'
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      <RadioGroupItem value={opt.value} id={`matching-type-${opt.value}`} />
+                      <span className="font-medium">{opt.title}</span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">{opt.description}</p>
+                    <div className="mt-1 rounded bg-muted/50 px-2 py-1.5 font-mono text-xs">
+                      {opt.visual}
+                    </div>
+                  </label>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>
+                    {opt.value === 'oneToOne'
+                      ? 'Each transaction matches with at most one other transaction'
+                      : 'One transaction can match with multiple transactions (e.g. one payment covering several invoices)'}
+                  </p>
+                </TooltipContent>
+              </Tooltip>
             ))}
           </RadioGroup>
         </CardContent>
@@ -632,10 +642,17 @@ export function MatchingRulesPage({
               <p className="text-muted-foreground text-sm mb-4">
                 No matching rules yet. Add a rule to compare columns between the two sources.
               </p>
-              <Button type="button" variant="outline" onClick={addRule}>
-                <Plus className="size-4 mr-2" />
-                Add matching rule
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button type="button" variant="outline" onClick={addRule}>
+                    <Plus className="size-4 mr-2" />
+                    Add matching rule
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Add a new rule to match columns between your two sources</p>
+                </TooltipContent>
+              </Tooltip>
             </div>
           ) : (
             <>
@@ -856,31 +873,59 @@ export function MatchingRulesPage({
           );
           })}
           <div className="flex flex-wrap items-center gap-4">
-            <Button type="button" variant="outline" onClick={addRule}>
-              <Plus className="size-4 mr-2" />
-              Add matching rule
-            </Button>
-            {effectiveRules.length > 1 && (
-              <Button type="button" variant="ghost" size="sm" onClick={distributeEqually}>
-                Distribute equally
-              </Button>
-            )}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setSaveTemplateOpen(true)}
-            >
-              <Save className="size-4 mr-2" />
-              Save as Template
-            </Button>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button type="button" variant="outline" size="sm">
-                  <ChevronDown className="size-4 mr-2" />
-                  Load Template
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button type="button" variant="outline" onClick={addRule}>
+                  <Plus className="size-4 mr-2" />
+                  Add matching rule
                 </Button>
-              </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Add a new rule to match columns between your two sources</p>
+              </TooltipContent>
+            </Tooltip>
+            {effectiveRules.length > 1 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button type="button" variant="ghost" size="sm" onClick={distributeEqually}>
+                    Distribute equally
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Split the weight evenly across all rules (each rule gets equal importance)</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSaveTemplateOpen(true)}
+                >
+                  <Save className="size-4 mr-2" />
+                  Save as Template
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Save your current rule configuration to reuse in future reconciliations</p>
+              </TooltipContent>
+            </Tooltip>
+            <DropdownMenu>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DropdownMenuTrigger asChild>
+                    <Button type="button" variant="outline" size="sm">
+                      <ChevronDown className="size-4 mr-2" />
+                      Load Template
+                    </Button>
+                  </DropdownMenuTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Load a previously saved rule configuration</p>
+                </TooltipContent>
+              </Tooltip>
               <DropdownMenuContent align="start" className="max-w-sm">
                 {allTemplates.map((t) => (
                   <DropdownMenuItem
@@ -918,9 +963,16 @@ export function MatchingRulesPage({
             </DropdownMenu>
           </div>
           <div className="flex items-center gap-4 pt-2 border-t">
-            <span className="text-sm font-medium">
-              Total: {totalWeightPercent.toFixed(1)}%
-            </span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="text-sm font-medium cursor-help">
+                  Total: {totalWeightPercent.toFixed(1)}%
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Rule weights must add up to 100%. This ensures each rule contributes proportionally to the match score.</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
             </>
           )}
@@ -1039,10 +1091,7 @@ export function MatchingRulesPage({
                 </button>
               </TooltipTrigger>
               <TooltipContent side="right" className="max-w-[280px]">
-                The confidence score (0–100%) indicates how certain the match is. Each matching rule
-                contributes to the score based on its weight. Only pairs scoring above this threshold
-                will be considered matched. Lower values find more matches but may include false
-                positives. Higher values are stricter but more accurate.
+                Minimum confidence score required for a pair to be considered a match. Lower values find more matches but with less certainty.
               </TooltipContent>
             </Tooltip>
           </div>
