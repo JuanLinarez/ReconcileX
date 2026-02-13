@@ -905,10 +905,18 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
       <div className="border-b border-border mb-4" aria-hidden />
 
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <TabsList>
+        <TabsList className="bg-transparent border-none p-0 h-auto gap-3 flex flex-wrap w-full sm:w-auto">
           <Tooltip>
             <TooltipTrigger asChild>
-              <TabsTrigger value="matched">Matched</TabsTrigger>
+              <TabsTrigger
+                value="matched"
+                className="group rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold !text-[var(--app-body)] shadow-sm hover:border-[var(--app-primary)] hover:!text-[var(--app-primary)] hover:shadow-md transition-all data-[state=active]:bg-[var(--app-primary)] data-[state=active]:!text-white data-[state=active]:border-[var(--app-primary)] data-[state=active]:shadow-md flex-1 sm:flex-initial"
+              >
+                Matched
+                <span className="ml-2 inline-flex items-center justify-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 group-data-[state=active]:bg-white/20 group-data-[state=active]:!text-white">
+                  {matchedDisplay.length}
+                </span>
+              </TabsTrigger>
             </TooltipTrigger>
             <TooltipContent>
               <p>Transaction pairs that were automatically matched by the engine</p>
@@ -916,7 +924,15 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <TabsTrigger value="unmatchedA">Unmatched Source A</TabsTrigger>
+              <TabsTrigger
+                value="unmatchedA"
+                className="group rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold !text-[var(--app-body)] shadow-sm hover:border-[var(--app-primary)] hover:!text-[var(--app-primary)] hover:shadow-md transition-all data-[state=active]:bg-[var(--app-primary)] data-[state=active]:!text-white data-[state=active]:border-[var(--app-primary)] data-[state=active]:shadow-md flex-1 sm:flex-initial"
+              >
+                Unmatched Source A
+                <span className="ml-2 inline-flex items-center justify-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 group-data-[state=active]:bg-white/20 group-data-[state=active]:!text-white">
+                  {unmatchedADisplay.length}
+                </span>
+              </TabsTrigger>
             </TooltipTrigger>
             <TooltipContent>
               <p>Transactions from Source A that could not be matched to any transaction in Source B</p>
@@ -924,7 +940,15 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <TabsTrigger value="unmatchedB">Unmatched Source B</TabsTrigger>
+              <TabsTrigger
+                value="unmatchedB"
+                className="group rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold !text-[var(--app-body)] shadow-sm hover:border-[var(--app-primary)] hover:!text-[var(--app-primary)] hover:shadow-md transition-all data-[state=active]:bg-[var(--app-primary)] data-[state=active]:!text-white data-[state=active]:border-[var(--app-primary)] data-[state=active]:shadow-md flex-1 sm:flex-initial"
+              >
+                Unmatched Source B
+                <span className="ml-2 inline-flex items-center justify-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 group-data-[state=active]:bg-white/20 group-data-[state=active]:!text-white">
+                  {unmatchedBDisplay.length}
+                </span>
+              </TabsTrigger>
             </TooltipTrigger>
             <TooltipContent>
               <p>Transactions from Source B that could not be matched to any transaction in Source A</p>
@@ -932,12 +956,15 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
           </Tooltip>
           <Tooltip>
             <TooltipTrigger asChild>
-              <TabsTrigger value="anomalies">
+              <TabsTrigger
+                value="anomalies"
+                className="group rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold !text-[var(--app-body)] shadow-sm hover:border-[var(--app-primary)] hover:!text-[var(--app-primary)] hover:shadow-md transition-all data-[state=active]:bg-[var(--app-primary)] data-[state=active]:!text-white data-[state=active]:border-[var(--app-primary)] data-[state=active]:shadow-md flex-1 sm:flex-initial"
+              >
                 Anomalies
-                {anomalyReport && anomalyReport.summary.critical + anomalyReport.summary.high > 0 && (
-                  <Badge variant="destructive" className="ml-2 text-xs">
-                    {anomalyReport.summary.critical + anomalyReport.summary.high}
-                  </Badge>
+                {anomalyReport && anomalyReport.anomalies.length > 0 && (
+                  <span className="ml-2 inline-flex items-center justify-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 group-data-[state=active]:bg-white/20 group-data-[state=active]:!text-white">
+                    {anomalyReport.anomalies.length}
+                  </span>
                 )}
               </TabsTrigger>
             </TooltipTrigger>
