@@ -33,7 +33,7 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Check, ChevronDown, Info, Loader2, Plus, Save, Trash2, X } from 'lucide-react';
+import { Check, CheckCircle2, ChevronDown, Info, Loader2, Plus, Save, Trash2, X, XCircle } from 'lucide-react';
 import type {
   MatchingConfig,
   MatchingRule,
@@ -210,10 +210,6 @@ export interface MatchingRulesPageProps {
   className?: string;
 }
 
-function formatPreviewAmount(n: number): string {
-  return n.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
 function getRuleMissingColumnWarning(
   rule: MatchingRule,
   headersA: string[],
@@ -242,26 +238,12 @@ function PreviewSummaryCard({
   onConfirm: () => void;
 }) {
   const { matched, unmatchedA, unmatchedB } = result;
-  const oneToOne = matched.filter(
-    (m) => m.transactionsA.length === 1 && m.transactionsB.length === 1
-  ).length;
-  const groupMatches = matched.length - oneToOne;
 
   const totalRowsA =
     matched.reduce((s, m) => s + m.transactionsA.length, 0) + unmatchedA.length;
   const matchedRowsA = matched.reduce((s, m) => s + m.transactionsA.length, 0);
   const matchRatePct =
     totalRowsA > 0 ? (matchedRowsA / totalRowsA) * 100 : 0;
-
-  const sumAmount = (txs: { amount: number }[]) =>
-    txs.reduce((s, t) => s + t.amount, 0);
-  const matchedAmountA = matched.reduce(
-    (s, m) => s + sumAmount(m.transactionsA),
-    0
-  );
-  const totalAmount =
-    matchedAmountA + sumAmount(unmatchedA) + sumAmount(unmatchedB);
-  const matchedAmountPct = totalAmount > 0 ? (matchedAmountA / totalAmount) * 100 : 0;
 
   const avgConfidencePct =
     matched.length > 0
@@ -285,41 +267,50 @@ function PreviewSummaryCard({
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="space-y-3">
-        <p className="text-sm text-muted-foreground">With these rules, we found:</p>
-        <ul className="space-y-1.5 text-sm">
-          <li className="flex items-center gap-2">
-            <span className="shrink-0">✅</span>
-            <span>
-              <strong>{matched.length}</strong> matched pair{matched.length !== 1 ? 's' : ''}{' '}
-              ({oneToOne} at 1:1, {groupMatches} as group matches)
-            </span>
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="shrink-0">❌</span>
-            <span>
-              <strong>{unmatchedA.length}</strong> unmatched in Source A
-            </span>
-          </li>
-          <li className="flex items-center gap-2">
-            <span className="shrink-0">❌</span>
-            <span>
-              <strong>{unmatchedB.length}</strong> unmatched in Source B
-            </span>
-          </li>
-        </ul>
-        <div className="flex flex-wrap gap-2 pt-1">
-          <Badge variant="secondary" className="font-normal">
-            📊 Match rate: {matchRatePct.toFixed(1)}%
-          </Badge>
-          <Badge variant="secondary" className="font-normal">
-            💰 Matched: ${formatPreviewAmount(matchedAmountA)} / ${formatPreviewAmount(totalAmount)} ({matchedAmountPct.toFixed(0)}%)
-          </Badge>
-          <Badge variant="secondary" className="font-normal">
-            Average confidence: {avgConfidencePct.toFixed(1)}%
-          </Badge>
+      <CardContent>
+        {/* Hero metric - Match Rate */}
+        <div className="text-center py-4">
+          <p className="text-4xl font-bold text-[var(--app-heading)]">
+            {matchRatePct.toFixed(1)}%
+          </p>
+          <p className="text-sm text-[var(--app-body)] mt-1">Match Rate</p>
         </div>
-        <div className="pt-2">
+
+        {/* Simple breakdown */}
+        <div className="space-y-3 py-4 border-t border-[var(--app-border)]">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4 text-green-500" />
+              <span className="text-sm text-[var(--app-heading)]">Matched Pairs</span>
+            </div>
+            <span className="text-sm font-semibold text-[var(--app-heading)]">
+              {matched.length}
+            </span>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <XCircle className="h-4 w-4 text-red-400" />
+              <span className="text-sm text-[var(--app-body)]">Unmatched Source A</span>
+            </div>
+            <span className="text-sm text-[var(--app-body)]">{unmatchedA.length}</span>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <XCircle className="h-4 w-4 text-red-400" />
+              <span className="text-sm text-[var(--app-body)]">Unmatched Source B</span>
+            </div>
+            <span className="text-sm text-[var(--app-body)]">{unmatchedB.length}</span>
+          </div>
+        </div>
+
+        {/* Secondary info - Average confidence */}
+        <div className="border-t border-[var(--app-border)] pt-3">
+          <p className="text-xs text-[var(--app-body)]/60 text-center">
+            Average confidence: {avgConfidencePct.toFixed(1)}%
+          </p>
+        </div>
+
+        <div className="pt-4">
           <Button onClick={onConfirm} className="w-full sm:w-auto">
             <Check className="size-4 mr-2" />
             Looks good, run matching →
