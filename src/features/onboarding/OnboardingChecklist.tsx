@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronUp, Check, Circle } from 'lucide-react';
+import { ChevronDown, ChevronUp, Circle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { ONBOARDING_STEPS } from './onboardingSteps';
 
@@ -18,7 +18,13 @@ export function OnboardingChecklist({
 }: OnboardingChecklistProps) {
   const [expanded, setExpanded] = useState(true);
 
-  if (progress.percentage === 100) return null;
+  // Get only incomplete steps
+  const incompleteSteps = ONBOARDING_STEPS.filter(
+    (s) => !completedStepIds.has(s.id)
+  );
+
+  // Hide if all complete
+  if (incompleteSteps.length === 0) return null;
 
   return (
     <div className="fixed bottom-6 right-6 z-50 w-80">
@@ -50,13 +56,16 @@ export function OnboardingChecklist({
                   strokeLinecap="round"
                 />
               </svg>
-              <span className="absolute inset-0 flex items-center justify-center text-[10px] font-bold text-[var(--app-primary)]">
-                {progress.completed}/{progress.total}
+            </div>
+            <div className="text-left">
+              <span className="text-sm font-semibold text-[var(--app-heading)]">
+                Getting Started
+              </span>
+              <span className="block text-xs text-gray-400">
+                {incompleteSteps.length} step
+                {incompleteSteps.length !== 1 ? 's' : ''} remaining
               </span>
             </div>
-            <span className="text-sm font-semibold text-[var(--app-heading)]">
-              Getting Started
-            </span>
           </div>
           {expanded ? (
             <ChevronDown className="h-4 w-4 text-gray-400" />
@@ -67,37 +76,24 @@ export function OnboardingChecklist({
 
         {expanded && (
           <div className="space-y-2 border-t border-gray-100 px-4 py-3">
-            {ONBOARDING_STEPS.map((step) => {
-              const isCompleted = completedStepIds.has(step.id);
+            {incompleteSteps.map((step) => {
               const isActive = step.id === activeStepId;
               return (
                 <div
                   key={step.id}
                   className={cn(
                     'flex items-start gap-2.5 rounded-md p-2 text-sm transition-colors',
-                    isActive && 'bg-blue-50',
-                    isCompleted && 'opacity-60'
+                    isActive && 'bg-blue-50'
                   )}
                 >
-                  {isCompleted ? (
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-500" />
-                  ) : (
-                    <Circle
-                      className={cn(
-                        'mt-0.5 h-4 w-4 shrink-0',
-                        isActive ? 'text-[var(--app-primary)]' : 'text-gray-300'
-                      )}
-                    />
-                  )}
+                  <Circle
+                    className={cn(
+                      'mt-0.5 h-4 w-4 shrink-0',
+                      isActive ? 'text-[var(--app-primary)]' : 'text-gray-300'
+                    )}
+                  />
                   <div>
-                    <p
-                      className={cn(
-                        'font-medium',
-                        isCompleted
-                          ? 'line-through text-gray-400'
-                          : 'text-[var(--app-heading)]'
-                      )}
-                    >
+                    <p className="font-medium text-[var(--app-heading)]">
                       {step.title}
                     </p>
                     {isActive && (
