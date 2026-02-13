@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { NavLink, useLocation, Outlet } from 'react-router-dom';
+import { Breadcrumbs } from '@/components/Breadcrumbs';
 import {
   Home,
   PlusCircle,
@@ -265,6 +266,7 @@ export function AppLayout() {
               key={location.pathname}
               className="mx-auto max-w-[1200px] animate-in fade-in-0 duration-200"
             >
+              <Breadcrumbs />
               <Outlet />
             </div>
           </main>

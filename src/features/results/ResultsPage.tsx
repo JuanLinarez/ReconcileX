@@ -14,9 +14,10 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableSectionHeader,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import {
   Tooltip,
   TooltipContent,
@@ -679,7 +680,7 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
       <section className="mb-6 space-y-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {/* 1. Reconciliation Rate */}
-          <Card className="flex flex-col items-center justify-center py-4">
+          <Card className="flex flex-col items-center justify-center py-4 card-accent-lavender border-[#E4DEFF]">
             <CardContent className="flex flex-col items-center gap-2 p-0">
               <div className="relative size-20">
                 <svg className="size-20 -rotate-90" viewBox="0 0 36 36">
@@ -723,7 +724,7 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
           </Card>
 
           {/* 2. Matched Amount */}
-          <Card className="py-4">
+          <Card className="py-4 card-accent-lavender border-[#E4DEFF]">
             <CardContent className="p-4">
               <p className="text-muted-foreground text-xs font-medium">Matched Amount</p>
               <p className="mt-1 text-xl font-semibold">${formatAmount(matchedAmount)}</p>
@@ -732,7 +733,7 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
           </Card>
 
           {/* 3. Unmatched Amount A */}
-          <Card className="py-4">
+          <Card className="py-4 card-accent-lavender border-[#E4DEFF]">
             <CardContent className="p-4">
               <p className="text-muted-foreground text-xs font-medium">Unmatched Amount A</p>
               <p className="mt-1 text-xl font-semibold">${formatAmount(unmatchedAmountA)}</p>
@@ -741,7 +742,7 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
           </Card>
 
           {/* 4. Unmatched Amount B */}
-          <Card className="py-4">
+          <Card className="py-4 card-accent-lavender border-[#E4DEFF]">
             <CardContent className="p-4">
               <p className="text-muted-foreground text-xs font-medium">Unmatched Amount B</p>
               <p className="mt-1 text-xl font-semibold">${formatAmount(unmatchedAmountB)}</p>
@@ -937,14 +938,12 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
         </div>
 
         <TabsContent value="matched" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Matched pairs</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Paired transactions with confidence score (1:1 and group matches)
-              </p>
-            </CardHeader>
-            <CardContent className="overflow-auto max-h-[500px]">
+          <Card className="overflow-hidden">
+            <TableSectionHeader>
+              <span>Matched pairs</span>
+              <p className="mt-0.5 text-xs font-normal opacity-90">Paired transactions with confidence score (1:1 and group matches)</p>
+            </TableSectionHeader>
+            <CardContent className="overflow-auto max-h-[500px] px-4 pb-4 pt-0">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -969,10 +968,10 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                         </Tooltip>
                       </div>
                     </TableHead>
-                    <TableHead>Source A — Amount</TableHead>
+                    <TableHead className="text-right">Source A — Amount</TableHead>
                     <TableHead>Source A — Date</TableHead>
                     <TableHead>Source A — Reference</TableHead>
-                    <TableHead>Source B — Amount</TableHead>
+                    <TableHead className="text-right">Source B — Amount</TableHead>
                     <TableHead>Source B — Date</TableHead>
                     <TableHead>Source B — Reference</TableHead>
                   </TableRow>
@@ -1008,12 +1007,12 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                               </Badge>
                             )}
                           </TableCell>
-                          <TableCell>{formatSideAmounts(m.transactionsA)}</TableCell>
+                          <TableCell className="text-right">{formatSideAmounts(m.transactionsA)}</TableCell>
                           <TableCell>{formatSideDates(m.transactionsA)}</TableCell>
                           <TableCell className="max-w-[180px] truncate" title={formatSideReferences(m.transactionsA)}>
                             {formatSideReferences(m.transactionsA)}
                           </TableCell>
-                          <TableCell>{formatSideAmounts(m.transactionsB)}</TableCell>
+                          <TableCell className="text-right">{formatSideAmounts(m.transactionsB)}</TableCell>
                           <TableCell>{formatSideDates(m.transactionsB)}</TableCell>
                           <TableCell className="max-w-[180px] truncate" title={formatSideReferences(m.transactionsB)}>
                             {formatSideReferences(m.transactionsB)}
@@ -1057,19 +1056,17 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
         </TabsContent>
 
         <TabsContent value="unmatchedA" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Unmatched Source A</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Transactions from Source A with no match in Source B
-              </p>
-            </CardHeader>
-            <CardContent className="overflow-x-auto">
+          <Card className="overflow-hidden">
+            <TableSectionHeader>
+              <span>Unmatched Source A</span>
+              <p className="mt-0.5 text-xs font-normal opacity-90">Transactions from Source A with no match in Source B</p>
+            </TableSectionHeader>
+            <CardContent className="overflow-x-auto px-4 pb-4 pt-0">
               <Table className="table-fixed w-full">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Row</TableHead>
-                    <TableHead>Amount</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Reference</TableHead>
                     <TableHead className="w-[100px] text-right">Actions</TableHead>
@@ -1092,7 +1089,7 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                       <Fragment key={t.id}>
                         <TableRow className={rowBg}>
                           <TableCell>{t.rowIndex}</TableCell>
-                          <TableCell>{formatAmount(t.amount)}</TableCell>
+                          <TableCell className="text-right">{formatAmount(t.amount)}</TableCell>
                           <TableCell>{formatDate(t.date)}</TableCell>
                           <TableCell className="max-w-[300px] truncate">{t.reference}</TableCell>
                           <TableCell className="text-right">
@@ -1212,19 +1209,17 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
         </TabsContent>
 
         <TabsContent value="unmatchedB" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Unmatched Source B</CardTitle>
-              <p className="text-sm text-muted-foreground">
-                Transactions from Source B with no match in Source A
-              </p>
-            </CardHeader>
-            <CardContent className="overflow-x-auto">
+          <Card className="overflow-hidden">
+            <TableSectionHeader>
+              <span>Unmatched Source B</span>
+              <p className="mt-0.5 text-xs font-normal opacity-90">Transactions from Source B with no match in Source A</p>
+            </TableSectionHeader>
+            <CardContent className="overflow-x-auto px-4 pb-4 pt-0">
               <Table className="table-fixed w-full">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Row</TableHead>
-                    <TableHead>Amount</TableHead>
+                    <TableHead className="text-right">Amount</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Reference</TableHead>
                     <TableHead className="w-[100px] text-right">Actions</TableHead>
@@ -1247,7 +1242,7 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                       <Fragment key={t.id}>
                         <TableRow className={rowBg}>
                           <TableCell>{t.rowIndex}</TableCell>
-                          <TableCell>{formatAmount(t.amount)}</TableCell>
+                          <TableCell className="text-right">{formatAmount(t.amount)}</TableCell>
                           <TableCell>{formatDate(t.date)}</TableCell>
                           <TableCell className="max-w-[300px] truncate">{t.reference}</TableCell>
                           <TableCell className="text-right">

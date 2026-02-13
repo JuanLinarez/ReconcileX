@@ -57,7 +57,7 @@ function TableRow({ className, ...props }: React.ComponentProps<"tr">) {
     <tr
       data-slot="table-row"
       className={cn(
-        "hover:bg-muted/50 data-[state=selected]:bg-muted border-b transition-colors",
+        "border-b border-[var(--app-border)] hover:bg-gray-50 data-[state=selected]:bg-muted transition-colors text-sm text-[var(--app-body)]",
         className
       )}
       {...props}
@@ -75,6 +75,23 @@ function TableHead({ className, ...props }: React.ComponentProps<"th">) {
       )}
       {...props}
     />
+  )
+}
+
+/** Dark section header bar for table sections (Finalytic style) */
+function TableSectionHeader({
+  className,
+  children,
+  ...props
+}: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="table-section-header"
+      className={cn("table-section-header rounded-t-lg", className)}
+      {...props}
+    >
+      {children}
+    </div>
   )
 }
 
@@ -113,4 +130,5 @@ export {
   TableRow,
   TableCell,
   TableCaption,
+  TableSectionHeader,
 }

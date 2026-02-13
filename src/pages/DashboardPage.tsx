@@ -211,7 +211,7 @@ export function DashboardPage() {
         {statsCards.map(({ label, value, icon: Icon, description }) => (
           <Card
             key={label}
-            className="transition-shadow hover:shadow-md border-[var(--app-border)] bg-white"
+            className="transition-shadow hover:shadow-md card-accent-lavender border-[#E4DEFF] rounded-xl"
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-[var(--app-body)]" style={headingStyle}>

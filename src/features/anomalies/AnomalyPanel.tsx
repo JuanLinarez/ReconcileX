@@ -16,6 +16,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableSectionHeader,
 } from '@/components/ui/table';
 import {
   AlertTriangle,
@@ -122,7 +123,7 @@ function AnomalyCard({ anomaly }: { anomaly: Anomaly }) {
                         <TableRow className="hover:bg-transparent">
                           <TableHead className="w-16">Row</TableHead>
                           <TableHead>Source</TableHead>
-                          <TableHead>Amount</TableHead>
+                          <TableHead className="text-right">Amount</TableHead>
                           <TableHead>Date</TableHead>
                           <TableHead>Reference</TableHead>
                         </TableRow>
@@ -132,7 +133,7 @@ function AnomalyCard({ anomaly }: { anomaly: Anomaly }) {
                           <TableRow key={t.id}>
                             <TableCell>{t.rowIndex}</TableCell>
                             <TableCell>{t.source}</TableCell>
-                            <TableCell>{formatAmount(t.amount)}</TableCell>
+                            <TableCell className="text-right">{formatAmount(t.amount)}</TableCell>
                             <TableCell>{formatDate(t.date)}</TableCell>
                             <TableCell className="max-w-[200px] truncate">{t.reference}</TableCell>
                           </TableRow>
@@ -191,6 +192,13 @@ export function AnomalyPanel({ report, className }: AnomalyPanelProps) {
 
   return (
     <div className={cn('space-y-4', className)}>
+      {/* Dark section header */}
+      <div className="rounded-t-lg overflow-hidden">
+        <TableSectionHeader>
+          <span>Detected Anomalies</span>
+          <p className="mt-0.5 text-xs font-normal opacity-90">Potential issues flagged by AI analysis</p>
+        </TableSectionHeader>
+      </div>
       {/* Summary bar */}
       <div className="flex flex-wrap items-center gap-3">
         <Badge

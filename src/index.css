@@ -161,6 +161,37 @@ button:disabled,
   cursor: grabbing;
 }
 
+/* Dark table section header (Finalytic style) */
+.table-section-header {
+  background-color: var(--app-sidebar-bg, #1E1E2D);
+  color: #ffffff;
+  font-weight: 700;
+  font-size: 0.8125rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem 0.5rem 0 0;
+}
+
+/* Accent info card */
+.card-accent-lavender {
+  background-color: #F3F0FF;
+  border: 1px solid #E4DEFF;
+  border-radius: 0.75rem;
+}
+
+/* Filter pill */
+.filter-pill {
+  background-color: var(--app-sidebar-bg, #1E1E2D);
+  color: #ffffff;
+  border-radius: 9999px;
+  padding: 0.375rem 1rem;
+  font-size: 0.875rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

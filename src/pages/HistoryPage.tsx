@@ -22,6 +22,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
+  TableSectionHeader,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -136,6 +137,16 @@ export function HistoryPage() {
         Reconciliation History
       </h1>
 
+      {/* Filter pills */}
+      {!loading && !empty && (
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="filter-pill">All time</span>
+          <Button variant="outline" size="sm" className="rounded-full h-8 text-sm">
+            + Add Filter
+          </Button>
+        </div>
+      )}
+
       {error && (
         <p className="text-sm text-destructive">{error}</p>
       )}
@@ -150,6 +161,10 @@ export function HistoryPage() {
 
       {!loading && !empty && (
         <Card className="border-[var(--app-border)] overflow-hidden">
+          <TableSectionHeader>
+            <span>Reconciliation History</span>
+            <p className="mt-0.5 text-xs font-normal opacity-90">Past reconciliation runs</p>
+          </TableSectionHeader>
           <CardContent className="p-0">
             <Table>
               <TableHeader>
@@ -157,8 +172,8 @@ export function HistoryPage() {
                   <TableHead>Date</TableHead>
                   <TableHead>Name / Files</TableHead>
                   <TableHead>Match Rate</TableHead>
-                  <TableHead>Matched</TableHead>
-                  <TableHead>Unmatched</TableHead>
+                  <TableHead className="text-right">Matched</TableHead>
+                  <TableHead className="text-right">Unmatched</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead className="w-[120px]">Actions</TableHead>
                 </TableRow>
@@ -177,8 +192,8 @@ export function HistoryPage() {
                     <TableCell>
                       <MatchRateBadge rate={r.match_rate} />
                     </TableCell>
-                    <TableCell>{r.matched_count}</TableCell>
-                    <TableCell>{r.unmatched_a_count + r.unmatched_b_count}</TableCell>
+                    <TableCell className="text-right">{r.matched_count}</TableCell>
+                    <TableCell className="text-right">{r.unmatched_a_count + r.unmatched_b_count}</TableCell>
                     <TableCell>
                       <Badge variant="secondary" className="bg-muted text-muted-foreground">
                         Complete
