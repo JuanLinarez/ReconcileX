@@ -51,6 +51,12 @@
   --app-bg: #FAFAFA;
   --app-bg-subtle: #F5F5F4;
   --app-sidebar: #0F172A;
+  --app-sidebar-bg: #1E1E2D;
+  --app-sidebar-item-hover: rgba(255, 255, 255, 0.06);
+  --app-sidebar-item-active: rgba(255, 255, 255, 0.1);
+  --app-sidebar-text: rgba(255, 255, 255, 0.7);
+  --app-sidebar-text-active: #FFFFFF;
+  --app-page-shell: #E8E8E8;
   --app-sidebar-hover: rgba(255, 255, 255, 0.06);
   --app-primary: #2563EB;
   --app-success: #059669;
