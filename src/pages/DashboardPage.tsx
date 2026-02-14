@@ -127,10 +127,10 @@ export function DashboardPage() {
         </div>
         <Link to="/reconciliation/new" className="shrink-0">
           <Button
-            variant="dark"
-            className="rounded-xl px-6 py-2.5 font-medium"
+            variant="default"
+            className="shadow-md hover:shadow-lg"
           >
-            <Plus className="h-5 w-5" />
+            <Plus className="h-4 w-4" />
             New Reconciliation
           </Button>
         </Link>
@@ -281,7 +281,10 @@ export function DashboardPage() {
                 No reconciliations yet. Start your first one!
               </p>
               <Link to="/reconciliation/new" className="mt-4">
-                <Button variant="dark">New Reconciliation</Button>
+                <Button variant="default">
+                  <Plus className="h-4 w-4" />
+                  New Reconciliation
+                </Button>
               </Link>
             </div>
           ) : (
