@@ -756,76 +756,76 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
 
       {/* Unified toolbar: tabs left, action buttons right */}
       <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-gray-200 bg-white p-3 shadow-sm">
-          {/* Left: Review stats (when visible) + Tabs */}
-          <div className="flex flex-wrap items-center gap-4">
-            {(reviewedCount > 0 || ignoredCount > 0 || manualMatches.length > 0) && (
-              <div className="flex flex-wrap items-center gap-3">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center gap-1.5 rounded-md bg-gray-50 px-3 py-1.5 text-sm">
-                      <Eye className="h-3.5 w-3.5 text-gray-400" />
-                      <span className="text-gray-500">Reviewed</span>
-                      <span className="font-semibold text-[var(--app-heading)]">{reviewedCount}</span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Number of matched pairs you have reviewed and confirmed</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center gap-1.5 rounded-md bg-gray-50 px-3 py-1.5 text-sm">
-                      <EyeOff className="h-3.5 w-3.5 text-gray-400" />
-                      <span className="text-gray-500">Ignored</span>
-                      <span className="font-semibold text-[var(--app-heading)]">{ignoredCount}</span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Number of transactions you have marked to ignore (not relevant for this reconciliation)</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <div className="flex items-center gap-1.5 rounded-md bg-gray-50 px-3 py-1.5 text-sm">
-                      <Link2 className="h-3.5 w-3.5 text-gray-400" />
-                      <span className="text-gray-500">Manual</span>
-                      <span className="font-semibold text-[var(--app-heading)]">{manualMatches.length}</span>
-                    </div>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Number of pairs you have matched manually that the engine did not catch</p>
-                  </TooltipContent>
-                </Tooltip>
-                {ignoredCount > 0 && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <label className="flex cursor-pointer items-center gap-2 rounded-md bg-gray-50 px-3 py-1.5 text-sm text-gray-500 transition-colors hover:bg-gray-100">
-                        <input
-                          type="checkbox"
-                          checked={showIgnored}
-                          onChange={(e) =>
-                            setAugmentation((prev) => ({ ...prev, showIgnored: e.target.checked }))
-                          }
-                          className="h-3.5 w-3.5 rounded border-gray-300 text-[var(--app-primary)] focus:ring-[var(--app-primary)]"
-                        />
-                        Show ignored
-                      </label>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Toggle visibility of transactions you marked as ignored</p>
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-              </div>
+        {/* Review stats row (when visible) */}
+        {(reviewedCount > 0 || ignoredCount > 0 || manualMatches.length > 0) && (
+          <div className="mb-3 flex flex-wrap items-center gap-3">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1.5 rounded-md bg-gray-50 px-3 py-1.5 text-sm">
+                  <Eye className="h-3.5 w-3.5 text-gray-400" />
+                  <span className="text-gray-500">Reviewed</span>
+                  <span className="font-semibold text-[var(--app-heading)]">{reviewedCount}</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Number of matched pairs you have reviewed and confirmed</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1.5 rounded-md bg-gray-50 px-3 py-1.5 text-sm">
+                  <EyeOff className="h-3.5 w-3.5 text-gray-400" />
+                  <span className="text-gray-500">Ignored</span>
+                  <span className="font-semibold text-[var(--app-heading)]">{ignoredCount}</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Number of transactions you have marked to ignore (not relevant for this reconciliation)</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <div className="flex items-center gap-1.5 rounded-md bg-gray-50 px-3 py-1.5 text-sm">
+                  <Link2 className="h-3.5 w-3.5 text-gray-400" />
+                  <span className="text-gray-500">Manual</span>
+                  <span className="font-semibold text-[var(--app-heading)]">{manualMatches.length}</span>
+                </div>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Number of pairs you have matched manually that the engine did not catch</p>
+              </TooltipContent>
+            </Tooltip>
+            {ignoredCount > 0 && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <label className="flex cursor-pointer items-center gap-2 rounded-md bg-gray-50 px-3 py-1.5 text-sm text-gray-500 transition-colors hover:bg-gray-100">
+                    <input
+                      type="checkbox"
+                      checked={showIgnored}
+                      onChange={(e) =>
+                        setAugmentation((prev) => ({ ...prev, showIgnored: e.target.checked }))
+                      }
+                      className="h-3.5 w-3.5 rounded border-gray-300 text-[var(--app-primary)] focus:ring-[var(--app-primary)]"
+                    />
+                    Show ignored
+                  </label>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Toggle visibility of transactions you marked as ignored</p>
+                </TooltipContent>
+              </Tooltip>
             )}
-            <TabsList className="bg-transparent border-none p-0 h-auto gap-2 flex flex-wrap shrink-0">
+          </div>
+        )}
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-gray-200 bg-white p-3 shadow-sm mb-4">
+          {/* Left: Tabs */}
+          <TabsList className="bg-transparent border-none p-0 h-auto gap-2 flex flex-wrap shrink-0">
           <Tooltip>
             <TooltipTrigger asChild>
               <TabsTrigger
                 value="matched"
                 className={cn(
-                  "px-4 py-2 rounded-xl text-sm font-medium border transition-colors cursor-pointer flex items-center gap-2",
+                  "px-4 py-2 rounded-xl text-sm font-medium border transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap",
                   activeTab === "matched"
                     ? "bg-[var(--app-primary-dark,#1E3A5F)] text-white border-[var(--app-primary-dark,#1E3A5F)] shadow-sm"
                     : "bg-white text-[var(--app-body)] border-[var(--app-border)] hover:bg-gray-50"
@@ -849,7 +849,7 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
               <TabsTrigger
                 value="unmatchedA"
                 className={cn(
-                  "px-4 py-2 rounded-xl text-sm font-medium border transition-colors cursor-pointer flex items-center gap-2",
+                  "px-4 py-2 rounded-xl text-sm font-medium border transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap",
                   activeTab === "unmatchedA"
                     ? "bg-[var(--app-primary-dark,#1E3A5F)] text-white border-[var(--app-primary-dark,#1E3A5F)] shadow-sm"
                     : "bg-white text-[var(--app-body)] border-[var(--app-border)] hover:bg-gray-50"
@@ -873,7 +873,7 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
               <TabsTrigger
                 value="unmatchedB"
                 className={cn(
-                  "px-4 py-2 rounded-xl text-sm font-medium border transition-colors cursor-pointer flex items-center gap-2",
+                  "px-4 py-2 rounded-xl text-sm font-medium border transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap",
                   activeTab === "unmatchedB"
                     ? "bg-[var(--app-primary-dark,#1E3A5F)] text-white border-[var(--app-primary-dark,#1E3A5F)] shadow-sm"
                     : "bg-white text-[var(--app-body)] border-[var(--app-border)] hover:bg-gray-50"
@@ -897,7 +897,7 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
               <TabsTrigger
                 value="anomalies"
                 className={cn(
-                  "px-4 py-2 rounded-xl text-sm font-medium border transition-colors cursor-pointer flex items-center gap-2",
+                  "px-4 py-2 rounded-xl text-sm font-medium border transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap",
                   activeTab === "anomalies"
                     ? "bg-[var(--app-primary-dark,#1E3A5F)] text-white border-[var(--app-primary-dark,#1E3A5F)] shadow-sm"
                     : "bg-white text-[var(--app-body)] border-[var(--app-border)] hover:bg-gray-50"
@@ -917,7 +917,6 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
             </TooltipContent>
           </Tooltip>
         </TabsList>
-          </div>
 
           {/* Right: Action buttons */}
           <div className="flex items-center gap-2 shrink-0">
@@ -926,7 +925,7 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                 <Button
                   variant="outline"
                   onClick={() => setCopilotOpen(true)}
-                  className="rounded-xl border border-[var(--app-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--app-body)] hover:bg-gray-50"
+                  className="rounded-xl border border-[var(--app-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--app-body)] hover:bg-gray-50 whitespace-nowrap"
                 >
                   <Sparkles className="mr-1.5 h-4 w-4 text-purple-500" />
                   Ask Copilot
@@ -942,18 +941,16 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="outline"
-                      className="rounded-xl border border-[var(--app-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--app-body)] hover:bg-gray-50"
+                      className="rounded-xl border border-[var(--app-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--app-body)] hover:bg-gray-50 whitespace-nowrap"
                     >
                       <Download className="mr-1.5 h-4 w-4" />
                       Export Results
-                      <span className="ml-1.5 text-xs text-gray-400">
-                        ({totalMatched} matched, {totalUnmatchedA + totalUnmatchedB} unmatched)
-                      </span>
                     </Button>
                   </DropdownMenuTrigger>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>Download all matched and unmatched transactions as a CSV or Excel file for your records</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{totalMatched} matched, {totalUnmatchedA + totalUnmatchedB} unmatched</p>
                 </TooltipContent>
               </Tooltip>
               <DropdownMenuContent align="end">
@@ -972,7 +969,6 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
           <Card className="overflow-hidden">
             <TableSectionHeader>
               <span>Matched pairs</span>
-              <p className="mt-0.5 text-xs font-normal opacity-90">Paired transactions with confidence score (1:1 and group matches)</p>
             </TableSectionHeader>
             <CardContent className="px-4 pb-4 pt-0 flex flex-col">
               <Table className="min-w-[1200px]">
@@ -1090,7 +1086,6 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
           <Card className="overflow-hidden">
             <TableSectionHeader>
               <span>Unmatched Source A</span>
-              <p className="mt-0.5 text-xs font-normal opacity-90">Transactions from Source A with no match in Source B</p>
             </TableSectionHeader>
             <CardContent className="px-4 pb-4 pt-0 flex flex-col">
               <Table className="table-fixed w-full min-w-[900px]">
@@ -1266,7 +1261,6 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
           <Card className="overflow-hidden">
             <TableSectionHeader>
               <span>Unmatched Source B</span>
-              <p className="mt-0.5 text-xs font-normal opacity-90">Transactions from Source B with no match in Source A</p>
             </TableSectionHeader>
             <CardContent className="px-4 pb-4 pt-0 flex flex-col">
               <Table className="table-fixed w-full min-w-[900px]">

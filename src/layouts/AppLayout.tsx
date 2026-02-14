@@ -13,7 +13,6 @@ import {
   Bell,
   Sparkles,
   LogOut,
-  ChevronDown,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
@@ -22,7 +21,6 @@ import { OnboardingChecklist } from '@/features/onboarding/OnboardingChecklist';
 import {
   getReconciliationStats,
   getTemplates,
-  getOrganization,
 } from '@/lib/database';
 
 function getInitials(user: { user_metadata?: { full_name?: string }; email?: string | null }): string {
@@ -103,18 +101,6 @@ export function AppLayout() {
     isVisible,
   } = useOnboarding(onboardingContext);
 
-  const [orgName, setOrgName] = useState<string>('');
-
-  useEffect(() => {
-    if (!organizationId) {
-      setOrgName('');
-      return;
-    }
-    getOrganization(organizationId).then((org) => {
-      setOrgName(org?.name ?? '');
-    });
-  }, [organizationId]);
-
   return (
     <div className="min-h-screen bg-[var(--app-page-shell)] p-3">
       <div className="flex min-h-[calc(100vh-1.5rem)] gap-3">
@@ -162,12 +148,6 @@ export function AppLayout() {
             >
               <X className="h-5 w-5" />
             </button>
-          </div>
-          <div className="flex shrink-0 items-center gap-2 border-b border-white/10 px-4 py-3">
-            <span className="truncate text-sm font-medium text-[var(--app-sidebar-text)]">
-              {orgName || 'Organization'}
-            </span>
-            <ChevronDown className="h-4 w-4 shrink-0 text-[var(--app-sidebar-text)]" aria-hidden />
           </div>
 
           {/* Nav items */}

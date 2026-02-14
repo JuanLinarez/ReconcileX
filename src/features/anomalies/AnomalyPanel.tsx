@@ -196,7 +196,6 @@ export function AnomalyPanel({ report, className }: AnomalyPanelProps) {
       <div className="rounded-t-lg overflow-hidden">
         <TableSectionHeader>
           <span>Detected Anomalies</span>
-          <p className="mt-0.5 text-xs font-normal opacity-90">Potential issues flagged by AI analysis</p>
         </TableSectionHeader>
       </div>
       {/* Summary bar */}
