@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Check, ChevronDown, ChevronRight, Eye } from 'lucide-react';
+import { ArrowRight, Check, ChevronDown, ChevronRight, Eye } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { saveReconciliation } from '@/lib/database';
@@ -362,37 +362,39 @@ export function ReconciliationFlowPage() {
       {step === 'matchingRules' && (
         <>
           {/* Collapsible Data Preview */}
-          <div className="rounded-lg border border-[var(--app-border)] bg-white">
-            <button
-              type="button"
-              onClick={() => setShowDataPreview(!showDataPreview)}
-              className="flex w-full items-center justify-between p-4 text-left cursor-pointer hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 text-blue-600">
-                  <Eye className="h-4 w-4" />
-                </div>
-                <div>
-                  <span className="text-sm font-medium text-[var(--app-heading)]">
-                    Review Your Uploaded Files
-                  </span>
-                  <p className="text-xs text-[var(--app-body)]/60">
-                    {effectiveSourceA?.filename ?? 'Source A'} ({effectiveSourceA?.rows.length ?? 0} rows) &bull; {effectiveSourceB?.filename ?? 'Source B'} ({effectiveSourceB?.rows.length ?? 0} rows)
-                  </p>
-                </div>
+          <button
+            type="button"
+            onClick={() => setShowDataPreview(!showDataPreview)}
+            className="flex w-full items-center gap-3 px-5 py-3.5 rounded-xl bg-gray-50 border border-[var(--app-border)] cursor-pointer hover:bg-gray-100/70 transition-colors text-left"
+          >
+            <div className="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center shrink-0">
+              <Eye className="w-[18px] h-[18px] text-[#2563EB]" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold font-heading text-[var(--app-heading)]">
+                Review Your Uploaded Files
+              </p>
+              <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-md">
+                  {effectiveSourceA?.filename ?? 'Source A'} ({effectiveSourceA?.rows.length ?? 0} rows)
+                </span>
+                <span className="text-xs text-gray-400">•</span>
+                <span className="text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-md">
+                  {effectiveSourceB?.filename ?? 'Source B'} ({effectiveSourceB?.rows.length ?? 0} rows)
+                </span>
               </div>
-              {showDataPreview ? (
-                <ChevronDown className="h-4 w-4 text-[var(--app-body)]" />
-              ) : (
-                <ChevronRight className="h-4 w-4 text-[var(--app-body)]" />
-              )}
-            </button>
+            </div>
+            {showDataPreview ? (
+              <ChevronDown className="w-5 h-5 text-gray-400 shrink-0" />
+            ) : (
+              <ChevronRight className="w-5 h-5 text-gray-400 shrink-0" />
+            )}
+          </button>
             {showDataPreview && (
-              <div className="border-t border-[var(--app-border)] p-4">
+              <div className="rounded-b-xl border border-t-0 border-[var(--app-border)] p-4 bg-white">
                 <PreviewPage sourceA={effectiveSourceA} sourceB={effectiveSourceB} />
               </div>
             )}
-          </div>
 
           <MatchingRulesPage
             sourceA={effectiveSourceA}
@@ -431,20 +433,27 @@ export function ReconciliationFlowPage() {
             </div>
           )}
 
-          <div className="flex flex-wrap items-center justify-between gap-4">
-            <Button variant="outline" onClick={() => setStep('upload')}>
+          <div className="flex flex-wrap items-center justify-between gap-4 mt-6">
+            <Button variant="outline" onClick={() => setStep('upload')} className="rounded-xl">
               Back
             </Button>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2.5">
               <Button
                 variant="outline"
                 disabled={!canRunMatching || isPreviewLoading || isMatching}
                 onClick={handlePreview}
+                className="rounded-xl border-[var(--app-primary-dark,#1E3A5F)] text-[var(--app-primary-dark,#1E3A5F)]"
               >
                 {isPreviewLoading ? 'Calculating…' : 'Preview Results'}
               </Button>
-              <Button variant="dark" disabled={!canRunMatching || isMatching} onClick={handleRunMatching}>
+              <Button
+                variant="dark"
+                disabled={!canRunMatching || isMatching}
+                onClick={handleRunMatching}
+                className="rounded-xl shadow-lg shadow-[#1E3A5F]/20 flex items-center gap-2"
+              >
                 {isMatching ? 'Processing…' : 'Run Matching'}
+                {!isMatching && <ArrowRight className="w-4 h-4" />}
               </Button>
             </div>
           </div>

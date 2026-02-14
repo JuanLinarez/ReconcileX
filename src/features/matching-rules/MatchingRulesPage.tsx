@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -33,7 +33,7 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { Check, CheckCircle2, ChevronDown, Info, Loader2, Plus, Save, Trash2, X, XCircle } from 'lucide-react';
+import { ArrowRight, Check, CheckCircle2, ChevronDown, Info, Loader2, Pencil, Plus, Save, Trash2, X, XCircle } from 'lucide-react';
 import type {
   MatchingConfig,
   MatchingRule,
@@ -434,6 +434,7 @@ export function MatchingRulesPage({
 
   const addRule = () => {
     setAutoMaps({});
+    setEditingRuleId(null);
     const newRule: MatchingRule = {
       id: nextRuleId(),
       columnA: headersA[0] ?? '',
@@ -466,6 +467,7 @@ export function MatchingRulesPage({
 
   const removeRule = (id: string) => {
     setAutoMaps({});
+    setEditingRuleId((prev) => (prev === id ? null : prev));
     const next = effectiveRules.filter((r) => r.id !== id);
     if (next.length === 0) return;
     const n = next.length;
@@ -505,6 +507,7 @@ export function MatchingRulesPage({
 
   const [autoMaps, setAutoMaps] = useState<Record<string, AutoMapEntry>>({});
   const [showAutoMapBanner, setShowAutoMapBanner] = useState(false);
+  const [editingRuleId, setEditingRuleId] = useState<string | null>(null);
 
   const handleLoadTemplate = (template: SavedTemplate) => {
     setLoadConfirmTemplate(template);
@@ -512,6 +515,7 @@ export function MatchingRulesPage({
 
   const handleConfirmLoadTemplate = () => {
     if (!loadConfirmTemplate) return;
+    setEditingRuleId(null);
     const newConfig = applyTemplate(loadConfirmTemplate);
     const { config: mappedConfig, autoMaps: nextAutoMaps } = applyFuzzyColumnMapping(
       newConfig,
@@ -539,46 +543,51 @@ export function MatchingRulesPage({
   const allTemplates = [...BUILT_IN_TEMPLATES, ...customTemplates];
 
   const handleNLConfigGenerated = (newConfig: MatchingConfig, _explanation: string) => {
+    setEditingRuleId(null);
     onConfigChange(newConfig);
   };
 
   return (
     <div className={cn('space-y-8', className)}>
       {/* Matching type at top */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Reconciliation matching type</CardTitle>
-          <CardDescription>
-            Choose how transactions from Source A and Source B can be paired.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <RadioGroup
-            value={config.matchingType}
-            onValueChange={(value) => onConfigChange({ ...config, matchingType: value as MatchingType })}
-            className="grid gap-4 sm:grid-cols-2"
-          >
-            {MATCHING_TYPE_OPTIONS.map((opt) => (
+      <div className="bg-white rounded-2xl border border-[var(--app-border)] p-6 mb-5">
+        <h3 className="text-[17px] font-bold font-heading text-[var(--app-heading)]">
+          Reconciliation matching type
+        </h3>
+        <p className="text-[13px] text-[var(--app-body)] mt-1 mb-4">
+          Choose how transactions from Source A and Source B can be paired.
+        </p>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {MATCHING_TYPE_OPTIONS.map((opt) => {
+            const isSelected = config.matchingType === opt.value;
+            return (
               <Tooltip key={opt.value}>
                 <TooltipTrigger asChild>
-                  <label
-                    htmlFor={`matching-type-${opt.value}`}
+                  <button
+                    type="button"
+                    onClick={() => onConfigChange({ ...config, matchingType: opt.value })}
                     className={cn(
-                      'flex cursor-pointer flex-col gap-2 rounded-lg border-2 px-4 py-3 transition-colors',
-                      config.matchingType === opt.value
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border hover:border-muted-foreground/50 hover:bg-muted/30'
+                      'flex flex-col items-start text-left rounded-xl p-5 cursor-pointer relative transition-all',
+                      isSelected
+                        ? 'border-2 border-[#2563EB] bg-blue-50/30'
+                        : 'border-2 border-[var(--app-border)] bg-white hover:border-gray-300'
                     )}
                   >
-                    <div className="flex items-center gap-2">
-                      <RadioGroupItem value={opt.value} id={`matching-type-${opt.value}`} />
-                      <span className="font-medium">{opt.title}</span>
-                    </div>
-                    <p className="text-sm text-muted-foreground">{opt.description}</p>
-                    <div className="mt-1 rounded bg-muted/50 px-2 py-1.5 font-mono text-xs">
+                    {isSelected && (
+                      <div className="absolute top-3 right-3 w-[22px] h-[22px] rounded-full bg-[#2563EB] flex items-center justify-center">
+                        <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                      </div>
+                    )}
+                    <span className="text-[15px] font-bold font-heading text-[var(--app-heading)] mb-1.5">
+                      {opt.title}
+                    </span>
+                    <p className="text-[13px] text-[var(--app-body)] leading-relaxed mb-3">
+                      {opt.description}
+                    </p>
+                    <span className="text-xs text-gray-400 font-mono bg-gray-50 px-2.5 py-1.5 rounded-lg inline-block">
                       {opt.visual}
-                    </div>
-                  </label>
+                    </span>
+                  </button>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>
@@ -588,31 +597,41 @@ export function MatchingRulesPage({
                   </p>
                 </TooltipContent>
               </Tooltip>
-            ))}
-          </RadioGroup>
-        </CardContent>
-      </Card>
+            );
+          })}
+        </div>
+      </div>
 
       {/* Matching rules */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Matching rules</CardTitle>
-          <CardDescription>
-            Add rules to compare columns between Source A and Source B. Set importance % per rule
-            (must sum to 100%). At least one rule is required.
-          </CardDescription>
-          {suggestedCount > 0 && (
-            <p className="text-sm text-muted-foreground pt-1">
-              We detected {suggestedCount} potential matching rule{suggestedCount !== 1 ? 's' : ''} based on your column names. Review and adjust as needed.
-            </p>
-          )}
-          {rulesInfluencedByLearning && (
-            <p className="text-sm text-muted-foreground pt-1">
-              Rules enhanced based on your previous reconciliations.
-            </p>
-          )}
-        </CardHeader>
-        <CardContent className="space-y-6">
+      <div className="bg-white rounded-2xl border border-[var(--app-border)] p-6 mb-5">
+        <div className="flex justify-between items-start mb-1">
+          <h3 className="text-[17px] font-bold font-heading text-[var(--app-heading)]">
+            Matching rules
+          </h3>
+          <button
+            type="button"
+            onClick={addRule}
+            className="px-3.5 py-1.5 rounded-lg border-[1.5px] border-[#2563EB] bg-blue-50/30 text-xs font-semibold text-[#2563EB] hover:bg-blue-50 cursor-pointer flex items-center gap-1.5"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Add Rule
+          </button>
+        </div>
+        <p className="text-[13px] text-[var(--app-body)] mt-1 mb-4">
+          Add rules to compare columns between Source A and Source B. Set importance % per rule
+          (must sum to 100%). At least one rule is required.
+        </p>
+        {suggestedCount > 0 && (
+          <p className="text-sm text-muted-foreground mb-2">
+            We detected {suggestedCount} potential matching rule{suggestedCount !== 1 ? 's' : ''} based on your column names. Review and adjust as needed.
+          </p>
+        )}
+        {rulesInfluencedByLearning && (
+          <p className="text-sm text-muted-foreground mb-4">
+            Rules enhanced based on your previous reconciliations.
+          </p>
+        )}
+        <div className="space-y-6">
           {showAutoMapBanner && (() => {
             const count = Object.values(autoMaps).reduce(
               (s, e) => s + (e.columnA ? 1 : 0) + (e.columnB ? 1 : 0),
@@ -658,6 +677,81 @@ export function MatchingRulesPage({
             <>
           {effectiveRules.map((rule, index) => {
             const missingWarning = getRuleMissingColumnWarning(rule, headersA, headersB);
+            const matchTypeLabel = MATCH_TYPE_OPTIONS.find((o) => o.value === rule.matchType)?.label ?? rule.matchType;
+            const isEditing = editingRuleId === rule.id;
+
+            if (!isEditing) {
+              return (
+                <div
+                  key={rule.id}
+                  className={cn(
+                    'flex flex-col gap-2 px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 mb-2',
+                    missingWarning && 'bg-yellow-50 border-yellow-200'
+                  )}
+                >
+                  {missingWarning && (
+                    <p className="text-sm text-yellow-800" role="alert">
+                      {missingWarning.message}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 rounded-lg bg-[var(--app-primary-dark,#1E3A5F)] text-white flex items-center justify-center text-xs font-bold font-heading shrink-0">
+                    {index + 1}
+                  </div>
+                  <div className="flex-1 flex items-center gap-1.5 flex-wrap">
+                    <span className="text-[13px] font-semibold text-[var(--app-heading)] bg-white px-2.5 py-0.5 rounded-md border border-[var(--app-border)]">
+                      {rule.columnA || '—'}
+                    </span>
+                    <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
+                    <span className="text-[13px] font-semibold text-[var(--app-heading)] bg-white px-2.5 py-0.5 rounded-md border border-[var(--app-border)]">
+                      {rule.columnB || '—'}
+                    </span>
+                    <span className="text-[11px] font-semibold text-[#2563EB] bg-blue-50 px-2 py-0.5 rounded-md">
+                      {matchTypeLabel}
+                    </span>
+                    {rule.nlGenerated && (
+                      <Badge variant="secondary" className="text-xs font-normal bg-purple-100 text-purple-700">
+                        AI Generated
+                      </Badge>
+                    )}
+                    {rule.suggested && !rule.nlGenerated && (
+                      <Badge variant="secondary" className="text-xs font-normal bg-blue-100 text-blue-700">
+                        Suggested
+                      </Badge>
+                    )}
+                    {rule.learned && (
+                      <Badge variant="secondary" className="text-xs font-normal bg-purple-100 text-purple-700">
+                        Learned
+                      </Badge>
+                    )}
+                  </div>
+                  <span className="text-sm font-bold font-heading text-[var(--app-primary-dark,#1E3A5F)] shrink-0">
+                    {Math.round(rule.weight * 100)}%
+                  </span>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setEditingRuleId(rule.id)}
+                      className="p-1 rounded-md hover:bg-gray-200 cursor-pointer"
+                      aria-label="Edit rule"
+                    >
+                      <Pencil className="w-3.5 h-3.5 text-gray-400" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => removeRule(rule.id)}
+                      disabled={effectiveRules.length <= 1}
+                      className="p-1 rounded-md hover:bg-red-50 cursor-pointer disabled:opacity-50"
+                      aria-label="Remove rule"
+                    >
+                      <Trash2 className="w-3.5 h-3.5 text-gray-400 hover:text-red-500" />
+                    </button>
+                  </div>
+                  </div>
+                </div>
+              );
+            }
+
             return (
             <div
               key={rule.id}
@@ -671,7 +765,7 @@ export function MatchingRulesPage({
                   {missingWarning.message}
                 </p>
               )}
-              <div className="flex items-center gap-2 shrink-0">
+              <div className="flex items-center gap-2 shrink-0 w-full">
                 <span className="text-sm font-medium text-muted-foreground">Rule {index + 1}</span>
                 {rule.nlGenerated && (
                   <Badge variant="secondary" className="text-xs font-normal bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
@@ -688,6 +782,15 @@ export function MatchingRulesPage({
                     Learned
                   </Badge>
                 )}
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="ml-auto"
+                  onClick={() => setEditingRuleId(null)}
+                >
+                  Done
+                </Button>
                 <Button
                   type="button"
                   variant="ghost"
@@ -873,17 +976,6 @@ export function MatchingRulesPage({
           );
           })}
           <div className="flex flex-wrap items-center gap-4">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button type="button" variant="outline" onClick={addRule}>
-                  <Plus className="size-4 mr-2" />
-                  Add matching rule
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Add a new rule to match columns between your two sources</p>
-              </TooltipContent>
-            </Tooltip>
             {effectiveRules.length > 1 && (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -976,8 +1068,8 @@ export function MatchingRulesPage({
           </div>
             </>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Natural Language Rules */}
       {sourceA && sourceB && (
@@ -1076,10 +1168,11 @@ export function MatchingRulesPage({
       </Dialog>
 
       {/* Min confidence */}
-      <Card className="max-w-md">
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <CardTitle>Minimum confidence</CardTitle>
+      <div className="bg-white rounded-2xl border border-[var(--app-border)] p-6 mb-5 max-w-md">
+        <div className="flex items-center gap-2">
+          <h3 className="text-[17px] font-bold font-heading text-[var(--app-heading)]">
+            Minimum confidence
+          </h3>
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
@@ -1095,11 +1188,10 @@ export function MatchingRulesPage({
               </TooltipContent>
             </Tooltip>
           </div>
-          <CardDescription>
-            Pairs must meet this score to count as matched.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        <p className="text-[13px] text-[var(--app-body)] mt-1 mb-4">
+          Pairs must meet this score to count as matched.
+        </p>
+        <div className="space-y-4">
           <div className="flex items-center gap-4">
             <Slider
               min={0}
@@ -1117,8 +1209,8 @@ export function MatchingRulesPage({
               {Math.round(config.minConfidenceThreshold * 100)}%
             </span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
