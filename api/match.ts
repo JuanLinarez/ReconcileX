@@ -116,6 +116,11 @@ interface MatchResult {
   confidence: number;
 }
 
+interface NearMissScore {
+  bestScore: number;
+  bestCandidateRowIndex: number;
+}
+
 // --- Utilities ---
 
 function parseAmount(value: string): number {
@@ -610,11 +615,163 @@ function runGroupPass(
   return { groupMatched, remainingA: finalA, remainingB: finalB };
 }
 
+const NEAR_MISS_MAX_UNMATCHED = 1000;
+const NEAR_MISS_MAX_CANDIDATES = 5000;
+const NEAR_MISS_SAMPLE_SIZE = 500;
+
+function computeNearMissScores(
+  unmatchedA: Transaction[],
+  unmatchedB: Transaction[],
+  transactionsA: Transaction[],
+  transactionsB: Transaction[],
+  config: MatchingConfig,
+  simCache: SimilarityCache
+): Record<string, NearMissScore> {
+  const totalUnmatched = unmatchedA.length + unmatchedB.length;
+  if (totalUnmatched > NEAR_MISS_MAX_UNMATCHED) return {};
+
+  const rules = config.rules;
+  const numericRule = rules.find((r) => r.matchType === 'tolerance_numeric');
+  const result: Record<string, NearMissScore> = {};
+
+  function getCandidatesForA(txA: Transaction): Transaction[] {
+    if (!numericRule) {
+      return transactionsB.length > NEAR_MISS_MAX_CANDIDATES
+        ? [...transactionsB].sort((a, b) => Math.abs(a.amount - txA.amount) - Math.abs(b.amount - txA.amount)).slice(0, NEAR_MISS_SAMPLE_SIZE)
+        : transactionsB;
+    }
+    const colA = numericRule.columnA;
+    const colB = numericRule.columnB;
+    const mode = numericRule.toleranceNumericMode ?? 'percentage';
+    const rawTol = numericRule.toleranceValue ?? 0.1;
+    const amtA = parseAmount(String(txA.raw[colA] ?? ''));
+    const filterTol = mode === 'fixed' ? rawTol * 5 : Math.max(amtA, 1) * rawTol * 5;
+
+    const indexedB = transactionsB
+      .map((b) => ({ tx: b, amount: parseAmount(String(b.raw[colB] ?? '')) }))
+      .sort((a, b) => a.amount - b.amount);
+    const bAmounts = indexedB.map((x) => x.amount);
+
+    function lowerBound(arr: number[], target: number): number {
+      let lo = 0, hi = arr.length;
+      while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (arr[mid] < target) lo = mid + 1;
+        else hi = mid;
+      }
+      return lo;
+    }
+    function upperBound(arr: number[], target: number): number {
+      let lo = 0, hi = arr.length;
+      while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (arr[mid] <= target) lo = mid + 1;
+        else hi = mid;
+      }
+      return lo;
+    }
+
+    const lo = lowerBound(bAmounts, amtA - filterTol);
+    const hi = upperBound(bAmounts, amtA + filterTol);
+    let candidates = indexedB.slice(lo, hi).map((x) => x.tx);
+    if (candidates.length > NEAR_MISS_MAX_CANDIDATES) {
+      candidates = candidates
+        .sort((a, b) => Math.abs(a.amount - amtA) - Math.abs(b.amount - amtA))
+        .slice(0, NEAR_MISS_SAMPLE_SIZE);
+    }
+    return candidates;
+  }
+
+  function getCandidatesForB(txB: Transaction): Transaction[] {
+    if (!numericRule) {
+      return transactionsA.length > NEAR_MISS_MAX_CANDIDATES
+        ? [...transactionsA].sort((a, b) => Math.abs(a.amount - txB.amount) - Math.abs(b.amount - txB.amount)).slice(0, NEAR_MISS_SAMPLE_SIZE)
+        : transactionsA;
+    }
+    const colA = numericRule.columnA;
+    const colB = numericRule.columnB;
+    const mode = numericRule.toleranceNumericMode ?? 'percentage';
+    const rawTol = numericRule.toleranceValue ?? 0.1;
+    const amtB = parseAmount(String(txB.raw[colB] ?? ''));
+    const filterTol = mode === 'fixed' ? rawTol * 5 : Math.max(amtB, 1) * rawTol * 5;
+
+    const indexedA = transactionsA
+      .map((a) => ({ tx: a, amount: parseAmount(String(a.raw[colA] ?? '')) }))
+      .sort((a, b) => a.amount - b.amount);
+    const aAmounts = indexedA.map((x) => x.amount);
+
+    function lowerBound(arr: number[], target: number): number {
+      let lo = 0, hi = arr.length;
+      while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (arr[mid] < target) lo = mid + 1;
+        else hi = mid;
+      }
+      return lo;
+    }
+    function upperBound(arr: number[], target: number): number {
+      let lo = 0, hi = arr.length;
+      while (lo < hi) {
+        const mid = (lo + hi) >> 1;
+        if (arr[mid] <= target) lo = mid + 1;
+        else hi = mid;
+      }
+      return lo;
+    }
+
+    const lo = lowerBound(aAmounts, amtB - filterTol);
+    const hi = upperBound(aAmounts, amtB + filterTol);
+    let candidates = indexedA.slice(lo, hi).map((x) => x.tx);
+    if (candidates.length > NEAR_MISS_MAX_CANDIDATES) {
+      candidates = candidates
+        .sort((a, b) => Math.abs(a.amount - amtB) - Math.abs(b.amount - amtB))
+        .slice(0, NEAR_MISS_SAMPLE_SIZE);
+    }
+    return candidates;
+  }
+
+  for (const tx of unmatchedA) {
+    const candidates = getCandidatesForA(tx);
+    let bestScore = 0;
+    let bestCandidateRow = -1;
+    for (const c of candidates) {
+      const score = pairScore(tx, c, rules, simCache);
+      if (score > bestScore) {
+        bestScore = score;
+        bestCandidateRow = c.rowIndex;
+      }
+    }
+    if (bestScore > 0) {
+      result[tx.id] = { bestScore, bestCandidateRowIndex: bestCandidateRow };
+    }
+  }
+
+  for (const tx of unmatchedB) {
+    const candidates = getCandidatesForB(tx);
+    let bestScore = 0;
+    let bestCandidateRow = -1;
+    for (const c of candidates) {
+      const score = pairScore(tx, c, rules, simCache);
+      if (score > bestScore) {
+        bestScore = score;
+        bestCandidateRow = c.rowIndex;
+      }
+    }
+    if (bestScore > 0) {
+      result[tx.id] = { bestScore, bestCandidateRowIndex: bestCandidateRow };
+    }
+  }
+
+  return result;
+}
+
 function runMatching(
   transactionsA: Transaction[],
   transactionsB: Transaction[],
   config: MatchingConfig
-): { matched: MatchResult[]; unmatchedA: Transaction[]; unmatchedB: Transaction[] } {
+): { matched: MatchResult[]; unmatchedA: Transaction[]; unmatchedB: Transaction[]; nearMissScores: Record<string, NearMissScore> } {
+  const rules = config.rules;
+  const simCache = buildSimilarityCache(transactionsA, transactionsB, rules);
   const { matched, unmatchedA, unmatchedB } = runOneToOnePass(
     transactionsA,
     transactionsB,
@@ -623,22 +780,39 @@ function runMatching(
 
   if (
     config.matchingType === 'group' &&
-    config.rules.length > 0 &&
+    rules.length > 0 &&
     (unmatchedA.length > 0 || unmatchedB.length > 0)
   ) {
     const { groupMatched, remainingA, remainingB } = runGroupPass(
       unmatchedA,
       unmatchedB,
-      config.rules
+      rules
+    );
+    const nearMissScores = computeNearMissScores(
+      remainingA,
+      remainingB,
+      transactionsA,
+      transactionsB,
+      config,
+      simCache
     );
     return {
       matched: [...matched, ...groupMatched],
       unmatchedA: remainingA,
       unmatchedB: remainingB,
+      nearMissScores,
     };
   }
 
-  return { matched, unmatchedA, unmatchedB };
+  const nearMissScores = computeNearMissScores(
+    unmatchedA,
+    unmatchedB,
+    transactionsA,
+    transactionsB,
+    config,
+    simCache
+  );
+  return { matched, unmatchedA, unmatchedB, nearMissScores };
 }
 
 // --- Serialization: Transaction with Date -> ISO string ---
@@ -795,7 +969,7 @@ export default async function handler(
     const transactionsA = normalizeToTransactions(rowsA, mappingA, 'sourceA');
     const transactionsB = normalizeToTransactions(rowsB, mappingB, 'sourceB');
 
-    const { matched, unmatchedA, unmatchedB } = runMatching(
+    const { matched, unmatchedA, unmatchedB, nearMissScores } = runMatching(
       transactionsA,
       transactionsB,
       config
@@ -825,11 +999,22 @@ export default async function handler(
       const unmatchedIndicesA = unmatchedA.map((t) => (t.rowIndex ?? 1) - 1);
       const unmatchedIndicesB = unmatchedB.map((t) => (t.rowIndex ?? 1) - 1);
 
+      // Remap nearMissScores keys to match client's reconstructed transaction IDs
+      const nearMissScoresForIndices: Record<string, NearMissScore> = {};
+      for (const [txId, score] of Object.entries(nearMissScores)) {
+        const tx = unmatchedA.find((t) => t.id === txId) ?? unmatchedB.find((t) => t.id === txId);
+        if (tx) {
+          const clientKey = `${tx.source}-${tx.rowIndex}-reconstructed`;
+          nearMissScoresForIndices[clientKey] = score;
+        }
+      }
+
       const indexResponse = {
         mode: 'indices',
         matchedPairs,
         unmatchedIndicesA,
         unmatchedIndicesB,
+        nearMissScores: nearMissScoresForIndices,
         config,
         stats: {
           totalA: rowsA.length,
@@ -856,6 +1041,7 @@ export default async function handler(
       unmatchedA: unmatchedA.map(toPayload),
       unmatchedB: unmatchedB.map(toPayload),
       config,
+      nearMissScores: nearMissScores ?? {},
       stats: {
         matchedCount: matched.length,
         unmatchedACount: unmatchedA.length,

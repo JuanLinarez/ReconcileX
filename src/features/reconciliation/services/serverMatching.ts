@@ -59,6 +59,7 @@ function reconstructFromIndices(
     matchedPairs?: Array<{ indexA: number; indexB: number; confidence: number }>;
     unmatchedIndicesA?: number[];
     unmatchedIndicesB?: number[];
+    nearMissScores?: Record<string, { bestScore: number; bestCandidateRowIndex: number }>;
     config?: MatchingConfig;
   },
   sourceA: ParsedCsv,
@@ -87,6 +88,7 @@ function reconstructFromIndices(
     unmatchedA: txA.filter((_, i) => unmatchedAIndices.has(i)),
     unmatchedB: txB.filter((_, i) => unmatchedBIndices.has(i)),
     config: data.config ?? config,
+    nearMissScores: data.nearMissScores ?? {},
   };
 }
 
@@ -104,6 +106,7 @@ function reconstructFromFull(data: {
   }>;
   unmatchedA: unknown[];
   unmatchedB: unknown[];
+  nearMissScores?: Record<string, { bestScore: number; bestCandidateRowIndex: number }>;
   config: MatchingConfig;
 }): ReconciliationResult {
   const deserializeTx = (t: unknown): Transaction => {
@@ -124,6 +127,7 @@ function reconstructFromFull(data: {
     unmatchedA: data.unmatchedA.map(deserializeTx),
     unmatchedB: data.unmatchedB.map(deserializeTx),
     config: data.config,
+    nearMissScores: data.nearMissScores ?? {},
   };
 }
 

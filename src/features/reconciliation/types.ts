@@ -81,12 +81,20 @@ export interface MatchResult {
   confidence: number;
 }
 
+/** Best near-miss score for an unmatched transaction. */
+export interface NearMissScore {
+  bestScore: number;
+  bestCandidateRowIndex: number;
+}
+
 /** Full result of a reconciliation run. */
 export interface ReconciliationResult {
   matched: MatchResult[];
   unmatchedA: Transaction[];
   unmatchedB: Transaction[];
   config: MatchingConfig;
+  /** Best confidence score each unmatched transaction achieved against any candidate. Key = transaction.id */
+  nearMissScores?: Record<string, NearMissScore>;
 }
 
 /** Uploaded file type for display. */

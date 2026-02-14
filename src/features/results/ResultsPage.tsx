@@ -269,7 +269,7 @@ function PaginationBar({ total, page, pageSize, onPageChange, onPageSizeChange }
 type TabId = 'matched' | 'unmatchedA' | 'unmatchedB' | 'anomalies';
 
 export function ResultsPage({ result, reconciliationId, organizationId, sourceAName = 'Source A', sourceBName = 'Source B', className }: ResultsPageProps) {
-  const { matched, unmatchedA, unmatchedB } = result;
+  const { matched, unmatchedA, unmatchedB, nearMissScores } = result;
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const [augmentation, setAugmentation] = useState(createInitialAugmentation);
   const [activeTab, setActiveTab] = useState<TabId>('matched');
@@ -1100,6 +1100,7 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                     <TableHead className="text-right">Amount</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Reference</TableHead>
+                    <TableHead>Best Match</TableHead>
                     <TableHead className="w-[100px] text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -1116,6 +1117,7 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                         : undefined;
                     const isLoading = loadingAnalysisTxId === t.id;
                     const showInlinePanel = openAnalysisTxId === t.id;
+                    const nearMiss = nearMissScores?.[t.id];
                     return (
                       <Fragment key={t.id}>
                         <TableRow className={rowBg}>
@@ -1123,6 +1125,27 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                           <TableCell className="text-right">{formatAmount(t.amount)}</TableCell>
                           <TableCell>{formatDate(t.date)}</TableCell>
                           <TableCell className="max-w-[300px] truncate">{t.reference}</TableCell>
+                          <TableCell>
+                            {nearMiss ? (
+                              <div className="flex items-center gap-1.5">
+                                <div className={cn(
+                                  'text-xs font-semibold px-2 py-0.5 rounded-md',
+                                  nearMiss.bestScore >= 0.6
+                                    ? 'bg-yellow-50 text-yellow-700'
+                                    : nearMiss.bestScore >= 0.4
+                                      ? 'bg-orange-50 text-orange-600'
+                                      : 'bg-gray-100 text-gray-500'
+                                )}>
+                                  {Math.round(nearMiss.bestScore * 100)}%
+                                </div>
+                                <span className="text-[11px] text-gray-400">
+                                  row {nearMiss.bestCandidateRowIndex}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-gray-400">—</span>
+                            )}
+                          </TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-1 flex-wrap">
                               {isReviewed && (
@@ -1191,7 +1214,7 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                             id={`analysis-${t.id}`}
                             className="bg-blue-50/50 hover:bg-blue-50/50 border-l-4 border-l-blue-200 animate-in fade-in-0 slide-in-from-top-1 duration-200"
                           >
-                            <TableCell colSpan={5} className="p-0 align-top">
+                            <TableCell colSpan={6} className="p-0 align-top">
                               <div className="p-4 border-t border-b border-blue-200">
                                 {isLoading ? (
                                   <div className="flex items-center gap-2 py-6 text-muted-foreground">
@@ -1253,6 +1276,7 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                     <TableHead className="text-right">Amount</TableHead>
                     <TableHead>Date</TableHead>
                     <TableHead>Reference</TableHead>
+                    <TableHead>Best Match</TableHead>
                     <TableHead className="w-[100px] text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -1269,6 +1293,7 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                         : undefined;
                     const isLoading = loadingAnalysisTxId === t.id;
                     const showInlinePanel = openAnalysisTxId === t.id;
+                    const nearMiss = nearMissScores?.[t.id];
                     return (
                       <Fragment key={t.id}>
                         <TableRow className={rowBg}>
@@ -1276,6 +1301,27 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                           <TableCell className="text-right">{formatAmount(t.amount)}</TableCell>
                           <TableCell>{formatDate(t.date)}</TableCell>
                           <TableCell className="max-w-[300px] truncate">{t.reference}</TableCell>
+                          <TableCell>
+                            {nearMiss ? (
+                              <div className="flex items-center gap-1.5">
+                                <div className={cn(
+                                  'text-xs font-semibold px-2 py-0.5 rounded-md',
+                                  nearMiss.bestScore >= 0.6
+                                    ? 'bg-yellow-50 text-yellow-700'
+                                    : nearMiss.bestScore >= 0.4
+                                      ? 'bg-orange-50 text-orange-600'
+                                      : 'bg-gray-100 text-gray-500'
+                                )}>
+                                  {Math.round(nearMiss.bestScore * 100)}%
+                                </div>
+                                <span className="text-[11px] text-gray-400">
+                                  row {nearMiss.bestCandidateRowIndex}
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="text-xs text-gray-400">—</span>
+                            )}
+                          </TableCell>
                           <TableCell className="text-right">
                             <div className="flex items-center justify-end gap-1 flex-wrap">
                               {isReviewed && (
@@ -1344,7 +1390,7 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                             id={`analysis-${t.id}`}
                             className="bg-blue-50/50 hover:bg-blue-50/50 border-l-4 border-l-blue-200 animate-in fade-in-0 slide-in-from-top-1 duration-200"
                           >
-                            <TableCell colSpan={5} className="p-0 align-top">
+                            <TableCell colSpan={6} className="p-0 align-top">
                               <div className="p-4 border-t border-b border-blue-200">
                                 {isLoading ? (
                                   <div className="flex items-center gap-2 py-6 text-muted-foreground">
