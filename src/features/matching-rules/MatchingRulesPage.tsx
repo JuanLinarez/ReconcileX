@@ -24,7 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import {
   Tooltip,
   TooltipContent,
@@ -33,16 +32,14 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { ArrowRight, Check, CheckCircle2, ChevronDown, Info, Loader2, Pencil, Plus, Save, Trash2, X, XCircle } from 'lucide-react';
+import { ArrowRight, Check, CheckCircle2, ChevronDown, Info, Loader2, Plus, Save, Trash2, X, XCircle } from 'lucide-react';
 import type {
   MatchingConfig,
   MatchingRule,
   MatchingType,
-  ToleranceNumericMode,
 } from '@/features/reconciliation/types';
 import type { ParsedCsv, ReconciliationResult } from '@/features/reconciliation/types';
 import { nextRuleId, getDefaultRules } from './defaultRules';
-import { getMaxFixedTolerance } from './numericToleranceUtils';
 import { buildSuggestedRules } from './smartColumnSuggestions';
 import { enhanceSuggestedRules } from '@/features/patterns/patternApply';
 import {
@@ -111,91 +108,6 @@ const MATCHING_TYPE_OPTIONS: Array<{
     visual: 'A₁ + A₂ + A₃ → B₁   or   A₁ → B₁ + B₂ + B₃',
   },
 ];
-
-interface NumericToleranceControlsProps {
-  rule: MatchingRule;
-  sourceA: ParsedCsv | null;
-  sourceB: ParsedCsv | null;
-  updateRule: (id: string, patch: Partial<MatchingRule>) => void;
-}
-
-function NumericToleranceControls({
-  rule,
-  sourceA,
-  sourceB,
-  updateRule,
-}: NumericToleranceControlsProps) {
-  const mode = rule.toleranceNumericMode ?? 'percentage';
-  const maxFixed =
-    sourceA?.rows && sourceB?.rows && rule.columnA && rule.columnB
-      ? getMaxFixedTolerance(
-          sourceA.rows,
-          sourceB.rows,
-          rule.columnA,
-          rule.columnB
-        )
-      : 100;
-
-  const handleModeChange = (m: ToleranceNumericMode) => {
-    updateRule(rule.id, {
-      toleranceNumericMode: m,
-      toleranceValue: m === 'percentage' ? 0.005 : Math.min(25, maxFixed),
-    });
-  };
-
-  return (
-    <div className="grid gap-2 min-w-[200px]">
-      <Label className="text-xs">Numeric tolerance</Label>
-      <RadioGroup
-        value={mode}
-        onValueChange={(v) => handleModeChange(v as ToleranceNumericMode)}
-        className="flex gap-4"
-      >
-        <label className="flex items-center gap-2 cursor-pointer text-sm">
-          <RadioGroupItem value="fixed" />
-          Fixed amount
-        </label>
-        <label className="flex items-center gap-2 cursor-pointer text-sm">
-          <RadioGroupItem value="percentage" />
-          Percentage
-        </label>
-      </RadioGroup>
-      {mode === 'percentage' ? (
-        <div className="flex items-center gap-2">
-          <Slider
-            min={0}
-            max={10}
-            step={0.1}
-            value={[((rule.toleranceValue ?? 0.005) * 100)]}
-            onValueChange={(v) =>
-              updateRule(rule.id, { toleranceValue: (v[0] ?? 0.5) / 100 })
-            }
-            className="flex-1"
-          />
-          <span className="text-sm font-medium tabular-nums w-12 shrink-0">
-            {((rule.toleranceValue ?? 0.005) * 100).toFixed(1)}%
-          </span>
-        </div>
-      ) : (
-        <div className="flex items-center gap-2">
-          <Slider
-            min={0}
-            max={Math.max(maxFixed, 1)}
-            step={1}
-            value={[rule.toleranceValue ?? 0]}
-            onValueChange={(v) =>
-              updateRule(rule.id, { toleranceValue: v[0] ?? 0 })
-            }
-            className="flex-1"
-          />
-          <span className="text-sm font-medium tabular-nums w-16 shrink-0">
-            ${(rule.toleranceValue ?? 0).toFixed(2)}
-          </span>
-        </div>
-      )}
-    </div>
-  );
-}
 
 export interface MatchingRulesPageProps {
   sourceA: ParsedCsv | null;
@@ -434,7 +346,6 @@ export function MatchingRulesPage({
 
   const addRule = () => {
     setAutoMaps({});
-    setEditingRuleId(null);
     const newRule: MatchingRule = {
       id: nextRuleId(),
       columnA: headersA[0] ?? '',
@@ -467,7 +378,6 @@ export function MatchingRulesPage({
 
   const removeRule = (id: string) => {
     setAutoMaps({});
-    setEditingRuleId((prev) => (prev === id ? null : prev));
     const next = effectiveRules.filter((r) => r.id !== id);
     if (next.length === 0) return;
     const n = next.length;
@@ -507,7 +417,6 @@ export function MatchingRulesPage({
 
   const [autoMaps, setAutoMaps] = useState<Record<string, AutoMapEntry>>({});
   const [showAutoMapBanner, setShowAutoMapBanner] = useState(false);
-  const [editingRuleId, setEditingRuleId] = useState<string | null>(null);
 
   const handleLoadTemplate = (template: SavedTemplate) => {
     setLoadConfirmTemplate(template);
@@ -515,7 +424,6 @@ export function MatchingRulesPage({
 
   const handleConfirmLoadTemplate = () => {
     if (!loadConfirmTemplate) return;
-    setEditingRuleId(null);
     const newConfig = applyTemplate(loadConfirmTemplate);
     const { config: mappedConfig, autoMaps: nextAutoMaps } = applyFuzzyColumnMapping(
       newConfig,
@@ -543,7 +451,6 @@ export function MatchingRulesPage({
   const allTemplates = [...BUILT_IN_TEMPLATES, ...customTemplates];
 
   const handleNLConfigGenerated = (newConfig: MatchingConfig, _explanation: string) => {
-    setEditingRuleId(null);
     onConfigChange(newConfig);
   };
 
@@ -604,19 +511,9 @@ export function MatchingRulesPage({
 
       {/* Matching rules */}
       <div className="bg-white rounded-2xl border border-[var(--app-border)] p-6 mb-5">
-        <div className="flex justify-between items-start mb-1">
-          <h3 className="text-[17px] font-bold font-heading text-[var(--app-heading)]">
-            Matching rules
-          </h3>
-          <button
-            type="button"
-            onClick={addRule}
-            className="px-3.5 py-1.5 rounded-lg border-[1.5px] border-[#2563EB] bg-blue-50/30 text-xs font-semibold text-[#2563EB] hover:bg-blue-50 cursor-pointer flex items-center gap-1.5"
-          >
-            <Plus className="w-3.5 h-3.5" />
-            Add Rule
-          </button>
-        </div>
+        <h3 className="text-[17px] font-bold font-heading text-[var(--app-heading)] mb-1">
+          Matching rules
+        </h3>
         <p className="text-[13px] text-[var(--app-body)] mt-1 mb-4">
           Add rules to compare columns between Source A and Source B. Set importance % per rule
           (must sum to 100%). At least one rule is required.
@@ -677,55 +574,213 @@ export function MatchingRulesPage({
             <>
           {effectiveRules.map((rule, index) => {
             const missingWarning = getRuleMissingColumnWarning(rule, headersA, headersB);
-            const matchTypeLabel = MATCH_TYPE_OPTIONS.find((o) => o.value === rule.matchType)?.label ?? rule.matchType;
-            const isEditing = editingRuleId === rule.id;
+            const mode = rule.toleranceNumericMode ?? 'percentage';
 
-            if (!isEditing) {
-              return (
-                <div
-                  key={rule.id}
-                  className={cn(
-                    'flex flex-col gap-2 px-4 py-3 rounded-xl bg-gray-50 border border-gray-100 mb-2',
-                    missingWarning && 'bg-yellow-50 border-yellow-200'
-                  )}
-                >
-                  {missingWarning && (
-                    <p className="text-sm text-yellow-800" role="alert">
-                      {missingWarning.message}
-                    </p>
-                  )}
-                  <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-[var(--app-primary-dark,#1E3A5F)] text-white flex items-center justify-center text-xs font-bold font-heading shrink-0">
+            return (
+              <div
+                key={rule.id}
+                className={cn(
+                  'bg-white rounded-xl border border-[var(--app-border)] p-5 mb-3 shadow-sm',
+                  missingWarning && 'bg-yellow-50/50 border-yellow-200'
+                )}
+              >
+                {missingWarning && (
+                  <p className="text-sm text-yellow-800 mb-4" role="alert">
+                    {missingWarning.message}
+                  </p>
+                )}
+                {/* Row 1: Rule number + Column mappings + Match type + Badges + Delete */}
+                <div className="flex flex-wrap items-center gap-3 mb-4">
+                  <div className="w-8 h-8 rounded-lg bg-[var(--app-primary-dark,#1E3A5F)] text-white flex items-center justify-center text-sm font-bold font-heading shrink-0">
                     {index + 1}
                   </div>
-                  <div className="flex-1 flex items-center gap-1.5 flex-wrap">
-                    <span className="text-[13px] font-semibold text-[var(--app-heading)] bg-white px-2.5 py-0.5 rounded-md border border-[var(--app-border)]">
-                      {rule.columnA || '—'}
-                    </span>
-                    <ArrowRight className="w-3.5 h-3.5 text-gray-400" />
-                    <span className="text-[13px] font-semibold text-[var(--app-heading)] bg-white px-2.5 py-0.5 rounded-md border border-[var(--app-border)]">
-                      {rule.columnB || '—'}
-                    </span>
-                    <span className="text-[11px] font-semibold text-[#2563EB] bg-blue-50 px-2 py-0.5 rounded-md">
-                      {matchTypeLabel}
-                    </span>
-                    {rule.nlGenerated && (
-                      <Badge variant="secondary" className="text-xs font-normal bg-purple-100 text-purple-700">
-                        AI Generated
-                      </Badge>
-                    )}
+
+                  <Select
+                    value={rule.columnA && headersA.includes(rule.columnA) ? rule.columnA : (headersA[0] ?? '')}
+                    onValueChange={(v) => updateRule(rule.id, { columnA: v })}
+                  >
+                    <SelectTrigger className="w-[180px] rounded-lg">
+                      <SelectValue placeholder="Column A" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {headersA.map((h) => (
+                        <SelectItem key={h} value={h}>
+                          {h}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <ArrowRight className="w-4 h-4 text-gray-400 shrink-0" />
+
+                  <Select
+                    value={rule.columnB && headersB.includes(rule.columnB) ? rule.columnB : (headersB[0] ?? '')}
+                    onValueChange={(v) => updateRule(rule.id, { columnB: v })}
+                  >
+                    <SelectTrigger className="w-[180px] rounded-lg">
+                      <SelectValue placeholder="Column B" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {headersB.map((h) => (
+                        <SelectItem key={h} value={h}>
+                          {h}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <Select
+                    value={rule.matchType}
+                    onValueChange={(v) => {
+                      const matchType = v as MatchingRule['matchType'];
+                      const patch: Partial<MatchingRule> = { matchType };
+                      if (matchType === 'tolerance_numeric') {
+                        patch.toleranceValue = 0.005;
+                        patch.toleranceNumericMode = 'percentage';
+                      } else if (matchType === 'tolerance_date') {
+                        patch.toleranceValue = 3;
+                      } else if (matchType === 'similar_text') {
+                        patch.similarityThreshold = 0.8;
+                      }
+                      updateRule(rule.id, patch);
+                    }}
+                  >
+                    <SelectTrigger className="w-[180px] rounded-lg">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {MATCH_TYPE_OPTIONS.map((opt) => (
+                        <SelectItem key={opt.value} value={opt.value}>
+                          {opt.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+
+                  <div className="flex items-center gap-1.5 ml-auto">
                     {rule.suggested && !rule.nlGenerated && (
-                      <Badge variant="secondary" className="text-xs font-normal bg-blue-100 text-blue-700">
-                        Suggested
-                      </Badge>
+                      <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">Suggested</span>
                     )}
                     {rule.learned && (
-                      <Badge variant="secondary" className="text-xs font-normal bg-purple-100 text-purple-700">
-                        Learned
-                      </Badge>
+                      <span className="text-[11px] font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md">Learned</span>
+                    )}
+                    {rule.nlGenerated && (
+                      <span className="text-[11px] font-semibold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-md">AI Generated</span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 shrink-0" style={{ minWidth: '160px' }}>
+
+                  <button
+                    type="button"
+                    onClick={() => removeRule(rule.id)}
+                    disabled={effectiveRules.length <= 1}
+                    className="p-1.5 rounded-lg hover:bg-red-50 cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                    title="Delete rule"
+                    aria-label="Delete rule"
+                  >
+                    <Trash2 className="w-4 h-4 text-gray-400 hover:text-red-500" />
+                  </button>
+                </div>
+
+                {/* Row 2: Conditional config + Weight slider */}
+                <div className="flex flex-wrap items-center gap-4 pl-11">
+                  {rule.matchType === 'tolerance_numeric' && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-[var(--app-body)]">±</span>
+                      {mode === 'percentage' ? (
+                        <Input
+                          type="number"
+                          value={(rule.toleranceValue ?? 0.005) * 100}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value);
+                            if (!Number.isNaN(val) && val >= 0) updateRule(rule.id, { toleranceValue: val / 100 });
+                          }}
+                          className="w-24 rounded-lg text-sm"
+                          step={0.1}
+                          min={0}
+                          max={100}
+                        />
+                      ) : (
+                        <Input
+                          type="number"
+                          value={String(rule.toleranceValue ?? 0)}
+                          onChange={(e) => {
+                            const val = parseFloat(e.target.value);
+                            if (!Number.isNaN(val)) updateRule(rule.id, { toleranceValue: val });
+                          }}
+                          className="w-24 rounded-lg text-sm"
+                          step={1}
+                          min={0}
+                        />
+                      )}
+                      <span className="text-xs text-[var(--app-body)]">{mode === 'percentage' ? '%' : '$'}</span>
+                      <div className="flex rounded-lg border border-[var(--app-border)] overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() => updateRule(rule.id, { toleranceNumericMode: 'fixed', toleranceValue: mode === 'percentage' ? 1 : (rule.toleranceValue ?? 0) })}
+                          className={cn(
+                            'px-3 py-1.5 text-xs font-medium cursor-pointer transition-colors',
+                            mode === 'fixed'
+                              ? 'bg-[var(--app-primary-dark,#1E3A5F)] text-white'
+                              : 'bg-white text-[var(--app-body)] hover:bg-gray-50'
+                          )}
+                        >
+                          Fixed $
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateRule(rule.id, { toleranceNumericMode: 'percentage', toleranceValue: 0.005 })}
+                          className={cn(
+                            'px-3 py-1.5 text-xs font-medium cursor-pointer transition-colors',
+                            mode === 'percentage'
+                              ? 'bg-[var(--app-primary-dark,#1E3A5F)] text-white'
+                              : 'bg-white text-[var(--app-body)] hover:bg-gray-50'
+                          )}
+                        >
+                          Percentage %
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {rule.matchType === 'tolerance_date' && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-[var(--app-body)]">±</span>
+                      <Input
+                        type="number"
+                        value={String(rule.toleranceValue ?? 3)}
+                        onChange={(e) => {
+                          const val = parseInt(e.target.value, 10);
+                          if (!Number.isNaN(val)) updateRule(rule.id, { toleranceValue: Math.max(0, Math.min(365, val)) });
+                        }}
+                        className="w-20 rounded-lg text-sm"
+                        min={0}
+                        max={365}
+                      />
+                      <span className="text-xs text-[var(--app-body)]">days</span>
+                    </div>
+                  )}
+
+                  {rule.matchType === 'similar_text' && (
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs text-[var(--app-body)]">Threshold:</span>
+                      <Slider
+                        value={[Math.round((rule.similarityThreshold ?? 0.8) * 100)]}
+                        min={50}
+                        max={100}
+                        step={1}
+                        onValueChange={([val]) => updateRule(rule.id, { similarityThreshold: (val ?? 80) / 100 })}
+                        className="w-28"
+                      />
+                      <span className="text-xs font-semibold text-[var(--app-primary-dark,#1E3A5F)] w-10">
+                        {Math.round((rule.similarityThreshold ?? 0.8) * 100)}%
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="flex-1 min-w-[80px]" />
+
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs text-[var(--app-body)]">Importance:</span>
                     <Slider
                       value={[Math.round(rule.weight * 100)]}
                       min={MIN_IMPORTANCE_PCT}
@@ -733,259 +788,26 @@ export function MatchingRulesPage({
                       step={1}
                       disabled={effectiveRules.length === 1}
                       onValueChange={([val]) => setRuleImportance(rule.id, val ?? MIN_IMPORTANCE_PCT)}
-                      className="w-24 flex-1"
+                      className="w-28"
                     />
-                    <span className="text-sm font-bold font-heading text-[var(--app-primary-dark,#1E3A5F)] w-10 text-right shrink-0">
+                    <span className="text-sm font-bold font-heading text-[var(--app-primary-dark,#1E3A5F)] w-10 text-right">
                       {Math.round(rule.weight * 100)}%
                     </span>
                   </div>
-                  <div className="flex items-center gap-1 shrink-0">
-                    <button
-                      type="button"
-                      onClick={() => setEditingRuleId(rule.id)}
-                      className="p-1 rounded-md hover:bg-gray-200 cursor-pointer"
-                      aria-label="Edit rule"
-                    >
-                      <Pencil className="w-3.5 h-3.5 text-gray-400" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => removeRule(rule.id)}
-                      disabled={effectiveRules.length <= 1}
-                      className="p-1 rounded-md hover:bg-red-50 cursor-pointer disabled:opacity-50"
-                      aria-label="Remove rule"
-                    >
-                      <Trash2 className="w-3.5 h-3.5 text-gray-400 hover:text-red-500" />
-                    </button>
-                  </div>
-                  </div>
-                </div>
-              );
-            }
-
-            return (
-            <div
-              key={rule.id}
-              className={cn(
-                'flex flex-wrap items-end gap-4 rounded-lg border p-4',
-                missingWarning && 'bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-800'
-              )}
-            >
-              {missingWarning && (
-                <p className="w-full text-sm text-yellow-800 dark:text-yellow-200 mb-1" role="alert">
-                  {missingWarning.message}
-                </p>
-              )}
-              <div className="flex items-center gap-2 shrink-0 w-full">
-                <span className="text-sm font-medium text-muted-foreground">Rule {index + 1}</span>
-                {rule.nlGenerated && (
-                  <Badge variant="secondary" className="text-xs font-normal bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
-                    AI Generated
-                  </Badge>
-                )}
-                {rule.suggested && !rule.nlGenerated && (
-                  <Badge variant="secondary" className="text-xs font-normal bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">
-                    Suggested
-                  </Badge>
-                )}
-                {rule.learned && (
-                  <Badge variant="secondary" className="text-xs font-normal bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300">
-                    Learned
-                  </Badge>
-                )}
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="ml-auto"
-                  onClick={() => setEditingRuleId(null)}
-                >
-                  Done
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="size-8 shrink-0"
-                  onClick={() => removeRule(rule.id)}
-                  disabled={effectiveRules.length <= 1}
-                  aria-label="Remove rule"
-                >
-                  <X className="size-4" />
-                </Button>
-              </div>
-              <div className="grid gap-2 min-w-[140px]">
-                <Label className="text-xs">Source A column</Label>
-                <Select
-                  value={rule.columnA || undefined}
-                  onValueChange={(v) => updateRule(rule.id, { columnA: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Column A" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {headersA.map((h) => (
-                      <SelectItem key={h} value={h}>
-                        {h}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2 min-w-[140px]">
-                <Label className="text-xs">Source B column</Label>
-                <Select
-                  value={rule.columnB || undefined}
-                  onValueChange={(v) => updateRule(rule.id, { columnB: v })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Column B" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {headersB.map((h) => (
-                      <SelectItem key={h} value={h}>
-                        {h}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2 min-w-[180px]">
-                <div className="flex items-center gap-1">
-                  <Label className="text-xs">Match type</Label>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        className="inline-flex text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
-                        aria-label="Match type help"
-                      >
-                        <Info className="size-3.5" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="max-w-[320px] space-y-1.5 text-xs">
-                      {MATCH_TYPE_OPTIONS.map((opt) => (
-                        <p key={opt.value}>
-                          <span className="font-semibold">{opt.label}</span> — {opt.tooltip}
-                        </p>
-                      ))}
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <Select
-                  value={rule.matchType}
-                  onValueChange={(v) => {
-                    const matchType = v as MatchingRule['matchType'];
-                    updateRule(rule.id, {
-                      matchType,
-                      toleranceValue:
-                        matchType === 'tolerance_numeric'
-                          ? 0.005
-                          : matchType === 'tolerance_date'
-                            ? 3
-                            : undefined,
-                      toleranceNumericMode:
-                        matchType === 'tolerance_numeric' ? 'percentage' : undefined,
-                      similarityThreshold: matchType === 'similar_text' ? 0.8 : undefined,
-                    });
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {MATCH_TYPE_OPTIONS.map((opt) => (
-                      <SelectItem key={opt.value} value={opt.value}>
-                        {opt.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {rule.matchType === 'tolerance_numeric' && (
-                <NumericToleranceControls
-                  rule={rule}
-                  sourceA={sourceA}
-                  sourceB={sourceB}
-                  updateRule={updateRule}
-                />
-              )}
-              {rule.matchType === 'tolerance_date' && (
-                <div className="grid gap-2 w-40">
-                  <Label className="text-xs">Date tolerance</Label>
-                  <div className="flex items-center gap-2">
-                    <Slider
-                      min={0}
-                      max={30}
-                      step={1}
-                      value={[rule.toleranceValue ?? 3]}
-                      onValueChange={(v) =>
-                        updateRule(rule.id, { toleranceValue: v[0] ?? 3 })
-                      }
-                      className="flex-1"
-                    />
-                    <span className="text-sm font-medium tabular-nums w-16 shrink-0">
-                      ±{rule.toleranceValue ?? 3} days
-                    </span>
-                  </div>
-                </div>
-              )}
-              {rule.matchType === 'similar_text' && (
-                <div className="grid gap-2 w-36">
-                  <Label className="text-xs">Similarity threshold</Label>
-                  <div className="flex items-center gap-2">
-                    <Slider
-                      min={0}
-                      max={100}
-                      step={1}
-                      value={[Math.round((rule.similarityThreshold ?? 0.8) * 100)]}
-                      onValueChange={(v) =>
-                        updateRule(rule.id, { similarityThreshold: (v[0] ?? 80) / 100 })
-                      }
-                    />
-                    <span className="text-sm font-medium tabular-nums w-10 shrink-0">
-                      {Math.round((rule.similarityThreshold ?? 0.8) * 100)}%
-                    </span>
-                  </div>
-                </div>
-              )}
-              <div className="grid gap-2 min-w-[140px] flex-1 max-w-[200px]">
-                <div className="flex items-center gap-1">
-                  <Label className="text-xs">Importance %</Label>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <button
-                        type="button"
-                        className="inline-flex text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
-                        aria-label="Importance help"
-                      >
-                        <Info className="size-3.5" />
-                      </button>
-                    </TooltipTrigger>
-                    <TooltipContent side="top" className="max-w-[260px]">
-                      How much this rule contributes to the final confidence score. All rules must
-                      sum to 100%.
-                    </TooltipContent>
-                  </Tooltip>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Slider
-                    min={MIN_IMPORTANCE_PCT}
-                    max={effectiveRules.length === 1 ? 100 : maxImportancePct}
-                    step={1}
-                    value={[Math.round(rule.weight * 100)]}
-                    disabled={effectiveRules.length === 1}
-                    onValueChange={(v) => setRuleImportance(rule.id, v[0] ?? MIN_IMPORTANCE_PCT)}
-                    className="flex-1"
-                  />
-                  <span className="text-sm font-medium tabular-nums w-9 shrink-0">
-                    {Math.round(rule.weight * 100)}%
-                  </span>
                 </div>
               </div>
-            </div>
-          );
+            );
           })}
+
+          {/* Add Rule button */}
+          <button
+            type="button"
+            onClick={addRule}
+            className="w-full py-3 rounded-xl border-2 border-dashed border-gray-300 text-sm font-medium text-[var(--app-body)] hover:bg-gray-50 hover:border-gray-400 cursor-pointer flex items-center justify-center gap-2 transition-colors"
+          >
+            <Plus className="w-4 h-4" />
+            Add Rule
+          </button>
           <div className="flex flex-wrap items-center gap-4">
             {effectiveRules.length > 1 && (
               <Tooltip>
@@ -1068,7 +890,12 @@ export function MatchingRulesPage({
           <div className="flex items-center gap-4 pt-2 border-t">
             <Tooltip>
               <TooltipTrigger asChild>
-                <span className="text-sm font-medium cursor-help">
+                <span
+                  className={cn(
+                    'text-sm font-medium cursor-help',
+                    Math.abs(totalWeightPercent - 100) > 0.1 && 'text-red-600'
+                  )}
+                >
                   Total: {totalWeightPercent.toFixed(1)}%
                 </span>
               </TooltipTrigger>
