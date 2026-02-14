@@ -132,7 +132,7 @@ export function DashboardPage() {
             className="inline-flex items-center gap-2 rounded-xl bg-[#1E3A5F] px-5 py-2.5 font-medium text-white shadow-md transition-colors hover:bg-[#24476F]"
           >
             <Plus className="h-4 w-4" />
-            + New Reconciliation
+            New Reconciliation
           </button>
         </Link>
       </section>
