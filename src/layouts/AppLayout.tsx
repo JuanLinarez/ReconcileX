@@ -127,13 +127,13 @@ export function AppLayout() {
           {/* Sidebar header: logo */}
           <div className="flex shrink-0 items-center justify-between border-b border-white/10">
             <NavLink to="/" onClick={() => setSidebarOpen(false)} className="flex-1 min-w-0">
-              <div className="flex flex-col items-start px-3 py-4">
+              <div className="flex flex-col items-center px-3 py-4">
                 <img
                   src={reconcilexLogo}
                   alt="ReconcileX"
                   className="h-8 w-auto"
                 />
-                <span className="text-[10px] font-body tracking-[0.2em] text-white/60 uppercase mt-1 ml-[52px]">
+                <span className="text-[9px] font-body tracking-[0.2em] text-white/60 uppercase mt-0.5 whitespace-nowrap">
                   AI Reconciliation Platform
                 </span>
               </div>
