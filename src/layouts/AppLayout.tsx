@@ -103,7 +103,7 @@ export function AppLayout() {
   } = useOnboarding(onboardingContext);
 
   return (
-    <div className="min-h-screen bg-[var(--app-page-shell)] p-3">
+    <div className="min-h-screen bg-[var(--app-bg-shell)] p-3">
       <div className="flex min-h-[calc(100vh-1.5rem)] gap-3">
         {/* Mobile overlay */}
         {sidebarOpen && (
@@ -118,7 +118,7 @@ export function AppLayout() {
         {/* Sidebar: floating on mobile (overlay), flex child on desktop */}
         <aside
           className={cn(
-            'flex w-64 shrink-0 flex-col overflow-hidden rounded-2xl bg-[var(--app-sidebar-bg)] transition-transform duration-200 ease-out',
+            'flex w-64 shrink-0 flex-col overflow-hidden rounded-2xl bg-[var(--app-sidebar)] transition-transform duration-200 ease-out',
             'fixed inset-y-3 left-3 z-50 lg:static lg:inset-auto lg:z-auto',
             sidebarOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
           )}
@@ -127,7 +127,7 @@ export function AppLayout() {
           {/* Sidebar header: logo */}
           <div className="flex shrink-0 items-center justify-between border-b border-white/10">
             <NavLink to="/" onClick={() => setSidebarOpen(false)} className="flex-1 min-w-0">
-              <div className="flex flex-col items-center px-3 py-4">
+              <div className="flex flex-col items-center px-3 pt-6 pb-4 mb-8">
                 <img
                   src={reconcilexLogo}
                   alt="ReconcileX"
@@ -157,10 +157,10 @@ export function AppLayout() {
                 onClick={() => setSidebarOpen(false)}
                 className={({ isActive }) =>
                   cn(
-                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors duration-150',
+                    'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors duration-150',
                     isActive
-                      ? 'bg-[var(--app-sidebar-item-active)] text-[var(--app-sidebar-text-active)] [&_svg]:opacity-100'
-                      : 'text-[var(--app-sidebar-text)] hover:bg-[var(--app-sidebar-item-hover)] hover:text-white [&_svg]:opacity-90'
+                      ? 'bg-white/10 text-white font-medium [&_svg]:opacity-100'
+                      : 'text-white/60 hover:text-white/90 hover:bg-white/5 [&_svg]:opacity-60'
                   )
                 }
               >
@@ -178,12 +178,12 @@ export function AppLayout() {
           {/* Footer: user + logout */}
           <div className="shrink-0 space-y-2 border-t border-white/10 p-3">
             {user && (
-              <div className="rounded-lg bg-white/5 px-3 py-2">
+              <div className="rounded-lg px-3 py-2">
                 <p className="truncate text-xs font-medium text-white">
                   {displayName}
                 </p>
                 {user.email && (
-                  <p className="truncate text-xs text-[var(--app-sidebar-text)]">
+                  <p className="truncate text-xs text-white/40">
                     {user.email}
                   </p>
                 )}
@@ -192,14 +192,14 @@ export function AppLayout() {
             <button
               type="button"
               onClick={() => signOut()}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-[var(--app-sidebar-text)] transition-colors hover:bg-[var(--app-sidebar-item-hover)] hover:text-white"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-white/60 transition-colors hover:bg-white/5 hover:text-white/90"
             >
               <LogOut className="h-5 w-5 shrink-0" />
               Sign Out
             </button>
-            <div className="flex items-center gap-2 rounded-lg bg-[#2563EB]/20 px-3 py-2">
-              <Sparkles className="h-4 w-4 text-white" />
-              <span className="text-xs font-medium text-white">AI Powered</span>
+            <div className="flex items-center gap-2 rounded-md bg-violet-500/10 px-2 py-1">
+              <Sparkles className="h-4 w-4 text-[var(--app-ai-accent)]" />
+              <span className="text-xs font-medium text-[var(--app-ai-accent)]">AI Powered</span>
             </div>
           </div>
         </aside>
