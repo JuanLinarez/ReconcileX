@@ -103,8 +103,48 @@ ReconciliationFlowPage.tsx is tier-agnostic — calls runServerMatching() for an
 - No individual transaction data stored in database
 
 ## Design System
-- Colors: --app-primary (#2563EB), --app-bg (#FAFAFA), --app-heading (#0F172A)
-- Fonts: Sora (headings), DM Sans (body)
+
+### Branding
+- Keep sidebar logo and subtitle as-is
+
+### Colors (Updated)
+- --app-bg: #F8FAFC (Stripe-style warm white)
+- --app-bg-shell: #F1F5F9 (page shell behind sidebar — softer)
+- --app-sidebar: #0F172A (deep slate)
+- --app-primary: #2563EB (blue — unchanged)
+- --app-ai-accent: #7C3AED (violet — AI features)
+- --app-ai-accent-light: #EDE9FE (violet light bg)
+- --app-success: #059669
+- --app-body: #64748B (slightly lighter for softer contrast)
+- --app-border: #E2E8F0
+
+### Fonts (Updated)
+- --font-heading: "Inter", system-ui, sans-serif (weight 600-700)
+- --font-body: "Inter", system-ui, sans-serif (weight 400-500)
+- Google Fonts import: Inter weights 400, 500, 600, 700
+
+### Component Patterns (Updated)
+- Cards: bg-white rounded-2xl border border-slate-200/60 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]
+- Cards hover: hover:shadow-[0_4px_12px_0_rgb(0,0,0,0.06)] transition-shadow
+- Buttons primary: bg-[--app-primary] rounded-lg px-4 py-2.5 shadow-sm active:scale-[0.98]
+- Buttons secondary: bg-white border-slate-200 rounded-lg
+- Table headers: bg-slate-50/80 text-xs uppercase tracking-wider text-slate-500
+- Table rows: py-4 px-5 hover:bg-slate-50/50 border-b border-slate-100
+- Section headers: text-sm font-semibold tracking-wide uppercase (NO navy bg blocks)
+- Stat numbers: text-4xl font-semibold tabular-nums
+- Stat labels: text-xs font-medium uppercase tracking-wider text-[--app-body]
+- AI features: Dark bg (slate-900), violet accents, Sparkles icon
+- Status badges: pill style — bg-emerald-50 text-emerald-700 rounded-full
+- Sidebar active: bg-white/10 text-white rounded-lg
+- Page spacing: mb-8 between major sections, p-6 inside cards, gap-5 for grids
+
+### AI Rule Builder
+- Dark card: bg-gradient-to-br from-slate-900 to-slate-800
+- Violet radial gradient decoration
+- Input: bg-white/10 backdrop-blur border-white/10
+- Button: bg-violet-500 with Sparkles icon
+- Pills: bg-white/10 text-white/70 rounded-full
+
+### General
 - Components: shadcn/ui (Button, Card, Dialog, Tabs, Table, etc.)
 - Icons: Lucide React
-- AI features: purple/gradient accents, Sparkles icon
