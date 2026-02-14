@@ -32,7 +32,7 @@ import {
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { ArrowRight, Check, CheckCircle2, ChevronDown, Info, Loader2, Plus, Save, Trash2, X, XCircle } from 'lucide-react';
+import { ArrowRight, Check, CheckCircle2, ChevronDown, Info, Loader2, Plus, Save, Scale, Trash2, X, XCircle } from 'lucide-react';
 import type {
   MatchingConfig,
   MatchingRule,
@@ -808,13 +808,18 @@ export function MatchingRulesPage({
             <Plus className="w-4 h-4" />
             Add Rule
           </button>
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-wrap items-center gap-2">
             {effectiveRules.length > 1 && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <Button type="button" variant="ghost" size="sm" onClick={distributeEqually}>
+                  <button
+                    type="button"
+                    onClick={distributeEqually}
+                    className="px-4 py-2 rounded-xl border border-[var(--app-border)] bg-white text-sm font-medium text-[var(--app-body)] hover:bg-gray-50 cursor-pointer flex items-center gap-2 transition-colors"
+                  >
+                    <Scale className="w-4 h-4" />
                     Distribute equally
-                  </Button>
+                  </button>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>Split the weight evenly across all rules (each rule gets equal importance)</p>
@@ -823,15 +828,14 @@ export function MatchingRulesPage({
             )}
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button
+                <button
                   type="button"
-                  variant="outline"
-                  size="sm"
                   onClick={() => setSaveTemplateOpen(true)}
+                  className="px-4 py-2 rounded-xl border border-[var(--app-border)] bg-white text-sm font-medium text-[var(--app-body)] hover:bg-gray-50 cursor-pointer flex items-center gap-2 transition-colors"
                 >
-                  <Save className="size-4 mr-2" />
+                  <Save className="w-4 h-4" />
                   Save as Template
-                </Button>
+                </button>
               </TooltipTrigger>
               <TooltipContent>
                 <p>Save your current rule configuration to reuse in future reconciliations</p>
@@ -841,10 +845,13 @@ export function MatchingRulesPage({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <DropdownMenuTrigger asChild>
-                    <Button type="button" variant="outline" size="sm">
-                      <ChevronDown className="size-4 mr-2" />
+                    <button
+                      type="button"
+                      className="px-4 py-2 rounded-xl border border-[var(--app-border)] bg-white text-sm font-medium text-[var(--app-body)] hover:bg-gray-50 cursor-pointer flex items-center gap-2 transition-colors"
+                    >
+                      <ChevronDown className="w-4 h-4" />
                       Load Template
-                    </Button>
+                    </button>
                   </DropdownMenuTrigger>
                 </TooltipTrigger>
                 <TooltipContent>

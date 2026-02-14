@@ -974,8 +974,12 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
               <span>Matched pairs</span>
               <p className="mt-0.5 text-xs font-normal opacity-90">Paired transactions with confidence score (1:1 and group matches)</p>
             </TableSectionHeader>
-            <CardContent className="overflow-auto max-h-[500px] px-4 pb-4 pt-0">
-              <Table>
+            <CardContent className="px-4 pb-4 pt-0 flex flex-col">
+              <div
+                className="overflow-x-auto overflow-y-auto max-h-[600px] rounded-b-lg"
+                style={{ scrollbarGutter: 'stable' }}
+              >
+                <Table className="min-w-[900px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-8" aria-label="Expand" />
@@ -1072,6 +1076,7 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                   })}
                 </TableBody>
               </Table>
+              </div>
               {matchedDisplay.length === 0 && (
                 <p className="py-8 text-center text-muted-foreground">No matched pairs.</p>
               )}
@@ -1092,8 +1097,12 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
               <span>Unmatched Source A</span>
               <p className="mt-0.5 text-xs font-normal opacity-90">Transactions from Source A with no match in Source B</p>
             </TableSectionHeader>
-            <CardContent className="overflow-x-auto px-4 pb-4 pt-0">
-              <Table className="table-fixed w-full">
+            <CardContent className="px-4 pb-4 pt-0 flex flex-col">
+              <div
+                className="overflow-x-auto overflow-y-auto max-h-[600px] rounded-b-lg"
+                style={{ scrollbarGutter: 'stable' }}
+              >
+                <Table className="table-fixed w-full min-w-[900px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Row</TableHead>
@@ -1248,6 +1257,7 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                   })}
                 </TableBody>
               </Table>
+              </div>
               {unmatchedADisplay.length === 0 && (
                 <p className="py-8 text-center text-muted-foreground">All Source A matched.</p>
               )}
@@ -1268,8 +1278,12 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
               <span>Unmatched Source B</span>
               <p className="mt-0.5 text-xs font-normal opacity-90">Transactions from Source B with no match in Source A</p>
             </TableSectionHeader>
-            <CardContent className="overflow-x-auto px-4 pb-4 pt-0">
-              <Table className="table-fixed w-full">
+            <CardContent className="px-4 pb-4 pt-0 flex flex-col">
+              <div
+                className="overflow-x-auto overflow-y-auto max-h-[600px] rounded-b-lg"
+                style={{ scrollbarGutter: 'stable' }}
+              >
+                <Table className="table-fixed w-full min-w-[900px]">
                 <TableHeader>
                   <TableRow>
                     <TableHead>Row</TableHead>
@@ -1424,6 +1438,7 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                   })}
                 </TableBody>
               </Table>
+              </div>
               {unmatchedBDisplay.length === 0 && (
                 <p className="py-8 text-center text-muted-foreground">All Source B matched.</p>
               )}

@@ -427,17 +427,19 @@ export function UploadPage({
         </div>
       )}
 
-      {/* Continue button */}
+      {/* Continue button — sticky at bottom when files loaded */}
       {pairValid && onContinue && (
-        <div className="flex justify-center mt-6">
-          <button
-            type="button"
-            onClick={onContinue}
-            className="px-10 py-3 rounded-xl bg-[var(--app-primary-dark,#1E3A5F)] hover:bg-[#24476F] text-white text-[15px] font-semibold shadow-lg shadow-[#1E3A5F]/20 flex items-center gap-2 cursor-pointer transition-colors"
-          >
-            Continue to Matching Rules
-            <ArrowRight className="w-4 h-4" />
-          </button>
+        <div className="sticky bottom-0 z-10 bg-gradient-to-t from-[var(--app-bg)] via-[var(--app-bg)] to-transparent pt-6 pb-4 -mx-6 px-6 mt-4">
+          <div className="flex justify-center">
+            <button
+              type="button"
+              onClick={onContinue}
+              className="px-10 py-3 rounded-xl bg-[var(--app-primary-dark,#1E3A5F)] hover:bg-[#24476F] text-white text-[15px] font-semibold shadow-lg shadow-[#1E3A5F]/20 flex items-center gap-2 cursor-pointer transition-colors"
+            >
+              Continue to Matching Rules
+              <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       )}
     </div>
