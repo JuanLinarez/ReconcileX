@@ -111,17 +111,17 @@ export function DashboardPage() {
   ];
 
   return (
-    <div className="space-y-10 pb-8">
+    <div className="pb-8">
       {/* Header: title + CTA */}
-      <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <section className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1
-            className="text-3xl font-bold font-heading text-[var(--app-heading)]"
+            className="text-2xl font-semibold text-[var(--app-heading)]"
             style={headingStyle}
           >
             Dashboard
           </h1>
-          <p className="mt-1 text-base text-[var(--app-body)]">
+          <p className="mt-1 text-sm text-[var(--app-body)]">
             {getGreeting()}, {displayName} — {getTodayLabel()}
           </p>
         </div>
@@ -137,7 +137,7 @@ export function DashboardPage() {
       </section>
 
       {/* Stats Cards */}
-      <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <section className="mb-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
         {/* Total Reconciliations */}
         <div
           className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)] transition-shadow duration-200 hover:shadow-[0_4px_12px_0_rgb(0,0,0,0.06)]"
@@ -206,7 +206,7 @@ export function DashboardPage() {
       </section>
 
       {/* AI Rule Builder — premium dark section */}
-      <section>
+      <section className="mb-8 mt-2">
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
           <div className="absolute top-0 right-0 h-64 w-64 -translate-y-1/2 translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.1)_0%,transparent_70%)]" />
           <div className="relative space-y-4">
@@ -253,7 +253,7 @@ export function DashboardPage() {
       </section>
 
       {/* Recent Reconciliations */}
-      <section>
+      <section className="mb-8">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--app-heading)]">
             Recent Reconciliations

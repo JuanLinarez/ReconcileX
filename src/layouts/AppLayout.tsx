@@ -246,12 +246,12 @@ export function AppLayout() {
           </header>
 
           {/* Page content */}
-          <main className="flex-1 overflow-auto px-8 py-6">
+          <main className="flex-1 overflow-auto p-8">
             <div
               key={location.pathname}
               className="mx-auto max-w-[1200px] animate-in fade-in-0 duration-200"
             >
-              <Breadcrumbs />
+              {location.pathname !== '/' && <Breadcrumbs />}
               <Outlet />
             </div>
           </main>
