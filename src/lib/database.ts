@@ -129,6 +129,8 @@ export interface ReconciliationStats {
   total_reconciliations: number;
   average_match_rate: number | null;
   total_ai_analyses: number;
+  total_records_processed: number;
+  total_matched: number;
 }
 
 /** Get aggregate stats for an org. */
@@ -148,11 +150,18 @@ export async function getReconciliationStats(orgId: string): Promise<Reconciliat
     recs.length > 0
       ? recs.reduce((sum, r) => sum + r.match_rate, 0) / recs.length
       : null;
+  const total_records_processed = recs.reduce(
+    (sum, r) => sum + r.source_a_rows + r.source_b_rows,
+    0
+  );
+  const total_matched = recs.reduce((sum, r) => sum + r.matched_count, 0);
 
   return {
     total_reconciliations,
     average_match_rate,
     total_ai_analyses,
+    total_records_processed,
+    total_matched,
   };
 }
 
