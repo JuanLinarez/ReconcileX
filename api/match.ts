@@ -1059,3 +1059,6 @@ export default async function handler(
     });
   }
 }
+
+/** Exported for engine parity tests — same matching logic as client matchingEngine.ts */
+export { runMatching as serverMatchingEngine };
