@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import {
   Dialog,
@@ -10,7 +10,6 @@ import {
   DialogFooter,
   DialogClose,
 } from '@/components/ui/dialog';
-import { ArrowLeft } from 'lucide-react';
 import type { MatchingConfig } from '@/features/reconciliation/types';
 import { getReconciliations } from '@/lib/database';
 import type { ReconciliationRow } from '@/lib/database';
@@ -105,7 +104,6 @@ function TableSkeleton() {
 }
 
 export function HistoryPage() {
-  const navigate = useNavigate();
   const { organizationId } = useAuth();
   const [rows, setRows] = useState<ReconciliationRow[]>([]);
   const [loading, setLoading] = useState(true);
@@ -130,22 +128,9 @@ export function HistoryPage() {
 
   return (
     <div className="space-y-6">
-      <Button variant="ghost" size="sm" onClick={() => navigate('/')} className="mb-2">
-        <ArrowLeft className="h-4 w-4 mr-1" /> Dashboard
-      </Button>
       <h1 className="text-3xl font-bold font-heading text-[var(--app-heading)] mb-8">
         Reconciliation History
       </h1>
-
-      {/* Filter pills */}
-      {!loading && !empty && (
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="filter-pill">All time</span>
-          <Button variant="outline" size="sm" className="rounded-full h-8 text-sm">
-            + Add Filter
-          </Button>
-        </div>
-      )}
 
       {error && (
         <p className="text-sm text-destructive">{error}</p>
@@ -163,7 +148,6 @@ export function HistoryPage() {
         <Card className="border-[var(--app-border)] overflow-hidden">
           <TableSectionHeader>
             <span>Reconciliation History</span>
-            <p className="mt-0.5 text-xs font-normal opacity-90">Past reconciliation runs</p>
           </TableSectionHeader>
           <CardContent className="p-0">
             <Table>
