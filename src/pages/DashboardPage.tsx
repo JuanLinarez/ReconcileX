@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { ClipboardList, Plus } from 'lucide-react';
+import { ClipboardList, Plus, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -101,12 +101,9 @@ export function DashboardPage() {
       .finally(() => setRecentLoading(false));
   }, [organizationId]);
 
-  const statsCards = [
-    { label: 'Total Reconciliations', value: statsLoading ? '…' : formatNumber(stats.total) },
-    { label: 'Average Match Rate', value: statsLoading ? '…' : stats.avgMatchRate != null ? `${Math.round(stats.avgMatchRate <= 1 ? stats.avgMatchRate * 100 : stats.avgMatchRate)}%` : '—' },
-    { label: 'Records Processed', value: statsLoading ? '…' : formatNumber(stats.totalRecordsProcessed) },
-    { label: 'Total Matched', value: statsLoading ? '…' : formatNumber(stats.totalMatched) },
-  ];
+  const matchRatePct = stats.avgMatchRate != null
+    ? Math.round(stats.avgMatchRate <= 1 ? stats.avgMatchRate * 100 : stats.avgMatchRate)
+    : null;
 
   return (
     <div className="space-y-10 pb-8">
@@ -135,20 +132,72 @@ export function DashboardPage() {
       </section>
 
       {/* Stats Cards */}
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {statsCards.map(({ label, value }) => (
-          <Card
-            key={label}
-            className="bg-white border border-[var(--app-border)] rounded-xl p-6 shadow-sm"
-          >
-            <CardContent className="p-0">
-              <p className="text-sm font-medium text-[var(--app-body)]">{label}</p>
-              <p className="mt-2 text-3xl font-bold font-heading text-[var(--app-heading)]" style={headingStyle}>
-                {value}
-              </p>
-            </CardContent>
-          </Card>
-        ))}
+      <section className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {/* Total Reconciliations */}
+        <div
+          className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)] transition-shadow duration-200 hover:shadow-[0_4px_12px_0_rgb(0,0,0,0.06)]"
+        >
+          <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--app-body)]">
+            Total Reconciliations
+          </p>
+          <p className="text-4xl font-semibold tabular-nums leading-none text-[var(--app-heading)]" style={headingStyle}>
+            {statsLoading ? '…' : formatNumber(stats.total)}
+          </p>
+        </div>
+
+        {/* Average Match Rate */}
+        <div
+          className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)] transition-shadow duration-200 hover:shadow-[0_4px_12px_0_rgb(0,0,0,0.06)]"
+        >
+          <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--app-body)]">
+            Average Match Rate
+          </p>
+          <div className="flex items-center gap-4">
+            <p className="text-4xl font-semibold tabular-nums leading-none text-[var(--app-heading)]" style={headingStyle}>
+              {statsLoading ? '…' : matchRatePct != null ? `${matchRatePct}%` : '—'}
+            </p>
+            {matchRatePct != null && matchRatePct >= 80 && (
+              <div className="flex items-center gap-1 text-sm font-medium text-emerald-600">
+                <TrendingUp className="h-3.5 w-3.5" />
+                <span>Strong</span>
+              </div>
+            )}
+          </div>
+          {matchRatePct != null && (
+            <div className="mt-3">
+              <div className="h-2 max-w-[120px] overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className="h-full rounded-full bg-emerald-500"
+                  style={{ width: `${Math.min(matchRatePct, 100)}%` }}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Records Processed */}
+        <div
+          className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)] transition-shadow duration-200 hover:shadow-[0_4px_12px_0_rgb(0,0,0,0.06)]"
+        >
+          <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--app-body)]">
+            Records Processed
+          </p>
+          <p className="text-4xl font-semibold tabular-nums leading-none text-[var(--app-heading)]" style={headingStyle}>
+            {statsLoading ? '…' : formatNumber(stats.totalRecordsProcessed)}
+          </p>
+        </div>
+
+        {/* Total Matched */}
+        <div
+          className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)] transition-shadow duration-200 hover:shadow-[0_4px_12px_0_rgb(0,0,0,0.06)]"
+        >
+          <p className="mb-3 text-xs font-medium uppercase tracking-wider text-[var(--app-body)]">
+            Total Matched
+          </p>
+          <p className="text-4xl font-semibold tabular-nums leading-none text-[var(--app-heading)]" style={headingStyle}>
+            {statsLoading ? '…' : formatNumber(stats.totalMatched)}
+          </p>
+        </div>
       </section>
 
       {/* Recent Reconciliations */}
