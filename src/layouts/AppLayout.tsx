@@ -239,7 +239,7 @@ export function AppLayout() {
               >
                 <Bell className="h-5 w-5" />
               </button>
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--app-primary)] text-xs font-semibold text-white ring-2 ring-[var(--app-primary)] ring-offset-2 ring-offset-white">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#1E3A5F] text-sm font-medium text-white ring-2 ring-[#2563EB] ring-offset-2 ring-offset-white">
                 {initials}
               </div>
             </div>

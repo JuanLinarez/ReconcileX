@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Check, ClipboardList, Plus, Sparkles } from 'lucide-react';
+import { Check, ChevronRight, ClipboardList, Plus, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -301,18 +301,10 @@ export function DashboardPage() {
 
       {/* Recent Reconciliations */}
       <section className="mb-8">
-        <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--app-heading)]">
+        <div className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]">
+          <h2 className="mb-3 p-5 pb-0 text-sm font-bold uppercase tracking-wider text-[var(--app-heading)]">
             Recent Reconciliations
           </h2>
-          <Link
-            to="/history"
-            className="text-sm text-[var(--app-primary)] hover:underline"
-          >
-            View all →
-          </Link>
-        </div>
-        <div className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]">
           {recentLoading ? (
             <div className="space-y-4 p-5">
               {[1, 2, 3, 4, 5].map((i) => (
@@ -320,71 +312,86 @@ export function DashboardPage() {
               ))}
             </div>
           ) : recentRows.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-14 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--app-bg-subtle)] text-[var(--app-body)]">
-                <ClipboardList className="h-7 w-7" />
+            <>
+              <div className="flex flex-col items-center justify-center py-14 text-center">
+                <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--app-bg-subtle)] text-[var(--app-body)]">
+                  <ClipboardList className="h-7 w-7" />
+                </div>
+                <p className="mt-4 max-w-sm text-[var(--app-body)]">
+                  No reconciliations yet. Start your first one!
+                </p>
+                <Link to="/reconciliation/new" className="mt-4">
+                  <Button variant="default">
+                    <Plus className="h-4 w-4" />
+                    New Reconciliation
+                  </Button>
+                </Link>
               </div>
-              <p className="mt-4 max-w-sm text-[var(--app-body)]">
-                No reconciliations yet. Start your first one!
-              </p>
-              <Link to="/reconciliation/new" className="mt-4">
-                <Button variant="default">
-                  <Plus className="h-4 w-4" />
-                  New Reconciliation
-                </Button>
+              <Link
+                to="/history"
+                className="flex items-center gap-1 px-5 pb-4 pt-3 text-sm text-[var(--app-body)] transition-colors hover:cursor-pointer hover:text-[var(--app-heading)]"
+              >
+                View all
+                <ChevronRight className="h-4 w-4" />
               </Link>
-            </div>
+            </>
           ) : (
-            <Table>
-              <TableHeader>
-                <TableRow className="border-b border-slate-100 bg-slate-50/80">
-                  <TableHead className="px-5 py-3 text-xs font-medium uppercase tracking-wider text-slate-500">
-                    Sources
-                  </TableHead>
-                  <TableHead className="px-5 py-3 text-xs font-medium uppercase tracking-wider text-slate-500">
-                    Date
-                  </TableHead>
-                  <TableHead className="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-500">
-                    Records
-                  </TableHead>
-                  <TableHead className="px-5 py-3 text-right text-xs font-medium uppercase tracking-wider text-slate-500">
-                    Match Rate
-                  </TableHead>
-                  <TableHead className="px-5 py-3 text-xs font-medium uppercase tracking-wider text-slate-500">
-                    Status
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {recentRows.map((r) => (
-                  <TableRow
-                    key={r.id}
-                    className="border-b border-slate-100 transition-colors hover:bg-slate-50/50 last:border-b-0"
-                  >
-                    <TableCell className="px-5 py-4 text-sm font-medium text-[var(--app-heading)]">
-                      {r.source_a_name} vs {r.source_b_name}
-                    </TableCell>
-                    <TableCell className="px-5 py-4 text-sm text-[var(--app-body)]">
-                      {formatRecDate(r.created_at)}
-                    </TableCell>
-                    <TableCell className="px-5 py-4 text-right text-sm tabular-nums text-[var(--app-body)]">
-                      {formatNumber(r.source_a_rows + r.source_b_rows)}
-                    </TableCell>
-                    <TableCell className="px-5 py-4 text-right">
-                      <span className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-600">
-                        <Check className="h-3.5 w-3.5" />
-                        {Math.round(r.match_rate <= 1 ? r.match_rate * 100 : r.match_rate)}%
-                      </span>
-                    </TableCell>
-                    <TableCell className="px-5 py-4">
-                      <span className="inline-flex rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
-                        Complete
-                      </span>
-                    </TableCell>
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow className="border-b border-slate-200">
+                    <TableHead className="px-5 py-3 text-sm font-normal text-[var(--app-body)]">
+                      Sources
+                    </TableHead>
+                    <TableHead className="px-5 py-3 text-sm font-normal text-[var(--app-body)]">
+                      Date
+                    </TableHead>
+                    <TableHead className="px-5 py-3 text-right text-sm font-normal text-[var(--app-body)]">
+                      Records
+                    </TableHead>
+                    <TableHead className="px-5 py-3 text-right text-sm font-normal text-[var(--app-body)]">
+                      Match Rate
+                    </TableHead>
+                    <TableHead className="px-5 py-3 text-sm font-normal text-[var(--app-body)]">
+                      Status
+                    </TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {recentRows.map((r) => (
+                    <TableRow
+                      key={r.id}
+                      className="border-b border-slate-100 transition-colors hover:bg-slate-50/50 last:border-b-0"
+                    >
+                      <TableCell className="px-5 py-3.5 text-sm text-[var(--app-heading)]">
+                        {r.source_a_name} vs {r.source_b_name}
+                      </TableCell>
+                      <TableCell className="px-5 py-3.5 text-sm text-[var(--app-body)]">
+                        {formatRecDate(r.created_at)}
+                      </TableCell>
+                      <TableCell className="px-5 py-3.5 text-right text-sm tabular-nums text-[var(--app-body)]">
+                        {formatNumber(r.source_a_rows + r.source_b_rows)}
+                      </TableCell>
+                      <TableCell className="px-5 py-3.5 text-right">
+                        <span className="text-sm font-medium text-emerald-500">
+                          △ {Math.round(r.match_rate <= 1 ? r.match_rate * 100 : r.match_rate)}% <Check className="inline h-3.5 w-3.5" />
+                        </span>
+                      </TableCell>
+                      <TableCell className="px-5 py-3.5 text-sm text-emerald-500">
+                        Complete
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+              <Link
+                to="/history"
+                className="mt-3 flex items-center gap-1 px-5 pb-4 pt-3 text-sm text-[var(--app-body)] transition-colors hover:cursor-pointer hover:text-[var(--app-heading)]"
+              >
+                View all
+                <ChevronRight className="h-4 w-4" />
+              </Link>
+            </>
           )}
         </div>
       </section>
