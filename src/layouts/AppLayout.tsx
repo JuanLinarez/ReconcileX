@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { NavLink, Link, useLocation, Outlet } from 'react-router-dom';
+import reconcilexLogo from '@/assets/reconcilex-logo-sidebar.png';
 import { Breadcrumbs } from '@/components/Breadcrumbs';
 import {
   Home,
@@ -124,16 +125,16 @@ export function AppLayout() {
           style={{ width: SIDEBAR_WIDTH, minHeight: 'calc(100vh - 1.5rem)' }}
         >
           {/* Sidebar header: logo */}
-          <div className="flex shrink-0 items-center justify-between border-b border-white/10 px-4 py-4">
-            <NavLink
-              to="/"
-              className="flex items-center"
-              onClick={() => setSidebarOpen(false)}
-            >
-              <span className="font-heading text-2xl font-bold tracking-tight text-white">
-                ReconcileX
-              </span>
-            </NavLink>
+          <div className="flex shrink-0 items-center justify-between border-b border-white/10">
+            <div className="flex items-center px-3 py-4">
+              <NavLink to="/" onClick={() => setSidebarOpen(false)}>
+                <img
+                  src={reconcilexLogo}
+                  alt="ReconcileX - AI Reconciliation Platform"
+                  className="h-8 w-auto"
+                />
+              </NavLink>
+            </div>
             <button
               type="button"
               aria-label="Close menu"
