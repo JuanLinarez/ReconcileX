@@ -47,9 +47,13 @@
 
 :root {
   --radius: 0.625rem;
-  /* SaaS palette */
-  --app-bg: #FAFAFA;
-  --app-bg-subtle: #F5F5F4;
+  /* Fonts */
+  --font-heading: "Inter", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
+  /* Updated SaaS palette */
+  --app-bg: #F8FAFC;
+  --app-bg-subtle: #F1F5F9;
+  --app-bg-shell: #F1F5F9;
   --app-sidebar: #0F172A;
   --app-sidebar-bg: #1E3A5F;
   --app-primary-dark: #1E3A5F;
@@ -59,18 +63,18 @@
   --app-sidebar-text: rgba(255, 255, 255, 0.7);
   --app-sidebar-text-active: #FFFFFF;
   --app-page-shell: #E8E8E8;
-  --app-sidebar-hover: rgba(255, 255, 255, 0.06);
+  --app-sidebar-hover: rgba(255, 255, 255, 0.08);
   --app-primary: #2563EB;
+  --app-ai-accent: #7C3AED;
+  --app-ai-accent-light: #EDE9FE;
   --app-success: #059669;
   --app-warning: #D97706;
   --app-error: #E11D48;
   --app-heading: #0F172A;
-  --app-body: #475569;
+  --app-body: #64748B;
   --app-border: #E2E8F0;
-  --font-heading: "Sora", system-ui, sans-serif;
-  --font-body: "DM Sans", system-ui, sans-serif;
   /* shadcn compatibility */
-  --background: #FAFAFA;
+  --background: #F8FAFC;
   --foreground: #0F172A;
   --card: #ffffff;
   --card-foreground: #0F172A;
@@ -80,8 +84,8 @@
   --primary-foreground: #ffffff;
   --secondary: #F1F5F9;
   --secondary-foreground: #0F172A;
-  --muted: #F5F5F4;
-  --muted-foreground: #475569;
+  --muted: #F1F5F9;
+  --muted-foreground: #64748B;
   --accent: #F1F5F9;
   --accent-foreground: #0F172A;
   --destructive: #E11D48;
@@ -245,4 +249,29 @@ button:disabled,
   .font-body {
     font-family: var(--font-body);
   }
+}
+
+.card-premium {
+  background: white;
+  border-radius: 1rem;
+  border: 1px solid rgba(226, 232, 240, 0.6);
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04);
+  transition: box-shadow 0.15s ease;
+}
+.card-premium:hover {
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.06);
+}
+.stat-number {
+  font-size: 2.25rem;
+  font-weight: 600;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--app-heading);
+}
+.stat-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--app-body);
 }
