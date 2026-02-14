@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Check, ClipboardList, Plus, TrendingUp } from 'lucide-react';
+import { Check, ClipboardList, Plus, Sparkles, TrendingUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -57,6 +57,7 @@ function formatNumber(n: number): string {
 
 export function DashboardPage() {
   const { user, organizationId } = useAuth();
+  const navigate = useNavigate();
   const displayName = getDisplayFirstName(user);
 
   const [stats, setStats] = useState<{
@@ -101,6 +102,13 @@ export function DashboardPage() {
   const matchRatePct = stats.avgMatchRate != null
     ? Math.round(stats.avgMatchRate <= 1 ? stats.avgMatchRate * 100 : stats.avgMatchRate)
     : null;
+
+  const aiSuggestions = [
+    'Exact amount, date ±3 days, similar vendors',
+    'Amount within 2%, date ±7 days',
+    'Group: many payments to one invoice',
+    'Invoice number + amount only',
+  ];
 
   return (
     <div className="space-y-10 pb-8">
@@ -194,6 +202,53 @@ export function DashboardPage() {
           <p className="text-4xl font-semibold tabular-nums leading-none text-[var(--app-heading)]" style={headingStyle}>
             {statsLoading ? '…' : formatNumber(stats.totalMatched)}
           </p>
+        </div>
+      </section>
+
+      {/* AI Rule Builder — premium dark section */}
+      <section>
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8">
+          <div className="absolute top-0 right-0 h-64 w-64 -translate-y-1/2 translate-x-1/2 rounded-full bg-[radial-gradient(circle,rgba(139,92,246,0.1)_0%,transparent_70%)]" />
+          <div className="relative space-y-4">
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 shrink-0 text-violet-400" />
+              <h2 className="text-xl font-semibold text-white">AI Rule Builder</h2>
+            </div>
+            <p className="text-sm text-white/60">
+              Describe your matching rules in plain English and AI will configure them for you
+            </p>
+            <div className="flex flex-wrap items-center gap-2">
+              <input
+                type="text"
+                placeholder="e.g. Match by amount within 1%, date within 5 days..."
+                className="flex-1 min-w-[200px] cursor-pointer rounded-xl border border-white/10 bg-white/10 py-3 px-4 text-sm text-white placeholder-white/40 backdrop-blur transition-colors focus:border-violet-400/50 focus:outline-none focus:ring-1 focus:ring-violet-400/20"
+                readOnly
+                onClick={() => navigate('/reconciliation/new')}
+              />
+              <Link to="/reconciliation/new">
+                <button
+                  type="button"
+                  className="inline-flex items-center gap-2 rounded-lg bg-violet-500 px-5 py-2.5 text-sm font-medium text-white transition-colors duration-150 hover:bg-violet-600"
+                >
+                  <Sparkles className="h-4 w-4" />
+                  Create Rules
+                </button>
+              </Link>
+            </div>
+            <div className="flex flex-wrap items-center gap-2 pt-1">
+              <span className="shrink-0 text-xs text-white/50">Try:</span>
+              {aiSuggestions.map((suggestion) => (
+                <Link key={suggestion} to="/reconciliation/new">
+                  <button
+                    type="button"
+                    className="cursor-pointer rounded-full bg-white/10 px-3 py-1.5 text-xs text-white/70 transition-colors hover:bg-white/15 hover:text-white"
+                  >
+                    {suggestion}
+                  </button>
+                </Link>
+              ))}
+            </div>
+          </div>
         </div>
       </section>
 
