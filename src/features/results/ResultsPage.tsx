@@ -806,9 +806,10 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
             )}
           </div>
         )}
-        <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-gray-200 bg-white p-3 shadow-sm mb-4">
-          {/* Left: Tabs */}
-          <TabsList className="bg-transparent border-none p-0 h-auto gap-2 flex flex-wrap shrink-0">
+        <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm mb-4">
+          <div className="space-y-3">
+            <div className="flex flex-wrap gap-2">
+              <TabsList className="bg-transparent border-none p-0 h-auto gap-2 flex flex-wrap shrink-0">
           <Tooltip>
             <TooltipTrigger asChild>
               <TabsTrigger
@@ -906,25 +907,25 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
             </TooltipContent>
           </Tooltip>
         </TabsList>
-
-          {/* Right: Action buttons */}
-          <div className="flex items-center gap-2 shrink-0">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="outline"
-                  onClick={() => setCopilotOpen(true)}
-                  className="rounded-xl border border-[var(--app-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--app-body)] hover:bg-gray-50 whitespace-nowrap"
-                >
-                  <Sparkles className="mr-1.5 h-4 w-4 text-purple-500" />
-                  Ask Copilot
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Chat with the AI assistant about your reconciliation results — ask questions, get insights, and investigate exceptions</p>
-              </TooltipContent>
-            </Tooltip>
-            <ExportDropdown result={result} />
+            </div>
+            <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="outline"
+                    onClick={() => setCopilotOpen(true)}
+                    className="rounded-xl border border-[var(--app-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--app-body)] hover:bg-gray-50 whitespace-nowrap"
+                  >
+                    <Sparkles className="mr-1.5 h-4 w-4 text-purple-500" />
+                    Ask Copilot
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Chat with the AI assistant about your reconciliation results — ask questions, get insights, and investigate exceptions</p>
+                </TooltipContent>
+              </Tooltip>
+              <ExportDropdown result={result} />
+            </div>
           </div>
         </div>
 
