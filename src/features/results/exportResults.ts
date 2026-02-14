@@ -197,6 +197,141 @@ export function exportToExcel(
   XLSX.writeFile(wb, `reconciliation_results_${dateStr}.xlsx`, { cellStyles: true });
 }
 
+function getDateStr(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
+/** Export matched pairs only to a single-sheet Excel file. */
+export function exportMatchedOnly(
+  result: ReconciliationResult,
+  augmentation?: ResultsAugmentation
+): void {
+  const { matched } = result;
+  const manualMatches = augmentation?.manualMatches ?? [];
+  const wb = XLSX.utils.book_new();
+  const allMatched = [...matched];
+  const keysForMatched = getMatchRawKeys(
+    allMatched.length ? allMatched : manualMatches.map((e) => e.match)
+  );
+  const { a: keysMatchedA, b: keysMatchedB } = keysForMatched;
+  const matchedRows = buildMatchedRows(
+    matched,
+    keysMatchedA,
+    keysMatchedB,
+    manualMatches.length ? manualMatches : undefined
+  );
+  const wsMatched = XLSX.utils.aoa_to_sheet(matchedRows);
+  if (matchedRows[0]) styleHeaderRow(wsMatched, matchedRows[0].length);
+  XLSX.utils.book_append_sheet(wb, wsMatched, 'Matched');
+  XLSX.writeFile(wb, `ReconcileX_Matched_${getDateStr()}.xlsx`, { cellStyles: true });
+}
+
+/** Export unmatched Source A only to a single-sheet Excel file. */
+export function exportUnmatchedSourceA(
+  result: ReconciliationResult,
+  augmentation?: ResultsAugmentation
+): void {
+  const { unmatchedA } = result;
+  const reviewedIds = augmentation?.reviewedIds ?? new Set<string>();
+  const ignoredIds = augmentation?.ignoredIds ?? new Set<string>();
+  const wb = XLSX.utils.book_new();
+  const keysA = getAllRawKeys(unmatchedA);
+  const headerA = ['Status', 'Row', 'Amount', 'Date', 'Reference', ...keysA];
+  const rowsA: (string | number)[][] = [headerA];
+  for (const t of unmatchedA) {
+    const status = reviewedIds.has(t.id) ? 'Reviewed' : ignoredIds.has(t.id) ? 'Ignored' : '';
+    rowsA.push([
+      status,
+      t.rowIndex,
+      t.amount,
+      DATE_FORMAT(t.date),
+      t.reference,
+      ...keysA.map((k) => t.raw[k] ?? ''),
+    ]);
+  }
+  const ws = XLSX.utils.aoa_to_sheet(rowsA);
+  if (rowsA[0]) styleHeaderRow(ws, rowsA[0].length);
+  XLSX.utils.book_append_sheet(wb, ws, 'Unmatched Source A');
+  XLSX.writeFile(wb, `ReconcileX_Unmatched_SourceA_${getDateStr()}.xlsx`, { cellStyles: true });
+}
+
+/** Export unmatched Source B only to a single-sheet Excel file. */
+export function exportUnmatchedSourceB(
+  result: ReconciliationResult,
+  augmentation?: ResultsAugmentation
+): void {
+  const { unmatchedB } = result;
+  const reviewedIds = augmentation?.reviewedIds ?? new Set<string>();
+  const ignoredIds = augmentation?.ignoredIds ?? new Set<string>();
+  const wb = XLSX.utils.book_new();
+  const keysB = getAllRawKeys(unmatchedB);
+  const headerB = ['Status', 'Row', 'Amount', 'Date', 'Reference', ...keysB];
+  const rowsB: (string | number)[][] = [headerB];
+  for (const t of unmatchedB) {
+    const status = reviewedIds.has(t.id) ? 'Reviewed' : ignoredIds.has(t.id) ? 'Ignored' : '';
+    rowsB.push([
+      status,
+      t.rowIndex,
+      t.amount,
+      DATE_FORMAT(t.date),
+      t.reference,
+      ...keysB.map((k) => t.raw[k] ?? ''),
+    ]);
+  }
+  const ws = XLSX.utils.aoa_to_sheet(rowsB);
+  if (rowsB[0]) styleHeaderRow(ws, rowsB[0].length);
+  XLSX.utils.book_append_sheet(wb, ws, 'Unmatched Source B');
+  XLSX.writeFile(wb, `ReconcileX_Unmatched_SourceB_${getDateStr()}.xlsx`, { cellStyles: true });
+}
+
+/** Export both unmatched sets into one file with a Source column indicating origin. */
+export function exportAllUnmatched(
+  result: ReconciliationResult,
+  augmentation?: ResultsAugmentation,
+  sourceAName = 'Source A',
+  sourceBName = 'Source B'
+): void {
+  const { unmatchedA, unmatchedB } = result;
+  const reviewedIds = augmentation?.reviewedIds ?? new Set<string>();
+  const ignoredIds = augmentation?.ignoredIds ?? new Set<string>();
+  const allKeys = new Set<string>();
+  for (const t of [...unmatchedA, ...unmatchedB]) {
+    for (const k of Object.keys(t.raw)) allKeys.add(k);
+  }
+  const keyList = Array.from(allKeys).sort();
+  const header = ['Source', 'Status', 'Row', 'Amount', 'Date', 'Reference', ...keyList];
+  const rows: (string | number)[][] = [header];
+  for (const t of unmatchedA) {
+    const status = reviewedIds.has(t.id) ? 'Reviewed' : ignoredIds.has(t.id) ? 'Ignored' : '';
+    rows.push([
+      sourceAName,
+      status,
+      t.rowIndex,
+      t.amount,
+      DATE_FORMAT(t.date),
+      t.reference,
+      ...keyList.map((k) => t.raw[k] ?? ''),
+    ]);
+  }
+  for (const t of unmatchedB) {
+    const status = reviewedIds.has(t.id) ? 'Reviewed' : ignoredIds.has(t.id) ? 'Ignored' : '';
+    rows.push([
+      sourceBName,
+      status,
+      t.rowIndex,
+      t.amount,
+      DATE_FORMAT(t.date),
+      t.reference,
+      ...keyList.map((k) => t.raw[k] ?? ''),
+    ]);
+  }
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  if (rows[0]) styleHeaderRow(ws, rows[0].length);
+  XLSX.utils.book_append_sheet(wb, ws, 'All Unmatched');
+  XLSX.writeFile(wb, `ReconcileX_All_Unmatched_${getDateStr()}.xlsx`, { cellStyles: true });
+}
+
 function escapeCsv(val: unknown): string {
   if (val == null) return '';
   const s = String(val);

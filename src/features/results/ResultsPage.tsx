@@ -32,7 +32,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { AlertTriangle, ChevronDown, ChevronRight, Check, Download, Eye, EyeOff, Info, Link2, Loader2, MinusCircle, Sparkles } from 'lucide-react';
+import { AlertCircle, AlertTriangle, CheckCircle, ChevronDown, ChevronRight, Check, Download, Eye, EyeOff, FileSpreadsheet, Info, Link2, Loader2, MinusCircle, Sparkles } from 'lucide-react';
 import type {
   MatchResult,
   ReconciliationResult,
@@ -44,7 +44,13 @@ import {
   getIdsInManualMatches,
 } from './resultsAugmentation';
 import { ManualMatchModal } from './ManualMatchModal';
-import { exportToExcel, exportToCsv } from './exportResults';
+import {
+  exportToExcel,
+  exportMatchedOnly,
+  exportUnmatchedSourceA,
+  exportUnmatchedSourceB,
+  exportAllUnmatched,
+} from './exportResults';
 import type { ExceptionAnalysis } from './exceptionAnalysis';
 import { fetchAnalyzeException } from './exceptionAnalysis';
 import { ExceptionAnalysisPanel } from './ExceptionAnalysisPanel';
@@ -592,15 +598,29 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
     runAnalyze(source, t, { followUpQuestion: question, previousAnalysis });
   };
 
-  const handleExportExcel = () => {
-    exportToExcel(result, augmentation);
+  const markExported = () => {
     localStorage.setItem('rx_has_exported_results', 'true');
     window.dispatchEvent(new CustomEvent('rx-onboarding-update'));
   };
-  const handleExportCsv = () => {
-    exportToCsv(result, augmentation);
-    localStorage.setItem('rx_has_exported_results', 'true');
-    window.dispatchEvent(new CustomEvent('rx-onboarding-update'));
+  const handleExportAll = () => {
+    exportToExcel(result, augmentation);
+    markExported();
+  };
+  const handleExportMatched = () => {
+    exportMatchedOnly(result, augmentation);
+    markExported();
+  };
+  const handleExportUnmatchedA = () => {
+    exportUnmatchedSourceA(result, augmentation);
+    markExported();
+  };
+  const handleExportUnmatchedB = () => {
+    exportUnmatchedSourceB(result, augmentation);
+    markExported();
+  };
+  const handleExportAllUnmatched = () => {
+    exportAllUnmatched(result, augmentation, sourceAName, sourceBName);
+    markExported();
   };
 
   // Clear analysis panel when changing pages
@@ -945,20 +965,36 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                     >
                       <Download className="mr-1.5 h-4 w-4" />
                       Export Results
+                      <ChevronDown className="ml-1.5 h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
                 </TooltipTrigger>
                 <TooltipContent>
-                  <p>Download all matched and unmatched transactions as a CSV or Excel file for your records</p>
+                  <p>Download matched and unmatched transactions as Excel files</p>
                   <p className="mt-1 text-xs text-muted-foreground">{totalMatched} matched, {totalUnmatchedA + totalUnmatchedB} unmatched</p>
                 </TooltipContent>
               </Tooltip>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleExportExcel}>
-                  Export as Excel (.xlsx)
+              <DropdownMenuContent align="end" className="min-w-[220px]">
+                <DropdownMenuItem onClick={handleExportAll} className="text-sm font-body">
+                  <FileSpreadsheet className="mr-2 h-4 w-4 shrink-0" />
+                  Export All (Workbook)
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleExportCsv}>
-                  Export as CSV (.csv)
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleExportMatched} className="text-sm font-body">
+                  <CheckCircle className="mr-2 h-4 w-4 shrink-0" />
+                  Export Matched Only
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportUnmatchedA} className="text-sm font-body">
+                  <AlertCircle className="mr-2 h-4 w-4 shrink-0" />
+                  Export Unmatched Source A
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportUnmatchedB} className="text-sm font-body">
+                  <AlertCircle className="mr-2 h-4 w-4 shrink-0" />
+                  Export Unmatched Source B
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleExportAllUnmatched} className="text-sm font-body">
+                  <AlertTriangle className="mr-2 h-4 w-4 shrink-0" />
+                  Export All Unmatched
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
