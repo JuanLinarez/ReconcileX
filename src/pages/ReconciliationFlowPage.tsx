@@ -296,7 +296,7 @@ export function ReconciliationFlowPage() {
                     <div
                       className={cn(
                         'h-0.5 flex-1 transition-colors',
-                        index <= currentVisualIndex ? 'bg-[#1E3A5F]' : 'bg-gray-200'
+                        index <= currentVisualIndex ? 'bg-[var(--app-primary)]' : 'bg-slate-200'
                       )}
                     />
                   )}
@@ -305,18 +305,18 @@ export function ReconciliationFlowPage() {
                   onClick={() => setStep(id)}
                   className={cn(
                     'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base font-medium transition-colors',
-                      isCompleted && 'bg-[#1E3A5F] text-white',
-                      isCurrent && 'bg-[#1E3A5F] text-white',
-                      isUpcoming && 'border-2 border-gray-300 bg-white text-gray-400'
-                    )}
-                  >
-                    {isCompleted ? <Check className="h-4 w-4" /> : number}
-                  </button>
+                    isCompleted && 'bg-[var(--app-primary)] text-white',
+                    isCurrent && 'bg-[var(--app-primary)] text-white ring-4 ring-blue-100 shadow-sm',
+                    isUpcoming && 'border-2 border-slate-200 bg-white text-slate-400'
+                  )}
+                >
+                  {isCompleted ? <Check className="h-4 w-4" /> : number}
+                </button>
                   {!isLast && (
                     <div
                       className={cn(
                         'h-0.5 flex-1 transition-colors',
-                        index < currentVisualIndex ? 'bg-[#1E3A5F]' : 'bg-gray-200'
+                        index < currentVisualIndex ? 'bg-[var(--app-primary)]' : 'bg-slate-200'
                       )}
                     />
                   )}
@@ -326,9 +326,9 @@ export function ReconciliationFlowPage() {
                   onClick={() => setStep(id)}
                   className={cn(
                     'mt-3 text-center font-heading transition-colors',
-                    isCurrent && 'text-[var(--app-primary-dark,#1E3A5F)] font-bold text-sm sm:text-base',
-                    isCompleted && !isCurrent && 'text-[var(--app-primary-dark,#1E3A5F)] font-semibold text-sm sm:text-base',
-                    isUpcoming && 'text-gray-400 font-medium text-sm sm:text-base hover:text-gray-500'
+                    isCurrent && 'text-[var(--app-primary)] font-semibold text-sm sm:text-base',
+                    isCompleted && !isCurrent && 'text-[var(--app-heading)] font-medium text-sm sm:text-base',
+                    isUpcoming && 'text-slate-400 font-medium text-sm sm:text-base hover:text-slate-500'
                   )}
                 >
                   {label}
