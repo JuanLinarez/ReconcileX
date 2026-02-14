@@ -975,15 +975,12 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
               <p className="mt-0.5 text-xs font-normal opacity-90">Paired transactions with confidence score (1:1 and group matches)</p>
             </TableSectionHeader>
             <CardContent className="px-4 pb-4 pt-0 flex flex-col">
-              <div
-                className="overflow-x-auto overflow-y-auto max-h-[600px] rounded-b-lg"
-                style={{ scrollbarGutter: 'stable' }}
-              >
-                <Table className="min-w-[900px]">
-                <TableHeader>
+              <div className="always-show-scrollbar overflow-auto max-h-[calc(100vh-380px)] min-h-[300px] rounded-b-lg relative">
+                <Table className="min-w-[1000px]">
+                <TableHeader className="sticky top-0 z-[5] bg-white shadow-[0_1px_0_0_var(--app-border)]">
                   <TableRow>
-                    <TableHead className="w-8" aria-label="Expand" />
-                    <TableHead>
+                    <TableHead className="w-8 bg-white" aria-label="Expand" />
+                    <TableHead className="bg-white">
                       <div className="flex items-center gap-1">
                         Confidence
                         <Tooltip>
@@ -1003,12 +1000,12 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                         </Tooltip>
                       </div>
                     </TableHead>
-                    <TableHead className="text-right">Source A — Amount</TableHead>
-                    <TableHead>Source A — Date</TableHead>
-                    <TableHead>Source A — Reference</TableHead>
-                    <TableHead className="text-right">Source B — Amount</TableHead>
-                    <TableHead>Source B — Date</TableHead>
-                    <TableHead>Source B — Reference</TableHead>
+                    <TableHead className="text-right bg-white">Source A — Amount</TableHead>
+                    <TableHead className="bg-white">Source A — Date</TableHead>
+                    <TableHead className="bg-white">Source A — Reference</TableHead>
+                    <TableHead className="text-right bg-white">Source B — Amount</TableHead>
+                    <TableHead className="bg-white">Source B — Date</TableHead>
+                    <TableHead className="bg-white">Source B — Reference</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1098,19 +1095,16 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
               <p className="mt-0.5 text-xs font-normal opacity-90">Transactions from Source A with no match in Source B</p>
             </TableSectionHeader>
             <CardContent className="px-4 pb-4 pt-0 flex flex-col">
-              <div
-                className="overflow-x-auto overflow-y-auto max-h-[600px] rounded-b-lg"
-                style={{ scrollbarGutter: 'stable' }}
-              >
-                <Table className="table-fixed w-full min-w-[900px]">
-                <TableHeader>
+              <div className="always-show-scrollbar overflow-auto max-h-[calc(100vh-380px)] min-h-[300px] rounded-b-lg relative">
+                <Table className="table-fixed w-full min-w-[1000px]">
+                <TableHeader className="sticky top-0 z-[5] bg-white shadow-[0_1px_0_0_var(--app-border)]">
                   <TableRow>
-                    <TableHead>Row</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Reference</TableHead>
-                    <TableHead>Best Match</TableHead>
-                    <TableHead className="w-[100px] text-right">Actions</TableHead>
+                    <TableHead className="bg-white">Row</TableHead>
+                    <TableHead className="text-right bg-white">Amount</TableHead>
+                    <TableHead className="bg-white">Date</TableHead>
+                    <TableHead className="bg-white">Reference</TableHead>
+                    <TableHead className="bg-white">Best Match</TableHead>
+                    <TableHead className="w-[100px] text-right bg-white">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1279,19 +1273,16 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
               <p className="mt-0.5 text-xs font-normal opacity-90">Transactions from Source B with no match in Source A</p>
             </TableSectionHeader>
             <CardContent className="px-4 pb-4 pt-0 flex flex-col">
-              <div
-                className="overflow-x-auto overflow-y-auto max-h-[600px] rounded-b-lg"
-                style={{ scrollbarGutter: 'stable' }}
-              >
-                <Table className="table-fixed w-full min-w-[900px]">
-                <TableHeader>
+              <div className="always-show-scrollbar overflow-auto max-h-[calc(100vh-380px)] min-h-[300px] rounded-b-lg relative">
+                <Table className="table-fixed w-full min-w-[1000px]">
+                <TableHeader className="sticky top-0 z-[5] bg-white shadow-[0_1px_0_0_var(--app-border)]">
                   <TableRow>
-                    <TableHead>Row</TableHead>
-                    <TableHead className="text-right">Amount</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Reference</TableHead>
-                    <TableHead>Best Match</TableHead>
-                    <TableHead className="w-[100px] text-right">Actions</TableHead>
+                    <TableHead className="bg-white">Row</TableHead>
+                    <TableHead className="text-right bg-white">Amount</TableHead>
+                    <TableHead className="bg-white">Date</TableHead>
+                    <TableHead className="bg-white">Reference</TableHead>
+                    <TableHead className="bg-white">Best Match</TableHead>
+                    <TableHead className="w-[100px] text-right bg-white">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
