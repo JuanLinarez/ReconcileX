@@ -95,9 +95,6 @@ export function ReconciliationFlowPage() {
     config: effectiveConfig,
   });
 
-  const canProceedFromUpload =
-    sourceA != null && sourceB != null && pairIndices[0] !== pairIndices[1];
-
   const canRunMatching =
     effectiveSourceA?.rows.length &&
     effectiveSourceB?.rows.length &&
@@ -347,12 +344,8 @@ export function ReconciliationFlowPage() {
             onSlotsChange={setUploadSlots}
             pairIndices={pairIndices}
             onPairChange={setPairIndices}
+            onContinue={() => setStep('normalize')}
           />
-          {canProceedFromUpload && (
-            <div className="flex justify-center">
-              <Button variant="dark" onClick={() => setStep('normalize')}>Continue</Button>
-            </div>
-          )}
         </>
       )}
 
