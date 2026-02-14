@@ -1,4 +1,5 @@
 import { Fragment, useCallback, useEffect, useMemo, useState } from 'react';
+import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
@@ -818,15 +819,23 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                 )}
               </div>
             )}
-            <TabsList className="bg-transparent border-none p-0 h-auto gap-3 flex flex-wrap w-full sm:w-auto">
+            <TabsList className="bg-transparent border-none p-0 h-auto gap-2 flex flex-wrap shrink-0">
           <Tooltip>
             <TooltipTrigger asChild>
               <TabsTrigger
                 value="matched"
-                className="group rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold !text-[var(--app-body)] shadow-sm hover:border-[var(--app-primary)] hover:!text-[var(--app-primary)] hover:shadow-md transition-all data-[state=active]:bg-[var(--app-primary)] data-[state=active]:!text-white data-[state=active]:border-[var(--app-primary)] data-[state=active]:shadow-md flex-1 sm:flex-initial"
+                className={cn(
+                  "px-4 py-2 rounded-xl text-sm font-medium border transition-colors cursor-pointer flex items-center gap-2",
+                  activeTab === "matched"
+                    ? "bg-[var(--app-primary-dark,#1E3A5F)] text-white border-[var(--app-primary-dark,#1E3A5F)] shadow-sm"
+                    : "bg-white text-[var(--app-body)] border-[var(--app-border)] hover:bg-gray-50"
+                )}
               >
                 Matched
-                <span className="ml-2 inline-flex items-center justify-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 group-data-[state=active]:bg-white/20 group-data-[state=active]:!text-white">
+                <span className={cn(
+                  "text-xs font-semibold px-1.5 py-0.5 rounded-md",
+                  activeTab === "matched" ? "bg-white/20 text-white" : "bg-gray-100 text-[var(--app-body)]"
+                )}>
                   {matchedDisplay.length}
                 </span>
               </TabsTrigger>
@@ -839,10 +848,18 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
             <TooltipTrigger asChild>
               <TabsTrigger
                 value="unmatchedA"
-                className="group rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold !text-[var(--app-body)] shadow-sm hover:border-[var(--app-primary)] hover:!text-[var(--app-primary)] hover:shadow-md transition-all data-[state=active]:bg-[var(--app-primary)] data-[state=active]:!text-white data-[state=active]:border-[var(--app-primary)] data-[state=active]:shadow-md flex-1 sm:flex-initial"
+                className={cn(
+                  "px-4 py-2 rounded-xl text-sm font-medium border transition-colors cursor-pointer flex items-center gap-2",
+                  activeTab === "unmatchedA"
+                    ? "bg-[var(--app-primary-dark,#1E3A5F)] text-white border-[var(--app-primary-dark,#1E3A5F)] shadow-sm"
+                    : "bg-white text-[var(--app-body)] border-[var(--app-border)] hover:bg-gray-50"
+                )}
               >
                 Unmatched Source A
-                <span className="ml-2 inline-flex items-center justify-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 group-data-[state=active]:bg-white/20 group-data-[state=active]:!text-white">
+                <span className={cn(
+                  "text-xs font-semibold px-1.5 py-0.5 rounded-md",
+                  activeTab === "unmatchedA" ? "bg-white/20 text-white" : "bg-gray-100 text-[var(--app-body)]"
+                )}>
                   {unmatchedADisplay.length}
                 </span>
               </TabsTrigger>
@@ -855,10 +872,18 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
             <TooltipTrigger asChild>
               <TabsTrigger
                 value="unmatchedB"
-                className="group rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold !text-[var(--app-body)] shadow-sm hover:border-[var(--app-primary)] hover:!text-[var(--app-primary)] hover:shadow-md transition-all data-[state=active]:bg-[var(--app-primary)] data-[state=active]:!text-white data-[state=active]:border-[var(--app-primary)] data-[state=active]:shadow-md flex-1 sm:flex-initial"
+                className={cn(
+                  "px-4 py-2 rounded-xl text-sm font-medium border transition-colors cursor-pointer flex items-center gap-2",
+                  activeTab === "unmatchedB"
+                    ? "bg-[var(--app-primary-dark,#1E3A5F)] text-white border-[var(--app-primary-dark,#1E3A5F)] shadow-sm"
+                    : "bg-white text-[var(--app-body)] border-[var(--app-border)] hover:bg-gray-50"
+                )}
               >
                 Unmatched Source B
-                <span className="ml-2 inline-flex items-center justify-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 group-data-[state=active]:bg-white/20 group-data-[state=active]:!text-white">
+                <span className={cn(
+                  "text-xs font-semibold px-1.5 py-0.5 rounded-md",
+                  activeTab === "unmatchedB" ? "bg-white/20 text-white" : "bg-gray-100 text-[var(--app-body)]"
+                )}>
                   {unmatchedBDisplay.length}
                 </span>
               </TabsTrigger>
@@ -871,14 +896,20 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
             <TooltipTrigger asChild>
               <TabsTrigger
                 value="anomalies"
-                className="group rounded-lg border border-gray-200 bg-white px-5 py-2.5 text-sm font-semibold !text-[var(--app-body)] shadow-sm hover:border-[var(--app-primary)] hover:!text-[var(--app-primary)] hover:shadow-md transition-all data-[state=active]:bg-[var(--app-primary)] data-[state=active]:!text-white data-[state=active]:border-[var(--app-primary)] data-[state=active]:shadow-md flex-1 sm:flex-initial"
+                className={cn(
+                  "px-4 py-2 rounded-xl text-sm font-medium border transition-colors cursor-pointer flex items-center gap-2",
+                  activeTab === "anomalies"
+                    ? "bg-[var(--app-primary-dark,#1E3A5F)] text-white border-[var(--app-primary-dark,#1E3A5F)] shadow-sm"
+                    : "bg-white text-[var(--app-body)] border-[var(--app-border)] hover:bg-gray-50"
+                )}
               >
                 Anomalies
-                {anomalyReport && anomalyReport.anomalies.length > 0 && (
-                  <span className="ml-2 inline-flex items-center justify-center rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600 group-data-[state=active]:bg-white/20 group-data-[state=active]:!text-white">
-                    {anomalyReport.anomalies.length}
-                  </span>
-                )}
+                <span className={cn(
+                  "text-xs font-semibold px-1.5 py-0.5 rounded-md",
+                  activeTab === "anomalies" ? "bg-white/20 text-white" : "bg-gray-100 text-[var(--app-body)]"
+                )}>
+                  {anomalyReport?.anomalies.length ?? 0}
+                </span>
               </TabsTrigger>
             </TooltipTrigger>
             <TooltipContent>
@@ -889,13 +920,13 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
           </div>
 
           {/* Right: Action buttons */}
-          <div className="flex flex-wrap items-center gap-3">
+          <div className="flex items-center gap-2 shrink-0">
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
                   variant="outline"
                   onClick={() => setCopilotOpen(true)}
-                  className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-[var(--app-body)] shadow-sm transition-all hover:border-purple-400 hover:text-purple-600 hover:shadow-md"
+                  className="rounded-xl border border-[var(--app-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--app-body)] hover:bg-gray-50"
                 >
                   <Sparkles className="mr-1.5 h-4 w-4 text-purple-500" />
                   Ask Copilot
@@ -911,11 +942,11 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                   <DropdownMenuTrigger asChild>
                     <Button
                       variant="outline"
-                      className="rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-semibold text-[var(--app-body)] shadow-sm transition-all hover:border-[var(--app-primary)] hover:text-[var(--app-primary)] hover:shadow-md"
+                      className="rounded-xl border border-[var(--app-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--app-body)] hover:bg-gray-50"
                     >
                       <Download className="mr-1.5 h-4 w-4" />
                       Export Results
-                      <span className="ml-1.5 text-xs font-normal text-gray-400">
+                      <span className="ml-1.5 text-xs text-gray-400">
                         ({totalMatched} matched, {totalUnmatchedA + totalUnmatchedB} unmatched)
                       </span>
                     </Button>

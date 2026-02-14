@@ -725,9 +725,20 @@ export function MatchingRulesPage({
                       </Badge>
                     )}
                   </div>
-                  <span className="text-sm font-bold font-heading text-[var(--app-primary-dark,#1E3A5F)] shrink-0">
-                    {Math.round(rule.weight * 100)}%
-                  </span>
+                  <div className="flex items-center gap-2 shrink-0" style={{ minWidth: '160px' }}>
+                    <Slider
+                      value={[Math.round(rule.weight * 100)]}
+                      min={MIN_IMPORTANCE_PCT}
+                      max={effectiveRules.length === 1 ? 100 : maxImportancePct}
+                      step={1}
+                      disabled={effectiveRules.length === 1}
+                      onValueChange={([val]) => setRuleImportance(rule.id, val ?? MIN_IMPORTANCE_PCT)}
+                      className="w-24 flex-1"
+                    />
+                    <span className="text-sm font-bold font-heading text-[var(--app-primary-dark,#1E3A5F)] w-10 text-right shrink-0">
+                      {Math.round(rule.weight * 100)}%
+                    </span>
+                  </div>
                   <div className="flex items-center gap-1 shrink-0">
                     <button
                       type="button"

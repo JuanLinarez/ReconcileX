@@ -299,11 +299,11 @@ export function ReconciliationFlowPage() {
                       )}
                     />
                   )}
-                  <button
-                    type="button"
-                    onClick={() => setStep(id)}
-                    className={cn(
-                      'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-medium transition-colors',
+                <button
+                  type="button"
+                  onClick={() => setStep(id)}
+                  className={cn(
+                    'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-base font-medium transition-colors',
                       isCompleted && 'bg-[#1E3A5F] text-white',
                       isCurrent && 'bg-[#1E3A5F] text-white',
                       isUpcoming && 'border-2 border-gray-300 bg-white text-gray-400'
@@ -324,9 +324,10 @@ export function ReconciliationFlowPage() {
                   type="button"
                   onClick={() => setStep(id)}
                   className={cn(
-                    'mt-3 text-center text-sm font-medium transition-colors font-heading',
-                    isCurrent && 'text-[#1E3A5F] font-bold',
-                    !isCurrent && 'text-[var(--app-body)] hover:text-[var(--app-heading)]'
+                    'mt-3 text-center font-heading transition-colors',
+                    isCurrent && 'text-[var(--app-primary-dark,#1E3A5F)] font-bold text-sm sm:text-base',
+                    isCompleted && !isCurrent && 'text-[var(--app-primary-dark,#1E3A5F)] font-semibold text-sm sm:text-base',
+                    isUpcoming && 'text-gray-400 font-medium text-sm sm:text-base hover:text-gray-500'
                   )}
                 >
                   {label}
