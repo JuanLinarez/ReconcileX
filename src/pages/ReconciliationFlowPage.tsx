@@ -298,7 +298,7 @@ export function ReconciliationFlowPage() {
                     <div
                       className={cn(
                         'h-0.5 flex-1 transition-colors',
-                        index <= currentVisualIndex ? 'bg-[#1E1E2D]' : 'bg-gray-200'
+                        index <= currentVisualIndex ? 'bg-[#1E3A5F]' : 'bg-gray-200'
                       )}
                     />
                   )}
@@ -307,8 +307,8 @@ export function ReconciliationFlowPage() {
                     onClick={() => setStep(id)}
                     className={cn(
                       'flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-medium transition-colors',
-                      isCompleted && 'bg-[#1E1E2D] text-white',
-                      isCurrent && 'bg-[#1E1E2D] text-white',
+                      isCompleted && 'bg-[#1E3A5F] text-white',
+                      isCurrent && 'bg-[#1E3A5F] text-white',
                       isUpcoming && 'border-2 border-gray-300 bg-white text-gray-400'
                     )}
                   >
@@ -318,7 +318,7 @@ export function ReconciliationFlowPage() {
                     <div
                       className={cn(
                         'h-0.5 flex-1 transition-colors',
-                        index < currentVisualIndex ? 'bg-[#1E1E2D]' : 'bg-gray-200'
+                        index < currentVisualIndex ? 'bg-[#1E3A5F]' : 'bg-gray-200'
                       )}
                     />
                   )}
@@ -328,7 +328,7 @@ export function ReconciliationFlowPage() {
                   onClick={() => setStep(id)}
                   className={cn(
                     'mt-3 text-center text-sm font-medium transition-colors font-heading',
-                    isCurrent && 'text-[#1E1E2D] font-bold',
+                    isCurrent && 'text-[#1E3A5F] font-bold',
                     !isCurrent && 'text-[var(--app-body)] hover:text-[var(--app-heading)]'
                   )}
                 >
