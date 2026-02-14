@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { UploadCloud, FileSpreadsheet, Plus, ArrowRight, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import {
@@ -160,6 +160,8 @@ export function UploadPage({
 
   const uploadedCount = slots.filter((s) => s.parsed).length;
   const canSelectPair = uploadedCount >= 2;
+  const showPairSelector = uploadedCount > 2;
+
   const compareOptions = slots
     .map((s, i) => ({ index: i, label: s.label, parsed: s.parsed }))
     .filter(
@@ -178,6 +180,19 @@ export function UploadPage({
 
   const displayFileName = (parsed: NonNullable<UploadSlot['parsed']>) =>
     `${parsed.filename ?? 'File'} (${parsed.rows.length} rows)`;
+
+  // When exactly 2 files are uploaded, auto-select them as the pair
+  useEffect(() => {
+    if (uploadedCount !== 2) return;
+    const indices = slots
+      .map((s, i) => (s.parsed ? i : -1))
+      .filter((i) => i >= 0);
+    if (indices.length !== 2) return;
+    const [a, b] = [indices[0]!, indices[1]!];
+    if (pairIndices[0] !== a || pairIndices[1] !== b) {
+      onPairChange([a, b]);
+    }
+  }, [uploadedCount, slots, pairIndices, onPairChange]);
 
   return (
     <div className={cn('space-y-8', className)}>
@@ -348,8 +363,8 @@ export function UploadPage({
         <p className="text-center text-sm text-destructive">{parseError}</p>
       )}
 
-      {/* Pair selector */}
-      {canSelectPair && (
+      {/* Pair selector — only show when more than 2 files uploaded */}
+      {showPairSelector && canSelectPair && (
         <div className="space-y-4 rounded-lg border border-[var(--app-border)] bg-white p-6 max-w-2xl">
           <h2 className="text-sm font-semibold text-[var(--app-heading)] font-heading">
             Select pair to reconcile
