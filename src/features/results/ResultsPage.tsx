@@ -963,9 +963,9 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                       variant="outline"
                       className="rounded-xl border border-[var(--app-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--app-body)] hover:bg-gray-50 whitespace-nowrap"
                     >
-                      <Download className="mr-1.5 h-4 w-4" />
+                      <Download className="h-4 w-4 mr-2" />
                       Export Results
-                      <ChevronDown className="ml-1.5 h-4 w-4" />
+                      <ChevronDown className="h-3.5 w-3.5 ml-1.5 opacity-60" />
                     </Button>
                   </DropdownMenuTrigger>
                 </TooltipTrigger>
@@ -974,26 +974,27 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                   <p className="mt-1 text-xs text-muted-foreground">{totalMatched} matched, {totalUnmatchedA + totalUnmatchedB} unmatched</p>
                 </TooltipContent>
               </Tooltip>
-              <DropdownMenuContent align="end" className="min-w-[220px]">
-                <DropdownMenuItem onClick={handleExportAll} className="text-sm font-body">
-                  <FileSpreadsheet className="mr-2 h-4 w-4 shrink-0" />
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={handleExportAll} className="cursor-pointer">
+                  <FileSpreadsheet className="h-4 w-4 mr-2" />
                   Export All (Workbook)
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleExportMatched} className="text-sm font-body">
-                  <CheckCircle className="mr-2 h-4 w-4 shrink-0" />
+                <DropdownMenuItem onClick={handleExportMatched} className="cursor-pointer">
+                  <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
                   Export Matched Only
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleExportUnmatchedA} className="text-sm font-body">
-                  <AlertCircle className="mr-2 h-4 w-4 shrink-0" />
+                <DropdownMenuItem onClick={handleExportUnmatchedA} className="cursor-pointer">
+                  <AlertCircle className="h-4 w-4 mr-2 text-amber-500" />
                   Export Unmatched Source A
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleExportUnmatchedB} className="text-sm font-body">
-                  <AlertCircle className="mr-2 h-4 w-4 shrink-0" />
+                <DropdownMenuItem onClick={handleExportUnmatchedB} className="cursor-pointer">
+                  <AlertCircle className="h-4 w-4 mr-2 text-amber-500" />
                   Export Unmatched Source B
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleExportAllUnmatched} className="text-sm font-body">
-                  <AlertTriangle className="mr-2 h-4 w-4 shrink-0" />
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={handleExportAllUnmatched} className="cursor-pointer">
+                  <AlertTriangle className="h-4 w-4 mr-2 text-red-500" />
                   Export All Unmatched
                 </DropdownMenuItem>
               </DropdownMenuContent>

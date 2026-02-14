@@ -193,12 +193,12 @@ export function exportToExcel(
   if (summaryRows[0]) styleHeaderRow(wsSummary, 2);
   XLSX.utils.book_append_sheet(wb, wsSummary, 'Summary');
 
-  const dateStr = new Date().toISOString().slice(0, 10);
-  XLSX.writeFile(wb, `reconciliation_results_${dateStr}.xlsx`, { cellStyles: true });
+  const dateStr = new Date().toISOString().split('T')[0];
+  XLSX.writeFile(wb, `ReconcileX_Full_Results_${dateStr}.xlsx`, { cellStyles: true });
 }
 
 function getDateStr(): string {
-  return new Date().toISOString().slice(0, 10);
+  return new Date().toISOString().split('T')[0];
 }
 
 /** Export matched pairs only to a single-sheet Excel file. */
