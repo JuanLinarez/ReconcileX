@@ -107,52 +107,63 @@ ReconciliationFlowPage.tsx is tier-agnostic — calls runServerMatching() for an
 ### Branding
 - Keep sidebar logo and subtitle as-is
 
-### Colors (Updated)
-- --app-bg: #F8FAFC (Stripe-style warm white)
-- --app-bg-shell: #F1F5F9 (page shell behind sidebar — softer)
-- --app-sidebar: #0F172A (deep slate)
-- --app-primary: #2563EB (blue — unchanged)
-- --app-ai-accent: #7C3AED (violet — AI features)
-- --app-ai-accent-light: #EDE9FE (violet light bg)
-- --app-success: #059669
-- --app-body: #64748B (slightly lighter for softer contrast)
-- --app-border: #E2E8F0
+### Colors
+- --app-sidebar: #1E3A5F (warm navy) — sidebar bg
+- --app-bg-shell: #E8E8E8 — page shell behind sidebar and content
+- --app-bg: #FAFAFA — content area background
+- --app-primary: #2563EB (blue) — links, active tabs, progress indicators
+- --app-heading: #0F172A — headings, primary text
+- --app-body: #475569 — body text, labels, secondary text
+- --app-border: #E2E8F0 — borders
+- --app-success: #059669 — success states
+- AI accent coral: #E8475C — AI Rule Builder "Create Rules" button
+- Emerald indicators: text-emerald-500 for match rates, sparklines, positive changes
 
-### Fonts (Updated)
+### Fonts
 - --font-heading: "Inter", system-ui, sans-serif (weight 600-700)
 - --font-body: "Inter", system-ui, sans-serif (weight 400-500)
-- Google Fonts import: Inter weights 400, 500, 600, 700
 
-### Component Patterns (Updated)
-- Cards: bg-white rounded-2xl border border-slate-200/60 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]
-- Cards hover: hover:shadow-[0_4px_12px_0_rgb(0,0,0,0.06)] transition-shadow
-- Buttons primary: bg-[--app-primary] rounded-lg px-4 py-2.5 shadow-sm active:scale-[0.98]
-- Buttons secondary: bg-white border-slate-200 rounded-lg
-- Table headers: bg-slate-50 (not bg-white) text-xs uppercase tracking-wider text-slate-500
-- Table rows: py-4 px-5 hover:bg-slate-50/50 border-b border-slate-100
-- Section headers: text-sm font-semibold tracking-wide uppercase text-[var(--app-heading)] — NO navy bg blocks (only sidebar uses dark)
-- Stat numbers: text-4xl font-semibold tabular-nums
-- Stat labels: text-xs font-medium uppercase tracking-wider text-[--app-body]
-- AI features: Dark bg (slate-900), violet accents, Sparkles icon
-- Status badges: pill style — bg-emerald-50 text-emerald-700 rounded-full
-- Sidebar active: bg-white/10 text-white rounded-lg
-- Page spacing: mb-8 between major sections, p-6 inside cards, gap-5 for grids
-- Stepper: h-10 w-10 blue circles, ring-4 ring-blue-100 on current step, bg-slate-200 connectors for incomplete
-- Upload dropzones: border-2 border-dashed border-slate-200 rounded-2xl p-8, emerald success state (bg-emerald-50/50 border-emerald-200)
-- Matching type cards: selected = border-2 border-[var(--app-primary)] bg-blue-50/30
-- Rule cards: bg-white rounded-2xl border-slate-200/60 shadow, inline dropdowns + sliders
-
-### Results Page UI Patterns
-- Tabs: pill-style — bg-slate-100 container, bg-white active tab, no navy
-- Table headers: bg-slate-50 (not bg-white)
-- Summary cards: premium card styling with emerald match rate colors
+### Dashboard Stat Cards
+- Labels: Title Case (not UPPERCASE), text-sm text-[--app-body]
+- Numbers: text-3xl font-bold text-[var(--app-heading)]
+- Match Rate indicator: "△33%" in emerald-500 next to number
+- Sparklines: inline SVG, emerald-400 stroke, 80x32px
+- Secondary info: text-xs text-emerald-500
 
 ### AI Rule Builder
-- Dark card: bg-gradient-to-br from-slate-900 to-slate-800
-- Violet radial gradient decoration
-- Input: bg-white/10 backdrop-blur border-white/10
-- Button: bg-violet-500 with Sparkles icon
-- Pills: bg-white/10 text-white/70 rounded-full
+- Two-column layout: teal gradient illustration (left ~280px) + white content (right)
+- Illustration: bg-gradient-to-br from-[#0D9488] to-[#115E59] with CSS geometric shapes + glowing dots
+- "Create Rules" button: bg-[#E8475C] coral (NOT violet, NOT navy)
+- Suggestion pills: bg-white border-slate-200 rounded-full
+- Input: bg-slate-50 border-slate-200 rounded-xl
+
+### Recent Reconciliations Table
+- "RECENT RECONCILIATIONS" header: bold uppercase inside the card
+- Table headers: regular weight, title case, text-[--app-body]
+- Match Rate: "△ 89% ✓" in emerald-500
+- Status: plain green text "Complete", no badge/pill
+- "View all >" at bottom-left of card
+
+### Sidebar
+- Background: #1E3A5F (warm navy, NOT slate-900)
+- Active item: bg-white/15 rounded-lg
+- Nav text: white/70 inactive, white active
+- Bottom: user name, email, sign out, "AI Powered" badge
+
+### Top Bar
+- Avatar: ring-2 ring-[#2563EB] ring-offset-2
+
+### Page Shell
+- Background: #E8E8E8
+
+### Component Patterns (other)
+- Cards: bg-white rounded-2xl border border-slate-200/60 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]
+- Stepper: h-10 w-10 blue circles, ring-4 ring-blue-100 on current step, bg-slate-200 connectors for incomplete
+- Upload dropzones: border-2 border-dashed border-slate-200 rounded-2xl p-8, emerald success state
+- Matching type cards: selected = border-2 border-[var(--app-primary)] bg-blue-50/30
+- Rule cards: bg-white rounded-2xl border-slate-200/60 shadow, inline dropdowns + sliders
+- Results page: pill-style tabs, bg-slate-50 table headers, premium summary cards
+- Page spacing: mb-6 between major sections (compact, professional)
 
 ### General
 - Components: shadcn/ui (Button, Card, Dialog, Tabs, Table, etc.)

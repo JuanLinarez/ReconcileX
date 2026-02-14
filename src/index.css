@@ -51,7 +51,7 @@
   --font-heading: "Inter", system-ui, sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
   /* Updated SaaS palette */
-  --app-bg: #F8FAFC;
+  --app-bg: #FAFAFA;
   --app-bg-subtle: #F1F5F9;
   --app-bg-shell: #E8E8E8;
   --app-sidebar: #1E3A5F;
@@ -71,10 +71,10 @@
   --app-warning: #D97706;
   --app-error: #E11D48;
   --app-heading: #0F172A;
-  --app-body: #64748B;
+  --app-body: #475569;
   --app-border: #E2E8F0;
   /* shadcn compatibility */
-  --background: #F8FAFC;
+  --background: #FAFAFA;
   --foreground: #0F172A;
   --card: #ffffff;
   --card-foreground: #0F172A;
@@ -85,7 +85,7 @@
   --secondary: #F1F5F9;
   --secondary-foreground: #0F172A;
   --muted: #F1F5F9;
-  --muted-foreground: #64748B;
+  --muted-foreground: #475569;
   --accent: #F1F5F9;
   --accent-foreground: #0F172A;
   --destructive: #E11D48;
