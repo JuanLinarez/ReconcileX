@@ -1,13 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -25,8 +18,6 @@ import {
   changePassword,
   updateUserPreferences,
 } from '@/lib/database';
-
-const headingStyle = { fontFamily: 'var(--font-heading)' };
 
 const CURRENCIES = [
   { value: 'USD', label: 'USD' },
@@ -222,33 +213,29 @@ export function SettingsPage() {
 
   return (
     <div className="space-y-6 pb-8">
-      <div>
-        <h1 className="text-3xl font-bold font-heading text-[var(--app-heading)] mb-8" style={headingStyle}>
+      <header className="mb-8">
+        <h1 className="text-2xl font-semibold text-[var(--app-heading)]">
           Settings
         </h1>
-        <p className="mt-1 text-base text-[var(--app-body)]">
+        <p className="mt-1 text-sm text-[var(--app-body)]">
           Manage your account, organization, and preferences
         </p>
-      </div>
+      </header>
 
       {/* Profile */}
-      <Card className="border-[var(--app-border)] bg-white transition-shadow hover:shadow-md">
-        <CardHeader>
-          <CardTitle className="text-lg" style={headingStyle}>
-            Profile
-          </CardTitle>
-          <CardDescription className="text-[var(--app-body)]">
-            Update your personal information
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
+      <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]">
+        <h2 className="mb-1 text-base font-semibold text-[var(--app-heading)]">Profile</h2>
+        <p className="mb-6 text-sm text-[var(--app-body)]">
+          Update your personal information
+        </p>
+        <div className="space-y-6">
           <div className="flex items-center gap-4">
             <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--app-primary)] text-sm font-semibold text-white">
               {user ? getInitials(user) : '?'}
             </div>
             <form onSubmit={handleSaveProfile} className="flex-1 space-y-4">
               <div>
-                <Label htmlFor="profile-full-name">Full Name</Label>
+                <Label htmlFor="profile-full-name" className="mb-1.5 text-sm font-medium text-[var(--app-heading)]">Full Name</Label>
                 <Input
                   id="profile-full-name"
                   type="text"
@@ -256,24 +243,24 @@ export function SettingsPage() {
                   value={profileFullName}
                   onChange={(e) => setProfileFullName(e.target.value)}
                   placeholder="Jane Doe"
-                  className="mt-1.5"
+                  className="mt-1.5 rounded-lg border-slate-200 focus:border-[var(--app-primary)] focus:ring-1 focus:ring-[var(--app-primary)]/20"
                 />
               </div>
               <div>
-                <Label htmlFor="profile-email">Email</Label>
+                <Label htmlFor="profile-email" className="mb-1.5 text-sm font-medium text-[var(--app-heading)]">Email</Label>
                 <Input
                   id="profile-email"
                   type="email"
                   value={user?.email ?? ''}
                   disabled
-                  className="mt-1.5 opacity-70"
+                  className="mt-1.5 opacity-70 rounded-lg border-slate-200"
                 />
               </div>
               {profileMessage && (
                 <p
                   className={
                     profileMessage.type === 'success'
-                      ? 'text-sm text-[var(--app-success)]'
+                      ? 'text-sm text-emerald-600'
                       : 'text-sm text-destructive'
                   }
                 >
@@ -286,13 +273,13 @@ export function SettingsPage() {
             </form>
           </div>
 
-          <div className="border-t border-[var(--app-border)] pt-6">
-            <h3 className="text-sm font-medium text-[var(--app-heading)] mb-3" style={headingStyle}>
+          <div className="border-t border-slate-200 pt-6">
+            <h3 className="mb-3 text-base font-semibold text-[var(--app-heading)]">
               Change Password
             </h3>
-            <form onSubmit={handleChangePassword} className="space-y-4 max-w-md">
+            <form onSubmit={handleChangePassword} className="max-w-md space-y-4">
               <div>
-                <Label htmlFor="new-password">New Password</Label>
+                <Label htmlFor="new-password" className="mb-1.5 text-sm font-medium text-[var(--app-heading)]">New Password</Label>
                 <Input
                   id="new-password"
                   type="password"
@@ -300,11 +287,11 @@ export function SettingsPage() {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="At least 6 characters"
-                  className="mt-1.5"
+                  className="mt-1.5 rounded-lg border-slate-200 focus:border-[var(--app-primary)] focus:ring-1 focus:ring-[var(--app-primary)]/20"
                 />
               </div>
               <div>
-                <Label htmlFor="confirm-password">Confirm Password</Label>
+                <Label htmlFor="confirm-password" className="mb-1.5 text-sm font-medium text-[var(--app-heading)]">Confirm Password</Label>
                 <Input
                   id="confirm-password"
                   type="password"
@@ -312,14 +299,14 @@ export function SettingsPage() {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="Repeat password"
-                  className="mt-1.5"
+                  className="mt-1.5 rounded-lg border-slate-200 focus:border-[var(--app-primary)] focus:ring-1 focus:ring-[var(--app-primary)]/20"
                 />
               </div>
               {passwordMessage && (
                 <p
                   className={
                     passwordMessage.type === 'success'
-                      ? 'text-sm text-[var(--app-success)]'
+                      ? 'text-sm text-emerald-600'
                       : 'text-sm text-destructive'
                   }
                 >
@@ -331,53 +318,48 @@ export function SettingsPage() {
               </Button>
             </form>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Organization */}
-      <Card className="border-[var(--app-border)] bg-white transition-shadow hover:shadow-md">
-        <CardHeader>
-          <CardTitle className="text-lg" style={headingStyle}>
-            Organization
-          </CardTitle>
-          <CardDescription className="text-[var(--app-body)]">
-            Manage your organization settings
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+      <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]">
+        <h2 className="mb-1 text-base font-semibold text-[var(--app-heading)]">Organization</h2>
+        <p className="mb-6 text-sm text-[var(--app-body)]">
+          Manage your organization settings
+        </p>
           {orgLoading ? (
             <div className="space-y-3">
               <div className="h-9 rounded bg-muted animate-pulse w-64" />
               <div className="h-9 rounded bg-muted animate-pulse w-32" />
             </div>
           ) : organizationId ? (
-            <form onSubmit={handleSaveOrganization} className="space-y-4 max-w-md">
+            <form onSubmit={handleSaveOrganization} className="max-w-md space-y-4">
               <div>
-                <Label htmlFor="org-name">Organization Name</Label>
+                <Label htmlFor="org-name" className="mb-1.5 text-sm font-medium text-[var(--app-heading)]">Organization Name</Label>
                 <Input
                   id="org-name"
                   type="text"
                   value={orgName}
                   onChange={(e) => setOrgName(e.target.value)}
                   placeholder="My Organization"
-                  className="mt-1.5"
+                  className="mt-1.5 rounded-lg border-slate-200 focus:border-[var(--app-primary)] focus:ring-1 focus:ring-[var(--app-primary)]/20"
                 />
               </div>
               <div>
-                <Label htmlFor="org-role">Your Role</Label>
+                <Label htmlFor="org-role" className="mb-1.5 text-sm font-medium text-[var(--app-heading)]">Your Role</Label>
                 <Input
                   id="org-role"
                   type="text"
                   value={userRole ?? '—'}
                   disabled
-                  className="mt-1.5 opacity-70"
+                  className="mt-1.5 opacity-70 rounded-lg border-slate-200"
                 />
               </div>
               {orgMessage && (
                 <p
                   className={
                     orgMessage.type === 'success'
-                      ? 'text-sm text-[var(--app-success)]'
+                      ? 'text-sm text-emerald-600'
                       : 'text-sm text-destructive'
                   }
                 >
@@ -389,29 +371,23 @@ export function SettingsPage() {
               </Button>
             </form>
           ) : (
-            <p className="text-sm text-[var(--app-body)]">
+            <p className="text-sm leading-relaxed text-[var(--app-body)]">
               No organization linked. Contact your administrator.
             </p>
           )}
-        </CardContent>
-      </Card>
+      </div>
 
       {/* Preferences */}
-      <Card className="border-[var(--app-border)] bg-white transition-shadow hover:shadow-md">
-        <CardHeader>
-          <CardTitle className="text-lg" style={headingStyle}>
-            Preferences
-          </CardTitle>
-          <CardDescription className="text-[var(--app-body)]">
-            Set your default currency and timezone
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSavePreferences} className="space-y-4 max-w-md">
+      <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]">
+        <h2 className="mb-1 text-base font-semibold text-[var(--app-heading)]">Preferences</h2>
+        <p className="mb-6 text-sm text-[var(--app-body)]">
+          Set your default currency and timezone
+        </p>
+        <form onSubmit={handleSavePreferences} className="max-w-md space-y-4">
             <div>
-              <Label htmlFor="prefs-currency">Default Currency</Label>
+              <Label htmlFor="prefs-currency" className="mb-1.5 text-sm font-medium text-[var(--app-heading)]">Default Currency</Label>
               <Select value={defaultCurrency} onValueChange={setDefaultCurrency}>
-                <SelectTrigger id="prefs-currency" className="mt-1.5 w-full">
+                <SelectTrigger id="prefs-currency" className="mt-1.5 w-full rounded-lg border-slate-200 focus:border-[var(--app-primary)] focus:ring-1 focus:ring-[var(--app-primary)]/20">
                   <SelectValue placeholder="Select currency" />
                 </SelectTrigger>
                 <SelectContent>
@@ -424,9 +400,9 @@ export function SettingsPage() {
               </Select>
             </div>
             <div>
-              <Label htmlFor="prefs-timezone">Timezone</Label>
+              <Label htmlFor="prefs-timezone" className="mb-1.5 text-sm font-medium text-[var(--app-heading)]">Timezone</Label>
               <Select value={timezone} onValueChange={setTimezone}>
-                <SelectTrigger id="prefs-timezone" className="mt-1.5 w-full">
+                <SelectTrigger id="prefs-timezone" className="mt-1.5 w-full rounded-lg border-slate-200 focus:border-[var(--app-primary)] focus:ring-1 focus:ring-[var(--app-primary)]/20">
                   <SelectValue placeholder="Select timezone" />
                 </SelectTrigger>
                 <SelectContent>
@@ -442,7 +418,7 @@ export function SettingsPage() {
               <p
                 className={
                   prefsMessage.type === 'success'
-                    ? 'text-sm text-[var(--app-success)]'
+                    ? 'text-sm text-emerald-600'
                     : 'text-sm text-destructive'
                 }
               >
@@ -453,8 +429,7 @@ export function SettingsPage() {
               {prefsLoading ? 'Saving…' : 'Save Preferences'}
             </Button>
           </form>
-        </CardContent>
-      </Card>
+      </div>
     </div>
   );
 }

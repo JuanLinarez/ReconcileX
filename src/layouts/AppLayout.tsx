@@ -207,7 +207,7 @@ export function AppLayout() {
         {/* Main content area */}
         <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl bg-[var(--app-bg)]">
           {/* Top header */}
-          <header className="flex h-14 shrink-0 items-center justify-between border-b border-[var(--app-border)] bg-white px-6">
+          <header className="flex h-14 shrink-0 items-center justify-between border-b border-slate-200 bg-white px-6">
             <div className="flex items-center gap-3">
               <button
                 type="button"

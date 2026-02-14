@@ -128,15 +128,24 @@ ReconciliationFlowPage.tsx is tier-agnostic — calls runServerMatching() for an
 - Cards hover: hover:shadow-[0_4px_12px_0_rgb(0,0,0,0.06)] transition-shadow
 - Buttons primary: bg-[--app-primary] rounded-lg px-4 py-2.5 shadow-sm active:scale-[0.98]
 - Buttons secondary: bg-white border-slate-200 rounded-lg
-- Table headers: bg-slate-50/80 text-xs uppercase tracking-wider text-slate-500
+- Table headers: bg-slate-50 (not bg-white) text-xs uppercase tracking-wider text-slate-500
 - Table rows: py-4 px-5 hover:bg-slate-50/50 border-b border-slate-100
-- Section headers: text-sm font-semibold tracking-wide uppercase (NO navy bg blocks)
+- Section headers: text-sm font-semibold tracking-wide uppercase text-[var(--app-heading)] — NO navy bg blocks (only sidebar uses dark)
 - Stat numbers: text-4xl font-semibold tabular-nums
 - Stat labels: text-xs font-medium uppercase tracking-wider text-[--app-body]
 - AI features: Dark bg (slate-900), violet accents, Sparkles icon
 - Status badges: pill style — bg-emerald-50 text-emerald-700 rounded-full
 - Sidebar active: bg-white/10 text-white rounded-lg
 - Page spacing: mb-8 between major sections, p-6 inside cards, gap-5 for grids
+- Stepper: h-10 w-10 blue circles, ring-4 ring-blue-100 on current step, bg-slate-200 connectors for incomplete
+- Upload dropzones: border-2 border-dashed border-slate-200 rounded-2xl p-8, emerald success state (bg-emerald-50/50 border-emerald-200)
+- Matching type cards: selected = border-2 border-[var(--app-primary)] bg-blue-50/30
+- Rule cards: bg-white rounded-2xl border-slate-200/60 shadow, inline dropdowns + sliders
+
+### Results Page UI Patterns
+- Tabs: pill-style — bg-slate-100 container, bg-white active tab, no navy
+- Table headers: bg-slate-50 (not bg-white)
+- Summary cards: premium card styling with emerald match rate colors
 
 ### AI Rule Builder
 - Dark card: bg-gradient-to-br from-slate-900 to-slate-800

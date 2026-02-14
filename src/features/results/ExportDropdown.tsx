@@ -98,7 +98,7 @@ export function ExportDropdown({ result }: ExportDropdownProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="rounded-xl cursor-pointer">
+        <Button variant="outline" className="rounded-lg cursor-pointer">
           <Download className="h-4 w-4 mr-2" />
           Export Results
           <ChevronDown className="h-3.5 w-3.5 ml-1.5 opacity-60" />

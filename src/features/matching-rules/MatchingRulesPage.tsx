@@ -189,7 +189,7 @@ function PreviewSummaryCard({
         </div>
 
         {/* Simple breakdown */}
-        <div className="space-y-3 py-4 border-t border-[var(--app-border)]">
+        <div className="space-y-3 py-4 border-t border-slate-200">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="h-4 w-4 text-green-500" />
@@ -216,7 +216,7 @@ function PreviewSummaryCard({
         </div>
 
         {/* Secondary info - Average confidence */}
-        <div className="border-t border-[var(--app-border)] pt-3">
+        <div className="border-t border-slate-200 pt-3">
           <p className="text-xs text-[var(--app-body)]/60 text-center">
             Average confidence: {avgConfidencePct.toFixed(1)}%
           </p>
@@ -457,11 +457,11 @@ export function MatchingRulesPage({
   return (
     <div className={cn('space-y-8', className)}>
       {/* Matching type at top */}
-      <div className="bg-white rounded-2xl border border-[var(--app-border)] p-6 mb-5">
-        <h3 className="text-[17px] font-bold font-heading text-[var(--app-heading)]">
-          Reconciliation matching type
+      <div className="mb-5 rounded-2xl border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]">
+        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-[var(--app-heading)]">
+          Matching type
         </h3>
-        <p className="text-[13px] text-[var(--app-body)] mt-1 mb-4">
+        <p className="mb-4 text-[13px] text-[var(--app-body)]">
           Choose how transactions from Source A and Source B can be paired.
         </p>
         <div className="grid gap-4 sm:grid-cols-2">
@@ -474,15 +474,15 @@ export function MatchingRulesPage({
                     type="button"
                     onClick={() => onConfigChange({ ...config, matchingType: opt.value })}
                     className={cn(
-                      'flex flex-col items-start text-left rounded-xl p-5 cursor-pointer relative transition-all',
+                      'relative flex cursor-pointer flex-col items-start rounded-2xl p-5 text-left transition-all',
                       isSelected
-                        ? 'border-2 border-[#2563EB] bg-blue-50/30'
-                        : 'border-2 border-[var(--app-border)] bg-white hover:border-gray-300'
+                        ? 'border-2 border-[var(--app-primary)] bg-blue-50/30 shadow-[0_2px_8px_0_rgb(0,0,0,0.06)]'
+                        : 'border border-slate-200 bg-white hover:border-slate-300 hover:shadow-[0_2px_8px_0_rgb(0,0,0,0.04)]'
                     )}
                   >
                     {isSelected && (
-                      <div className="absolute top-3 right-3 w-[22px] h-[22px] rounded-full bg-[#2563EB] flex items-center justify-center">
-                        <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />
+                      <div className="absolute right-3 top-3 flex h-[22px] w-[22px] items-center justify-center rounded-full bg-[var(--app-primary)]">
+                        <Check className="h-3.5 w-3.5 text-white" strokeWidth={3} />
                       </div>
                     )}
                     <span className="text-[15px] font-bold font-heading text-[var(--app-heading)] mb-1.5">
@@ -510,11 +510,11 @@ export function MatchingRulesPage({
       </div>
 
       {/* Matching rules */}
-      <div className="bg-white rounded-2xl border border-[var(--app-border)] p-6 mb-5">
-        <h3 className="text-[17px] font-bold font-heading text-[var(--app-heading)] mb-1">
+      <div className="mb-5 rounded-2xl border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]">
+        <h3 className="mb-4 text-sm font-semibold uppercase tracking-wide text-[var(--app-heading)]">
           Matching rules
         </h3>
-        <p className="text-[13px] text-[var(--app-body)] mt-1 mb-4">
+        <p className="mb-4 text-[13px] text-[var(--app-body)]">
           Add rules to compare columns between Source A and Source B. Set importance % per rule
           (must sum to 100%). At least one rule is required.
         </p>
@@ -580,8 +580,8 @@ export function MatchingRulesPage({
               <div
                 key={rule.id}
                 className={cn(
-                  'bg-white rounded-xl border border-[var(--app-border)] p-5 mb-3 shadow-sm',
-                  missingWarning && 'bg-yellow-50/50 border-yellow-200'
+                  'mb-3 rounded-2xl border border-slate-200/60 bg-white p-5 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]',
+                  missingWarning && 'border-yellow-200 bg-yellow-50/50'
                 )}
               >
                 {missingWarning && (
@@ -590,8 +590,8 @@ export function MatchingRulesPage({
                   </p>
                 )}
                 {/* Row 1: Rule number + Column mappings + Match type + Badges + Delete */}
-                <div className="flex flex-wrap items-center gap-3 mb-4">
-                  <div className="w-8 h-8 rounded-lg bg-[var(--app-primary-dark,#1E3A5F)] text-white flex items-center justify-center text-sm font-bold font-heading shrink-0">
+                <div className="mb-4 flex flex-wrap items-center gap-3">
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--app-primary)] text-sm font-bold text-white">
                     {index + 1}
                   </div>
 
@@ -599,7 +599,7 @@ export function MatchingRulesPage({
                     value={rule.columnA && headersA.includes(rule.columnA) ? rule.columnA : (headersA[0] ?? '')}
                     onValueChange={(v) => updateRule(rule.id, { columnA: v })}
                   >
-                    <SelectTrigger className="w-[180px] rounded-lg">
+                    <SelectTrigger className="w-[180px] rounded-lg border-slate-200">
                       <SelectValue placeholder="Column A" />
                     </SelectTrigger>
                     <SelectContent>
@@ -617,7 +617,7 @@ export function MatchingRulesPage({
                     value={rule.columnB && headersB.includes(rule.columnB) ? rule.columnB : (headersB[0] ?? '')}
                     onValueChange={(v) => updateRule(rule.id, { columnB: v })}
                   >
-                    <SelectTrigger className="w-[180px] rounded-lg">
+                    <SelectTrigger className="w-[180px] rounded-lg border-slate-200">
                       <SelectValue placeholder="Column B" />
                     </SelectTrigger>
                     <SelectContent>
@@ -645,7 +645,7 @@ export function MatchingRulesPage({
                       updateRule(rule.id, patch);
                     }}
                   >
-                    <SelectTrigger className="w-[180px] rounded-lg">
+                    <SelectTrigger className="w-[180px] rounded-lg border-slate-200">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -657,15 +657,15 @@ export function MatchingRulesPage({
                     </SelectContent>
                   </Select>
 
-                  <div className="flex items-center gap-1.5 ml-auto">
+                  <div className="ml-auto flex items-center gap-1.5">
                     {rule.suggested && !rule.nlGenerated && (
-                      <span className="text-[11px] font-semibold text-blue-600 bg-blue-50 px-2 py-0.5 rounded-md">Suggested</span>
+                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-700">Suggested</span>
                     )}
                     {rule.learned && (
-                      <span className="text-[11px] font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded-md">Learned</span>
+                      <span className="rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-700">Learned</span>
                     )}
                     {rule.nlGenerated && (
-                      <span className="text-[11px] font-semibold text-purple-600 bg-purple-50 px-2 py-0.5 rounded-md">AI Generated</span>
+                      <span className="rounded-full bg-violet-50 px-2 py-0.5 text-xs text-violet-700">AI Generated</span>
                     )}
                   </div>
 
@@ -673,11 +673,11 @@ export function MatchingRulesPage({
                     type="button"
                     onClick={() => removeRule(rule.id)}
                     disabled={effectiveRules.length <= 1}
-                    className="p-1.5 rounded-lg hover:bg-red-50 cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="shrink-0 cursor-pointer transition-colors disabled:cursor-not-allowed disabled:opacity-50"
                     title="Delete rule"
                     aria-label="Delete rule"
                   >
-                    <Trash2 className="w-4 h-4 text-gray-400 hover:text-red-500" />
+                    <Trash2 className="h-4 w-4 text-slate-400 transition-colors hover:text-red-500" />
                   </button>
                 </div>
 
@@ -713,14 +713,14 @@ export function MatchingRulesPage({
                         />
                       )}
                       <span className="text-xs text-[var(--app-body)]">{mode === 'percentage' ? '%' : '$'}</span>
-                      <div className="flex rounded-lg border border-[var(--app-border)] overflow-hidden">
+                      <div className="flex rounded-lg border border-slate-200 overflow-hidden">
                         <button
                           type="button"
                           onClick={() => updateRule(rule.id, { toleranceNumericMode: 'fixed', toleranceValue: mode === 'percentage' ? 1 : (rule.toleranceValue ?? 0) })}
                           className={cn(
-                            'px-3 py-1.5 text-xs font-medium cursor-pointer transition-colors',
+                            'cursor-pointer px-3 py-1.5 text-xs font-medium transition-colors',
                             mode === 'fixed'
-                              ? 'bg-[var(--app-primary-dark,#1E3A5F)] text-white'
+                              ? 'bg-[var(--app-primary)] text-white'
                               : 'bg-white text-[var(--app-body)] hover:bg-gray-50'
                           )}
                         >
@@ -730,9 +730,9 @@ export function MatchingRulesPage({
                           type="button"
                           onClick={() => updateRule(rule.id, { toleranceNumericMode: 'percentage', toleranceValue: 0.005 })}
                           className={cn(
-                            'px-3 py-1.5 text-xs font-medium cursor-pointer transition-colors',
+                            'cursor-pointer px-3 py-1.5 text-xs font-medium transition-colors',
                             mode === 'percentage'
-                              ? 'bg-[var(--app-primary-dark,#1E3A5F)] text-white'
+                              ? 'bg-[var(--app-primary)] text-white'
                               : 'bg-white text-[var(--app-body)] hover:bg-gray-50'
                           )}
                         >
@@ -771,7 +771,7 @@ export function MatchingRulesPage({
                         onValueChange={([val]) => updateRule(rule.id, { similarityThreshold: (val ?? 80) / 100 })}
                         className="w-28"
                       />
-                      <span className="text-xs font-semibold text-[var(--app-primary-dark,#1E3A5F)] w-10">
+                      <span className="w-10 text-xs font-semibold text-[var(--app-primary)]">
                         {Math.round((rule.similarityThreshold ?? 0.8) * 100)}%
                       </span>
                     </div>
@@ -790,7 +790,7 @@ export function MatchingRulesPage({
                       onValueChange={([val]) => setRuleImportance(rule.id, val ?? MIN_IMPORTANCE_PCT)}
                       className="w-28"
                     />
-                    <span className="text-sm font-bold font-heading text-[var(--app-primary-dark,#1E3A5F)] w-10 text-right">
+                    <span className="w-10 text-right text-sm font-bold text-[var(--app-primary)]">
                       {Math.round(rule.weight * 100)}%
                     </span>
                   </div>
@@ -803,23 +803,19 @@ export function MatchingRulesPage({
           <button
             type="button"
             onClick={addRule}
-            className="w-full py-3 rounded-xl border-2 border-dashed border-gray-300 text-sm font-medium text-[var(--app-body)] hover:bg-gray-50 hover:border-gray-400 cursor-pointer flex items-center justify-center gap-2 transition-colors"
+            className="flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-200 p-4 text-sm text-[var(--app-body)] transition-all hover:border-slate-300 hover:text-[var(--app-heading)]"
           >
-            <Plus className="w-4 h-4" />
+            <Plus className="h-4 w-4" />
             Add Rule
           </button>
           <div className="flex flex-wrap items-center gap-2">
             {effectiveRules.length > 1 && (
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    onClick={distributeEqually}
-                    className="px-4 py-2 rounded-xl border border-[var(--app-border)] bg-white text-sm font-medium text-[var(--app-body)] hover:bg-gray-50 cursor-pointer flex items-center gap-2 transition-colors"
-                  >
-                    <Scale className="w-4 h-4" />
+                  <Button variant="outline" type="button" onClick={distributeEqually} className="gap-2">
+                    <Scale className="h-4 w-4" />
                     Distribute equally
-                  </button>
+                  </Button>
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>Split the weight evenly across all rules (each rule gets equal importance)</p>
@@ -828,14 +824,10 @@ export function MatchingRulesPage({
             )}
             <Tooltip>
               <TooltipTrigger asChild>
-                <button
-                  type="button"
-                  onClick={() => setSaveTemplateOpen(true)}
-                  className="px-4 py-2 rounded-xl border border-[var(--app-border)] bg-white text-sm font-medium text-[var(--app-body)] hover:bg-gray-50 cursor-pointer flex items-center gap-2 transition-colors"
-                >
-                  <Save className="w-4 h-4" />
+                <Button variant="outline" type="button" onClick={() => setSaveTemplateOpen(true)} className="gap-2">
+                  <Save className="h-4 w-4" />
                   Save as Template
-                </button>
+                </Button>
               </TooltipTrigger>
               <TooltipContent>
                 <p>Save your current rule configuration to reuse in future reconciliations</p>
@@ -845,13 +837,10 @@ export function MatchingRulesPage({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <DropdownMenuTrigger asChild>
-                    <button
-                      type="button"
-                      className="px-4 py-2 rounded-xl border border-[var(--app-border)] bg-white text-sm font-medium text-[var(--app-body)] hover:bg-gray-50 cursor-pointer flex items-center gap-2 transition-colors"
-                    >
-                      <ChevronDown className="w-4 h-4" />
+                    <Button variant="outline" type="button" className="gap-2">
+                      <ChevronDown className="h-4 w-4" />
                       Load Template
-                    </button>
+                    </Button>
                   </DropdownMenuTrigger>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -894,13 +883,14 @@ export function MatchingRulesPage({
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-          <div className="flex items-center gap-4 pt-2 border-t">
+          <div className="flex items-center gap-4 border-t pt-2">
             <Tooltip>
               <TooltipTrigger asChild>
                 <span
                   className={cn(
-                    'text-sm font-medium cursor-help',
-                    Math.abs(totalWeightPercent - 100) > 0.1 && 'text-red-600'
+                    'cursor-help text-sm font-medium text-[var(--app-body)]',
+                    Math.abs(totalWeightPercent - 100) <= 0.1 && 'text-emerald-600',
+                    Math.abs(totalWeightPercent - 100) > 0.1 && 'text-red-500'
                   )}
                 >
                   Total: {totalWeightPercent.toFixed(1)}%
@@ -1013,12 +1003,12 @@ export function MatchingRulesPage({
       </Dialog>
 
       {/* Min confidence */}
-      <div className="bg-white rounded-2xl border border-[var(--app-border)] p-6 mb-5 max-w-md">
-        <div className="flex items-center gap-2">
-          <h3 className="text-[17px] font-bold font-heading text-[var(--app-heading)]">
-            Minimum confidence
+      <div className="mb-5 max-w-md rounded-2xl border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]">
+        <div className="mb-4 flex items-center gap-2">
+          <h3 className="text-sm font-semibold uppercase tracking-wide text-[var(--app-heading)]">
+            Confidence threshold
           </h3>
-            <Tooltip>
+          <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   type="button"
@@ -1032,8 +1022,8 @@ export function MatchingRulesPage({
                 Minimum confidence score required for a pair to be considered a match. Lower values find more matches but with less certainty.
               </TooltipContent>
             </Tooltip>
-          </div>
-        <p className="text-[13px] text-[var(--app-body)] mt-1 mb-4">
+        </div>
+        <p className="mb-4 text-[13px] text-[var(--app-body)]">
           Pairs must meet this score to count as matched.
         </p>
         <div className="space-y-4">

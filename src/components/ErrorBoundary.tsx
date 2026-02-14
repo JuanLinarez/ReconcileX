@@ -55,7 +55,7 @@ export class ErrorBoundary extends Component<Props, State> {
                 onClick={() => {
                   window.location.href = '/';
                 }}
-                className="inline-flex items-center gap-2 rounded-lg border border-[var(--app-border)] bg-white px-4 py-2.5 text-sm font-medium text-[var(--app-body)] hover:bg-gray-50 transition-colors cursor-pointer"
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm font-medium text-[var(--app-body)] hover:bg-gray-50 transition-colors cursor-pointer"
               >
                 <Home className="h-4 w-4" />
                 Go to Dashboard

@@ -79,9 +79,9 @@ export function AuthPage() {
       }}
     >
       <div className="w-full max-w-md">
-        <div className="rounded-2xl border border-[var(--app-border)] bg-white p-8 shadow-lg">
+        <div className="rounded-2xl border border-slate-200/60 bg-white p-8 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]">
           <div className="text-center mb-6">
-            <div className="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[#2563EB] text-white mb-3">
+            <div className="inline-flex h-12 w-12 items-center justify-center rounded-lg bg-[var(--app-primary)] text-white mb-3">
               <span className="text-xl font-bold" style={{ fontFamily: 'var(--font-heading)' }}>R</span>
             </div>
             <h1 className="text-2xl font-bold text-[var(--app-heading)]" style={{ fontFamily: 'var(--font-heading)' }}>

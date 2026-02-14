@@ -296,7 +296,7 @@ export function NormalizationPage({
         />
       )}
 
-      <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-4 border-t border-[var(--app-border)] bg-white py-4 dark:bg-background">
+      <div className="sticky bottom-0 flex flex-wrap items-center justify-between gap-4 border-t border-slate-200 bg-white py-4 dark:bg-background">
         <p className="text-sm text-[var(--app-body)]">
           {willFixCount} of {totalFixable} fix{totalFixable !== 1 ? 'es' : ''} will be applied
         </p>
@@ -353,7 +353,7 @@ function IssueCard({
 }: IssueCardProps) {
   const preview = getBeforeAfterPreview(source, issue);
   return (
-    <Card className="border-[var(--app-border)] bg-white">
+    <Card className="border-slate-200/60 bg-white shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]">
       <CardHeader className="pb-2">
         <div className="flex flex-wrap items-center gap-2">
           <Badge className={severityClass(issue.severity)}>

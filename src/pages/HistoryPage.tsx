@@ -21,10 +21,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-  TableSectionHeader,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent } from '@/components/ui/card';
 import { ClipboardList } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -59,16 +56,16 @@ function formatMatchType(mt: string): string {
 
 function MatchRateBadge({ rate }: { rate: number }) {
   const pct = Math.round(rate <= 1 ? rate * 100 : rate);
-  const bgClass =
+  const colorClass =
     pct >= 80
-      ? 'bg-[var(--app-success)]/15 text-[var(--app-success)]'
+      ? 'text-emerald-600'
       : pct >= 50
-        ? 'bg-[var(--app-warning)]/15 text-[var(--app-warning)]'
-        : 'bg-[var(--app-error)]/15 text-[var(--app-error)]';
+        ? 'text-amber-500'
+        : 'text-red-500';
   return (
-    <Badge variant="secondary" className={cn('font-medium', bgClass)}>
+    <span className={cn('text-sm font-semibold tabular-nums', colorClass)}>
       {pct}%
-    </Badge>
+    </span>
   );
 }
 
@@ -76,14 +73,14 @@ function TableSkeleton() {
   return (
     <Table>
       <TableHeader>
-        <TableRow>
-          <TableHead>Date</TableHead>
-          <TableHead>Name / Files</TableHead>
-          <TableHead>Match Rate</TableHead>
-          <TableHead>Matched</TableHead>
-          <TableHead>Unmatched</TableHead>
-          <TableHead>Status</TableHead>
-          <TableHead className="w-[120px]">Actions</TableHead>
+        <TableRow className="bg-slate-50/80 hover:bg-slate-50/80">
+          <TableHead className="py-3 px-5 text-xs font-medium uppercase tracking-wider text-slate-500">Date</TableHead>
+          <TableHead className="py-3 px-5 text-xs font-medium uppercase tracking-wider text-slate-500">Name / Files</TableHead>
+          <TableHead className="py-3 px-5 text-xs font-medium uppercase tracking-wider text-slate-500">Match Rate</TableHead>
+          <TableHead className="py-3 px-5 text-right text-xs font-medium uppercase tracking-wider text-slate-500">Matched</TableHead>
+          <TableHead className="py-3 px-5 text-right text-xs font-medium uppercase tracking-wider text-slate-500">Unmatched</TableHead>
+          <TableHead className="py-3 px-5 text-xs font-medium uppercase tracking-wider text-slate-500">Status</TableHead>
+          <TableHead className="w-[120px] py-3 px-5 text-xs font-medium uppercase tracking-wider text-slate-500">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -128,93 +125,97 @@ export function HistoryPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold font-heading text-[var(--app-heading)] mb-8">
-        Reconciliation History
-      </h1>
+      <header className="mb-8">
+        <h1 className="text-2xl font-semibold text-[var(--app-heading)]">
+          History
+        </h1>
+        <p className="mt-1 text-sm text-[var(--app-body)]">
+          Past reconciliations and their results
+        </p>
+      </header>
 
       {error && (
         <p className="text-sm text-destructive">{error}</p>
       )}
 
       {loading && (
-        <Card className="border-[var(--app-border)] overflow-hidden">
-          <CardContent className="p-0">
-            <TableSkeleton />
-          </CardContent>
-        </Card>
+        <div className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]">
+          <TableSkeleton />
+        </div>
       )}
 
       {!loading && !empty && (
-        <Card className="border-[var(--app-border)] overflow-hidden">
-          <TableSectionHeader>
-            <span>Reconciliation History</span>
-          </TableSectionHeader>
-          <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Date</TableHead>
-                  <TableHead>Name / Files</TableHead>
-                  <TableHead>Match Rate</TableHead>
-                  <TableHead className="text-right">Matched</TableHead>
-                  <TableHead className="text-right">Unmatched</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead className="w-[120px]">Actions</TableHead>
+        <div className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]">
+          <div className="border-b border-slate-200/60 px-5 py-4">
+            <h2 className="text-sm font-semibold uppercase tracking-wide text-[var(--app-heading)]">
+              Reconciliation History
+            </h2>
+          </div>
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-slate-50/80 hover:bg-slate-50/80">
+                <TableHead className="py-3 px-5 text-xs font-medium uppercase tracking-wider text-slate-500">Date</TableHead>
+                <TableHead className="py-3 px-5 text-xs font-medium uppercase tracking-wider text-slate-500">Name / Files</TableHead>
+                <TableHead className="py-3 px-5 text-xs font-medium uppercase tracking-wider text-slate-500">Match Rate</TableHead>
+                <TableHead className="py-3 px-5 text-right text-xs font-medium uppercase tracking-wider text-slate-500">Matched</TableHead>
+                <TableHead className="py-3 px-5 text-right text-xs font-medium uppercase tracking-wider text-slate-500">Unmatched</TableHead>
+                <TableHead className="py-3 px-5 text-xs font-medium uppercase tracking-wider text-slate-500">Status</TableHead>
+                <TableHead className="w-[120px] py-3 px-5 text-xs font-medium uppercase tracking-wider text-slate-500">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {rows.map((r) => (
+                <TableRow
+                  key={r.id}
+                  className="border-b border-slate-100 last:border-b-0 transition-colors hover:bg-slate-50/50"
+                >
+                  <TableCell className="py-4 px-5 text-sm text-[var(--app-body)]">
+                    {formatDate(r.created_at)}
+                  </TableCell>
+                  <TableCell className="py-4 px-5">
+                    <span className="text-sm font-medium text-[var(--app-heading)]">
+                      {r.source_a_name} vs {r.source_b_name}
+                    </span>
+                  </TableCell>
+                  <TableCell className="py-4 px-5">
+                    <MatchRateBadge rate={r.match_rate} />
+                  </TableCell>
+                  <TableCell className="py-4 px-5 text-right text-sm tabular-nums text-[var(--app-body)]">{r.matched_count}</TableCell>
+                  <TableCell className="py-4 px-5 text-right text-sm tabular-nums text-[var(--app-body)]">{r.unmatched_a_count + r.unmatched_b_count}</TableCell>
+                  <TableCell className="py-4 px-5">
+                    <span className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-medium text-emerald-700">
+                      Complete
+                    </span>
+                  </TableCell>
+                  <TableCell className="py-4 px-5">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="text-[var(--app-body)] transition-colors hover:text-[var(--app-heading)]"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSelectedRec(r);
+                      }}
+                    >
+                      View Details
+                    </Button>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.id}>
-                    <TableCell className="text-[var(--app-body)] font-body">
-                      {formatDate(r.created_at)}
-                    </TableCell>
-                    <TableCell>
-                      <span className="font-medium text-[var(--app-heading)]">
-                        {r.source_a_name} vs {r.source_b_name}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <MatchRateBadge rate={r.match_rate} />
-                    </TableCell>
-                    <TableCell className="text-right">{r.matched_count}</TableCell>
-                    <TableCell className="text-right">{r.unmatched_a_count + r.unmatched_b_count}</TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className="bg-muted text-muted-foreground">
-                        Complete
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedRec(r);
-                        }}
-                      >
-                        View Details
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       )}
 
       {empty && !organizationId && (
-        <Card className="border-[var(--app-border)]">
-          <CardContent className="flex flex-col items-center justify-center py-14 text-center">
-            <p className="text-[var(--app-body)]">Add yourself to an organization to see reconciliation history.</p>
-          </CardContent>
-        </Card>
+        <div className="rounded-2xl border border-slate-200/60 bg-white p-14 text-center shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]">
+          <p className="text-sm text-[var(--app-body)]">Add yourself to an organization to see reconciliation history.</p>
+        </div>
       )}
 
       {empty && organizationId && (
-        <Card className="border-[var(--app-border)]">
-          <CardContent className="flex flex-col items-center justify-center py-14 text-center">
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200/60 bg-white py-14 text-center shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]">
             <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--app-bg-subtle)] text-[var(--app-body)]">
               <ClipboardList className="h-7 w-7" />
             </div>
@@ -224,8 +225,7 @@ export function HistoryPage() {
             <Link to="/reconciliation/new">
               <Button className="mt-4">New Reconciliation</Button>
             </Link>
-          </CardContent>
-        </Card>
+        </div>
       )}
 
       <Dialog open={selectedRec !== null} onOpenChange={(open) => { if (!open) setSelectedRec(null); }}>
@@ -276,7 +276,7 @@ export function HistoryPage() {
                   return (
                     <div className="space-y-2">
                       <span className="text-muted-foreground">Rules used</span>
-                      <ul className="space-y-2 rounded-md border border-[var(--app-border)] p-3">
+                      <ul className="space-y-2 rounded-md border border-slate-200 p-3">
                         {rules.map((rule) => (
                           <li key={rule.id} className="flex flex-wrap items-center gap-x-1 gap-y-1 text-sm">
                             <span className="font-medium">{rule.columnA}</span>

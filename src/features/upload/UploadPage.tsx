@@ -197,25 +197,25 @@ export function UploadPage({
   return (
     <div className={cn('space-y-8', className)}>
       {/* Page Title — Left-aligned */}
-      <div>
-        <h1 className="text-2xl font-bold font-heading text-[var(--app-heading)]">
+      <div className="mb-4">
+        <h1 className="text-sm font-semibold uppercase tracking-wide text-[var(--app-heading)]">
           Select your data sources
         </h1>
-        <p className="text-sm text-[var(--app-body)] mt-1 mb-7">
+        <p className="text-xs text-[var(--app-body)] mt-1">
           Upload up to 4 files (CSV or Excel), then choose which pair to reconcile.
         </p>
       </div>
 
       {/* Source Cards */}
-      <div className="grid gap-6 sm:grid-cols-2 max-w-4xl">
+      <div className="grid gap-5 sm:grid-cols-2 max-w-4xl">
         {slots.map((slot, index) => (
           <div
             key={slot.id}
-            className="bg-white rounded-2xl border border-[var(--app-border)] p-5 shadow-sm"
+            className="bg-white rounded-2xl border border-slate-200/60 p-6 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]"
           >
             <div className="flex items-center justify-between mb-3">
-              <span className="text-xs font-bold font-heading text-[var(--app-primary-dark,#1E3A5F)] uppercase tracking-wide">
-                {DEFAULT_LABELS[index]?.toUpperCase() ?? `SOURCE ${index + 1}`}
+              <span className="text-sm font-semibold uppercase tracking-wide text-[var(--app-heading)]">
+                {DEFAULT_LABELS[index] ?? `Source ${index + 1}`}
               </span>
               <div className="flex items-center gap-1">
                 {slot.parsed && (
@@ -260,16 +260,16 @@ export function UploadPage({
               </div>
             ) : slot.parsed ? (
               /* Loaded File State */
-              <div className="border-2 border-green-200 rounded-2xl p-5 bg-green-50/50 flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center shrink-0">
-                  <FileSpreadsheet className="w-6 h-6 text-green-600" />
+              <div className="flex items-center gap-3.5 rounded-2xl border border-emerald-200 bg-emerald-50/50 p-6">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-100">
+                  <FileSpreadsheet className="h-6 w-6 text-emerald-600" />
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-semibold font-heading text-[var(--app-heading)] truncate">
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-[var(--app-heading)]">
                     {slot.parsed.filename ?? 'File'}
                   </p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[11px] font-semibold text-green-600 bg-green-100 px-2 py-0.5 rounded-md">
+                  <div className="mt-1 flex items-center gap-2">
+                    <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-medium text-emerald-700">
                       {slot.parsed.rows.length} rows
                     </span>
                     <span className="text-xs text-[var(--app-body)]">
@@ -280,7 +280,7 @@ export function UploadPage({
                 <button
                   type="button"
                   onClick={() => inputRefs.current[index]?.click()}
-                  className="px-3 py-1.5 rounded-lg border-[1.5px] border-gray-200 bg-white text-xs font-medium text-[var(--app-body)] hover:bg-gray-50 cursor-pointer shrink-0"
+                  className="shrink-0 text-sm text-[var(--app-body)] underline hover:text-[var(--app-heading)] cursor-pointer"
                 >
                   Replace
                 </button>
@@ -302,30 +302,18 @@ export function UploadPage({
                 onDragLeave={handleDragLeave}
                 onDrop={(e) => handleDrop(e, index)}
                 className={cn(
-                  'border-2 border-dashed rounded-2xl p-10 flex flex-col items-center gap-3 cursor-pointer transition-all',
+                  'flex cursor-pointer flex-col items-center gap-3 rounded-2xl border-2 border-dashed p-8 transition-all duration-200',
                   draggingIndex === index
-                    ? 'border-[#2563EB] bg-blue-50/30'
-                    : 'border-gray-300 bg-[#FAFCFF] hover:border-gray-400 hover:bg-gray-50/50'
+                    ? 'border-blue-400 bg-blue-50/30'
+                    : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50/50'
                 )}
               >
-                <div
-                  className={cn(
-                    'w-16 h-16 rounded-2xl flex items-center justify-center transition-colors',
-                    draggingIndex === index ? 'bg-blue-100/50' : 'bg-gray-100'
-                  )}
-                >
-                  <UploadCloud
-                    className={cn(
-                      'w-8 h-8',
-                      draggingIndex === index ? 'text-[#2563EB]' : 'text-gray-400'
-                    )}
-                  />
-                </div>
+                <UploadCloud className="h-10 w-10 text-slate-400" />
                 <div className="text-center">
-                  <p className="text-sm font-semibold font-heading text-[var(--app-heading)]">
+                  <p className="text-sm font-medium text-[var(--app-heading)]">
                     Drop {DEFAULT_LABELS[index]}
                   </p>
-                  <p className="text-xs text-[var(--app-body)] mt-1">
+                  <p className="mt-1 text-xs text-[var(--app-body)]">
                     Drag & drop your CSV or Excel file here
                   </p>
                 </div>
@@ -335,7 +323,7 @@ export function UploadPage({
                     e.stopPropagation();
                     inputRefs.current[index]?.click();
                   }}
-                  className="mt-1 px-5 py-2 rounded-lg border-[1.5px] border-gray-300 bg-white text-sm font-medium text-[var(--app-body)] hover:bg-gray-50 cursor-pointer"
+                  className="mt-1 rounded-lg border border-slate-200 bg-white px-5 py-2 text-sm font-medium text-[var(--app-body)] hover:bg-slate-50 cursor-pointer"
                 >
                   Browse files
                 </button>
@@ -351,7 +339,7 @@ export function UploadPage({
           <button
             type="button"
             onClick={addSlot}
-            className="px-4 py-2 rounded-lg border-[1.5px] border-dashed border-gray-300 text-sm font-medium text-[var(--app-body)] hover:bg-gray-50 cursor-pointer inline-flex items-center gap-1.5"
+            className="inline-flex cursor-pointer items-center gap-1.5 rounded-lg border-2 border-dashed border-slate-200 px-4 py-2 text-sm font-medium text-[var(--app-body)] hover:bg-slate-50"
           >
             <Plus className="w-3.5 h-3.5" />
             Add another file
@@ -365,8 +353,8 @@ export function UploadPage({
 
       {/* Pair selector — only show when more than 2 files uploaded */}
       {showPairSelector && canSelectPair && (
-        <div className="space-y-4 rounded-lg border border-[var(--app-border)] bg-white p-6 max-w-2xl">
-          <h2 className="text-sm font-semibold text-[var(--app-heading)] font-heading">
+        <div className="max-w-2xl space-y-4 rounded-2xl border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]">
+          <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-[var(--app-heading)]">
             Select pair to reconcile
           </h2>
           <p className="text-sm text-muted-foreground font-body">
@@ -411,7 +399,7 @@ export function UploadPage({
             </Select>
           </div>
           {pairValid && selectedFirst && selectedSecond && (
-            <div className="flex flex-wrap items-center gap-2 rounded-md bg-[var(--app-bg-subtle)] p-4 border border-[var(--app-border)]">
+            <div className="flex flex-wrap items-center gap-2 rounded-md bg-[var(--app-bg-subtle)] p-4 border border-slate-200/60">
               <div className="flex items-center gap-2 min-w-0 flex-1">
                 <FileSpreadsheet className="h-5 w-5 shrink-0 text-[var(--app-primary)]" />
                 <Input
@@ -449,7 +437,7 @@ export function UploadPage({
             <button
               type="button"
               onClick={onContinue}
-              className="px-10 py-3 rounded-xl bg-[var(--app-primary-dark,#1E3A5F)] hover:bg-[#24476F] text-white text-[15px] font-semibold shadow-lg shadow-[#1E3A5F]/20 flex items-center gap-2 cursor-pointer transition-colors"
+              className="flex cursor-pointer items-center gap-2 rounded-lg bg-[var(--app-primary)] px-10 py-3 text-[15px] font-semibold text-white shadow-lg shadow-[var(--app-primary)]/20 transition-colors hover:bg-blue-700"
             >
               Continue to Matching Rules
               <ArrowRight className="w-4 h-4" />

@@ -43,13 +43,6 @@ CREATE POLICY "Users can delete templates in their org"
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -61,7 +54,6 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import { Bookmark, FileText, Pencil, Trash2 } from 'lucide-react';
 import { BUILT_IN_TEMPLATES } from '@/features/matching-rules/templates';
 import {
@@ -71,8 +63,6 @@ import {
   type MatchingTemplateRow,
 } from '@/lib/database';
 import type { MatchingConfig } from '@/features/reconciliation/types';
-
-const headingStyle = { fontFamily: 'var(--font-heading)' };
 
 function getRulesSummary(config: MatchingConfig): string[] {
   return config.rules.map((r) => {
@@ -158,18 +148,18 @@ export function TemplatesPage() {
 
   return (
     <div className="space-y-8 pb-8">
-      <div>
-        <h1 className="text-3xl font-bold font-heading text-[var(--app-heading)] mb-8" style={headingStyle}>
+      <header className="mb-8">
+        <h1 className="text-2xl font-semibold text-[var(--app-heading)]">
           Templates
         </h1>
-        <p className="mt-1 text-base text-[var(--app-body)]">
+        <p className="mt-1 text-sm text-[var(--app-body)]">
           Save and reuse matching rule configurations
         </p>
-      </div>
+      </header>
 
       {/* Built-in Templates */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-[var(--app-heading)]" style={headingStyle}>
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-[var(--app-heading)]">
           Built-in Templates
         </h2>
         <div className="grid gap-4 md:grid-cols-2">
@@ -178,46 +168,48 @@ export function TemplatesPage() {
             const rulesCount = template.config.rules.length;
             const minConf = Math.round((template.config.minConfidenceThreshold ?? 0) * 100);
             return (
-              <Card
+              <div
                 key={template.id}
-                className="border-[var(--app-border)] bg-white transition-shadow hover:shadow-md"
+                className="rounded-2xl border border-slate-200/60 bg-white p-5 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)] transition-shadow duration-200 hover:shadow-[0_4px_12px_0_rgb(0,0,0,0.06)]"
               >
-                <CardHeader className="flex flex-row items-start justify-between gap-2 pb-2">
-                  <div>
+                <div className="flex flex-row items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
-                      <CardTitle className="text-base" style={headingStyle}>
+                      <h3 className="text-sm font-semibold text-[var(--app-heading)]">
                         {template.name}
-                      </CardTitle>
-                      <Badge variant="secondary" className="text-xs font-normal">
+                      </h3>
+                      <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">
                         Built-in
-                      </Badge>
+                      </span>
                     </div>
-                    <CardDescription className="mt-1 text-[var(--app-body)]">
+                    <p className="mt-1 text-xs text-[var(--app-body)]">
                       {template.description ?? 'No description'}
-                    </CardDescription>
+                    </p>
                   </div>
                   <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--app-primary)]/10 text-[var(--app-primary)]">
                     <Bookmark className="h-4 w-4" />
                   </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
+                </div>
+                <div className="mt-3 space-y-3">
                   <p className="text-xs text-[var(--app-body)]">
                     {rulesCount} rule{rulesCount !== 1 ? 's' : ''}: {summary.slice(0, 3).join(', ')}
                     {summary.length > 3 && ` +${summary.length - 3} more`}
                   </p>
                   <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant="outline" className="text-xs">
+                    <span className="rounded-md border border-slate-200 px-2 py-0.5 text-xs text-[var(--app-body)]">
                       {template.config.matchingType === 'oneToOne' ? '1:1' : 'Group'}
-                    </Badge>
-                    <Badge variant="outline" className="text-xs">
+                    </span>
+                    <span className="rounded-md border border-slate-200 px-2 py-0.5 text-xs text-[var(--app-body)]">
                       Min confidence: {minConf}%
-                    </Badge>
+                    </span>
                   </div>
                   <Link to="/reconciliation/new">
-                    <Button size="sm">Use Template</Button>
+                    <Button size="sm" variant="ghost" className="text-[var(--app-body)] hover:text-[var(--app-heading)]">
+                      Use Template
+                    </Button>
                   </Link>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             );
           })}
         </div>
@@ -225,39 +217,33 @@ export function TemplatesPage() {
 
       {/* Custom Templates */}
       <section>
-        <h2 className="mb-4 text-lg font-semibold text-[var(--app-heading)]" style={headingStyle}>
+        <h2 className="mb-4 text-sm font-semibold uppercase tracking-wide text-[var(--app-heading)]">
           Custom Templates
         </h2>
         {loading ? (
           <div className="grid gap-4 md:grid-cols-2">
             {[1, 2, 3].map((i) => (
-              <Card key={i} className="border-[var(--app-border)] bg-white">
-                <CardHeader>
-                  <div className="h-5 w-48 rounded bg-muted animate-pulse" />
-                  <div className="mt-2 h-4 w-full rounded bg-muted animate-pulse" />
-                  <div className="mt-2 h-4 w-3/4 rounded bg-muted animate-pulse" />
-                </CardHeader>
-                <CardContent>
-                  <div className="h-9 w-24 rounded bg-muted animate-pulse" />
-                </CardContent>
-              </Card>
+              <div key={i} className="rounded-2xl border border-slate-200/60 bg-white p-5 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]">
+                <div className="h-5 w-48 rounded bg-muted animate-pulse" />
+                <div className="mt-2 h-4 w-full rounded bg-muted animate-pulse" />
+                <div className="mt-2 h-4 w-3/4 rounded bg-muted animate-pulse" />
+                <div className="mt-3 h-9 w-24 rounded bg-muted animate-pulse" />
+              </div>
             ))}
           </div>
         ) : customTemplates.length === 0 ? (
-          <Card className="border-[var(--app-border)] bg-white">
-            <CardContent className="flex flex-col items-center justify-center py-14 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[var(--app-bg-subtle)] text-[var(--app-body)]">
-                <FileText className="h-7 w-7" />
-              </div>
-              <p className="mt-4 max-w-sm text-[var(--app-body)]">
-                No custom templates yet. Save a template from the Matching Rules step during a
-                reconciliation.
-              </p>
-              <Link to="/reconciliation/new" className="mt-4">
-                <Button>Start Reconciliation</Button>
-              </Link>
-            </CardContent>
-          </Card>
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200/60 bg-white py-14 text-center shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]">
+            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-[var(--app-body)]">
+              <FileText className="h-7 w-7" />
+            </div>
+            <p className="mt-4 max-w-sm text-sm text-[var(--app-body)]">
+              No custom templates yet. Save a template from the Matching Rules step during a
+              reconciliation.
+            </p>
+            <Link to="/reconciliation/new" className="mt-4">
+              <Button>Start Reconciliation</Button>
+            </Link>
+          </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
             {customTemplates.map((template) => {
@@ -265,46 +251,49 @@ export function TemplatesPage() {
               const rulesCount = template.config.rules.length;
               const minConf = Math.round((template.config.minConfidenceThreshold ?? 0) * 100);
               return (
-                <Card
+                <div
                   key={template.id}
-                  className="border-[var(--app-border)] border-l-4 border-l-[var(--app-primary)] bg-white transition-shadow hover:shadow-md"
+                  className="rounded-2xl border border-slate-200/60 border-l-4 border-l-[var(--app-primary)] bg-white p-5 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)] transition-shadow duration-200 hover:shadow-[0_4px_12px_0_rgb(0,0,0,0.06)]"
                 >
-                  <CardHeader className="flex flex-row items-start justify-between gap-2 pb-2">
-                    <div>
-                      <CardTitle className="text-base" style={headingStyle}>
+                  <div className="flex flex-row items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="text-sm font-semibold text-[var(--app-heading)]">
                         {template.name}
-                      </CardTitle>
-                      <CardDescription className="mt-1 text-[var(--app-body)]">
+                      </h3>
+                      <p className="mt-1 text-xs text-[var(--app-body)]">
                         {template.description || 'No description'}
-                      </CardDescription>
+                      </p>
                     </div>
-                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--app-body)]/10 text-[var(--app-body)]">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-slate-100 text-[var(--app-body)]">
                       <FileText className="h-4 w-4" />
                     </div>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
+                  </div>
+                  <div className="mt-3 space-y-3">
                     <p className="text-xs text-[var(--app-body)]">
                       {rulesCount} rule{rulesCount !== 1 ? 's' : ''}: {summary.slice(0, 3).join(', ')}
                       {summary.length > 3 && ` +${summary.length - 3} more`}
                     </p>
                     <div className="flex flex-wrap items-center gap-2">
-                      <Badge variant="outline" className="text-xs">
+                      <span className="rounded-md border border-slate-200 px-2 py-0.5 text-xs text-[var(--app-body)]">
                         {template.config.matchingType === 'oneToOne' ? '1:1' : 'Group'}
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
+                      </span>
+                      <span className="rounded-md border border-slate-200 px-2 py-0.5 text-xs text-[var(--app-body)]">
                         Min confidence: {minConf}%
-                      </Badge>
+                      </span>
                       <span className="text-xs text-[var(--app-body)]">
                         Created {formatDate(template.created_at)}
                       </span>
                     </div>
                     <div className="flex flex-wrap gap-2">
                       <Link to="/reconciliation/new">
-                        <Button size="sm">Use Template</Button>
+                        <Button size="sm" variant="ghost" className="text-[var(--app-body)] hover:text-[var(--app-heading)]">
+                          Use Template
+                        </Button>
                       </Link>
                       <Button
                         size="sm"
-                        variant="outline"
+                        variant="ghost"
+                        className="text-[var(--app-body)] hover:text-[var(--app-heading)]"
                         onClick={() => openEditDialog(template)}
                         aria-label="Edit template"
                       >
@@ -313,7 +302,7 @@ export function TemplatesPage() {
                       </Button>
                       <Button
                         size="sm"
-                        variant="outline"
+                        variant="ghost"
                         className="text-destructive hover:text-destructive"
                         onClick={() => openDeleteDialog(template)}
                         aria-label="Delete template"
@@ -322,8 +311,8 @@ export function TemplatesPage() {
                         Delete
                       </Button>
                     </div>
-                  </CardContent>
-                </Card>
+                  </div>
+                </div>
               );
             })}
           </div>
@@ -334,30 +323,30 @@ export function TemplatesPage() {
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle style={headingStyle}>Edit Template</DialogTitle>
+            <DialogTitle>Edit Template</DialogTitle>
             <DialogDescription>
               Update the template name and description.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div>
-              <Label htmlFor="edit-name">Name</Label>
+              <Label htmlFor="edit-name" className="mb-1.5 text-sm font-medium text-[var(--app-heading)]">Name</Label>
               <Input
                 id="edit-name"
                 value={editName}
                 onChange={(e) => setEditName(e.target.value)}
                 placeholder="Template name"
-                className="mt-1.5"
+                className="mt-1.5 rounded-lg border-slate-200 focus:border-[var(--app-primary)] focus:ring-1 focus:ring-[var(--app-primary)]/20"
               />
             </div>
             <div>
-              <Label htmlFor="edit-description">Description</Label>
+              <Label htmlFor="edit-description" className="mb-1.5 text-sm font-medium text-[var(--app-heading)]">Description</Label>
               <Input
                 id="edit-description"
                 value={editDescription}
                 onChange={(e) => setEditDescription(e.target.value)}
                 placeholder="Optional description"
-                className="mt-1.5"
+                className="mt-1.5 rounded-lg border-slate-200 focus:border-[var(--app-primary)] focus:ring-1 focus:ring-[var(--app-primary)]/20"
               />
             </div>
           </div>
@@ -376,7 +365,7 @@ export function TemplatesPage() {
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle style={headingStyle}>Delete Template</DialogTitle>
+            <DialogTitle>Delete Template</DialogTitle>
             <DialogDescription>
               Are you sure you want to delete &quot;{deletingTemplate?.name}&quot;? This action
               cannot be undone.

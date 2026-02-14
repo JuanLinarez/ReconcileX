@@ -632,11 +632,11 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
       ? Math.round((matchedTransactionSides / totalTransactions) * 100)
       : 0;
   const rateColor =
-    reconciliationRatePct >= 90
-      ? 'text-green-600 dark:text-green-500'
-      : reconciliationRatePct >= 70
-        ? 'text-yellow-600 dark:text-yellow-500'
-        : 'text-red-600 dark:text-red-500';
+    reconciliationRatePct > 70
+      ? 'text-emerald-600'
+      : reconciliationRatePct >= 40
+        ? 'text-amber-500'
+        : 'text-red-500';
 
   const matchedAmount = useMemo(
     () =>
@@ -667,39 +667,38 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
       <section className="mb-6 space-y-4">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {/* 1. Reconciliation Rate */}
-          <Card className="flex flex-col items-center justify-center py-4 card-accent-lavender border-[#E4DEFF]">
-            <CardContent className="flex flex-col items-center gap-2 p-0">
-              <div className="relative size-20">
-                <svg className="size-20 -rotate-90" viewBox="0 0 36 36">
-                  <circle
-                    className="text-muted stroke-current"
-                    strokeWidth="2.5"
-                    fill="none"
-                    cx="18"
-                    cy="18"
-                    r="15.5"
-                  />
-                  <circle
-                    className={rateColor + ' stroke-current'}
-                    strokeWidth="2.5"
-                    fill="none"
-                    strokeLinecap="round"
-                    strokeDasharray={`${(reconciliationRatePct / 100) * 97.39} 97.39`}
-                    cx="18"
-                    cy="18"
-                    r="15.5"
-                  />
-                </svg>
-                <span
-                  className={`absolute inset-0 flex items-center justify-center text-lg font-semibold ${rateColor}`}
-                >
-                  {reconciliationRatePct}%
-                </span>
-              </div>
-              <p className="text-muted-foreground text-xs font-medium">Reconciliation Rate</p>
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]">
+            <div className="relative size-20">
+              <svg className="size-20 -rotate-90" viewBox="0 0 36 36">
+                <circle
+                  className="text-muted stroke-current"
+                  strokeWidth="2.5"
+                  fill="none"
+                  cx="18"
+                  cy="18"
+                  r="15.5"
+                />
+                <circle
+                  className={rateColor + ' stroke-current'}
+                  strokeWidth="2.5"
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeDasharray={`${(reconciliationRatePct / 100) * 97.39} 97.39`}
+                  cx="18"
+                  cy="18"
+                  r="15.5"
+                />
+              </svg>
+              <span
+                className={`absolute inset-0 flex items-center justify-center text-2xl font-semibold tabular-nums ${rateColor}`}
+              >
+                {reconciliationRatePct}%
+              </span>
+            </div>
+            <p className="mt-2 text-xs font-medium uppercase tracking-wider text-[var(--app-body)]">Reconciliation Rate</p>
               {anomalyReport &&
                 anomalyReport.summary.critical + anomalyReport.summary.high > 0 && (
-                  <div className="flex items-center gap-1 mt-1 text-amber-600 dark:text-amber-500" title="Anomalies detected">
+                  <div className="mt-1 flex items-center gap-1 text-amber-600" title="Anomalies detected">
                     <AlertTriangle className="size-3.5" />
                     <span className="text-xs font-medium">
                       {anomalyReport.summary.critical + anomalyReport.summary.high} anomaly
@@ -707,35 +706,28 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                     </span>
                   </div>
                 )}
-            </CardContent>
-          </Card>
+          </div>
 
           {/* 2. Matched Amount */}
-          <Card className="py-4 card-accent-lavender border-[#E4DEFF]">
-            <CardContent className="p-4">
-              <p className="text-muted-foreground text-xs font-medium">Matched Amount</p>
-              <p className="mt-1 text-xl font-semibold">${formatAmount(matchedAmount)}</p>
-              <p className="text-muted-foreground text-xs">{totalMatched} pairs</p>
-            </CardContent>
-          </Card>
+          <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]">
+            <p className="text-xs font-medium uppercase tracking-wider text-[var(--app-body)]">Matched Amount</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums text-[var(--app-heading)]">${formatAmount(matchedAmount)}</p>
+            <p className="text-xs text-[var(--app-body)]">{totalMatched} pairs</p>
+          </div>
 
           {/* 3. Unmatched Amount A */}
-          <Card className="py-4 card-accent-lavender border-[#E4DEFF]">
-            <CardContent className="p-4">
-              <p className="text-muted-foreground text-xs font-medium">Unmatched Amount A</p>
-              <p className="mt-1 text-xl font-semibold">${formatAmount(unmatchedAmountA)}</p>
-              <p className="text-muted-foreground text-xs">{unmatchedCountA} transactions</p>
-            </CardContent>
-          </Card>
+          <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]">
+            <p className="text-xs font-medium uppercase tracking-wider text-[var(--app-body)]">Unmatched Amount A</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums text-[var(--app-heading)]">${formatAmount(unmatchedAmountA)}</p>
+            <p className="text-xs text-[var(--app-body)]">{unmatchedCountA} transactions</p>
+          </div>
 
           {/* 4. Unmatched Amount B */}
-          <Card className="py-4 card-accent-lavender border-[#E4DEFF]">
-            <CardContent className="p-4">
-              <p className="text-muted-foreground text-xs font-medium">Unmatched Amount B</p>
-              <p className="mt-1 text-xl font-semibold">${formatAmount(unmatchedAmountB)}</p>
-              <p className="text-muted-foreground text-xs">{unmatchedCountB} transactions</p>
-            </CardContent>
-          </Card>
+          <div className="rounded-2xl border border-slate-200/60 bg-white p-6 shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]">
+            <p className="text-xs font-medium uppercase tracking-wider text-[var(--app-body)]">Unmatched Amount B</p>
+            <p className="mt-1 text-2xl font-semibold tabular-nums text-[var(--app-heading)]">${formatAmount(unmatchedAmountB)}</p>
+            <p className="text-xs text-[var(--app-body)]">{unmatchedCountB} transactions</p>
+          </div>
         </div>
 
       </section>
@@ -803,24 +795,23 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
             )}
           </div>
         )}
-        <div className="rounded-lg border border-gray-200 bg-white p-3 shadow-sm mb-4">
-          <div className="flex items-center gap-2 flex-wrap">
-            <TabsList className="bg-transparent border-none p-0 h-auto gap-2 flex flex-wrap shrink-0">
+        <div className="mb-4 flex items-center gap-2 flex-wrap rounded-lg bg-slate-100 p-1">
+          <TabsList className="flex h-auto shrink-0 flex-wrap gap-0 border-none bg-transparent p-0">
           <Tooltip>
             <TooltipTrigger asChild>
               <TabsTrigger
                 value="matched"
                 className={cn(
-                  "px-4 py-2 rounded-xl text-sm font-medium border transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap",
+                  "flex cursor-pointer items-center whitespace-nowrap rounded-md px-4 py-2 text-sm transition-colors",
                   activeTab === "matched"
-                    ? "bg-[var(--app-primary-dark,#1E3A5F)] text-white border-[var(--app-primary-dark,#1E3A5F)] shadow-sm"
-                    : "bg-white text-[var(--app-body)] border-[var(--app-border)] hover:bg-gray-50"
+                    ? "bg-white font-medium text-[var(--app-heading)] shadow-sm"
+                    : "text-[var(--app-body)] hover:text-[var(--app-heading)]"
                 )}
               >
                 Matched
                 <span className={cn(
-                  "text-xs font-semibold px-1.5 py-0.5 rounded-md",
-                  activeTab === "matched" ? "bg-white/20 text-white" : "bg-gray-100 text-[var(--app-body)]"
+                  "ml-1.5 rounded-full px-1.5 py-0.5 text-xs",
+                  activeTab === "matched" ? "bg-[var(--app-primary)] text-white" : "bg-slate-200 text-slate-600"
                 )}>
                   {matchedDisplay.length}
                 </span>
@@ -835,16 +826,16 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
               <TabsTrigger
                 value="unmatchedA"
                 className={cn(
-                  "px-4 py-2 rounded-xl text-sm font-medium border transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap",
+                  "flex cursor-pointer items-center whitespace-nowrap rounded-md px-4 py-2 text-sm transition-colors",
                   activeTab === "unmatchedA"
-                    ? "bg-[var(--app-primary-dark,#1E3A5F)] text-white border-[var(--app-primary-dark,#1E3A5F)] shadow-sm"
-                    : "bg-white text-[var(--app-body)] border-[var(--app-border)] hover:bg-gray-50"
+                    ? "bg-white font-medium text-[var(--app-heading)] shadow-sm"
+                    : "text-[var(--app-body)] hover:text-[var(--app-heading)]"
                 )}
               >
                 Unmatched Source A
                 <span className={cn(
-                  "text-xs font-semibold px-1.5 py-0.5 rounded-md",
-                  activeTab === "unmatchedA" ? "bg-white/20 text-white" : "bg-gray-100 text-[var(--app-body)]"
+                  "ml-1.5 rounded-full px-1.5 py-0.5 text-xs",
+                  activeTab === "unmatchedA" ? "bg-[var(--app-primary)] text-white" : "bg-slate-200 text-slate-600"
                 )}>
                   {unmatchedADisplay.length}
                 </span>
@@ -859,16 +850,16 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
               <TabsTrigger
                 value="unmatchedB"
                 className={cn(
-                  "px-4 py-2 rounded-xl text-sm font-medium border transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap",
+                  "flex cursor-pointer items-center whitespace-nowrap rounded-md px-4 py-2 text-sm transition-colors",
                   activeTab === "unmatchedB"
-                    ? "bg-[var(--app-primary-dark,#1E3A5F)] text-white border-[var(--app-primary-dark,#1E3A5F)] shadow-sm"
-                    : "bg-white text-[var(--app-body)] border-[var(--app-border)] hover:bg-gray-50"
+                    ? "bg-white font-medium text-[var(--app-heading)] shadow-sm"
+                    : "text-[var(--app-body)] hover:text-[var(--app-heading)]"
                 )}
               >
                 Unmatched Source B
                 <span className={cn(
-                  "text-xs font-semibold px-1.5 py-0.5 rounded-md",
-                  activeTab === "unmatchedB" ? "bg-white/20 text-white" : "bg-gray-100 text-[var(--app-body)]"
+                  "ml-1.5 rounded-full px-1.5 py-0.5 text-xs",
+                  activeTab === "unmatchedB" ? "bg-[var(--app-primary)] text-white" : "bg-slate-200 text-slate-600"
                 )}>
                   {unmatchedBDisplay.length}
                 </span>
@@ -883,16 +874,16 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
               <TabsTrigger
                 value="anomalies"
                 className={cn(
-                  "px-4 py-2 rounded-xl text-sm font-medium border transition-colors cursor-pointer flex items-center gap-2 whitespace-nowrap",
+                  "flex cursor-pointer items-center whitespace-nowrap rounded-md px-4 py-2 text-sm transition-colors",
                   activeTab === "anomalies"
-                    ? "bg-[var(--app-primary-dark,#1E3A5F)] text-white border-[var(--app-primary-dark,#1E3A5F)] shadow-sm"
-                    : "bg-white text-[var(--app-body)] border-[var(--app-border)] hover:bg-gray-50"
+                    ? "bg-white font-medium text-[var(--app-heading)] shadow-sm"
+                    : "text-[var(--app-body)] hover:text-[var(--app-heading)]"
                 )}
               >
                 Anomalies
                 <span className={cn(
-                  "text-xs font-semibold px-1.5 py-0.5 rounded-md",
-                  activeTab === "anomalies" ? "bg-white/20 text-white" : "bg-gray-100 text-[var(--app-body)]"
+                  "ml-1.5 rounded-full px-1.5 py-0.5 text-xs",
+                  activeTab === "anomalies" ? "bg-[var(--app-primary)] text-white" : "bg-slate-200 text-slate-600"
                 )}>
                   {anomalyReport?.anomalies.length ?? 0}
                 </span>
@@ -909,9 +900,9 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                 <Button
                   variant="outline"
                   onClick={() => setCopilotOpen(true)}
-                  className="rounded-xl border border-[var(--app-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--app-body)] hover:bg-gray-50 whitespace-nowrap"
+                  className="whitespace-nowrap rounded-lg bg-violet-500/10 text-violet-700 hover:bg-violet-500/20"
                 >
-                  <Sparkles className="mr-1.5 h-4 w-4 text-purple-500" />
+                  <Sparkles className="mr-1.5 h-4 w-4" />
                   Ask Copilot
                 </Button>
               </TooltipTrigger>
@@ -919,20 +910,19 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                 <p>Chat with the AI assistant about your reconciliation results — ask questions, get insights, and investigate exceptions</p>
               </TooltipContent>
             </Tooltip>
-          </div>
         </div>
 
         <TabsContent value="matched" className="mt-4">
           <Card className="overflow-hidden">
-            <TableSectionHeader>
+            <TableSectionHeader className="!bg-slate-50 !text-[var(--app-heading)] text-sm font-semibold uppercase tracking-wide">
               <span>Matched pairs</span>
             </TableSectionHeader>
             <CardContent className="px-4 pb-4 pt-0 flex flex-col">
               <Table className="min-w-[1200px]">
                 <TableHeader className="sticky top-0 z-[5]">
-                  <TableRow className="bg-white hover:bg-white">
-                    <TableHead className="w-8 bg-white" aria-label="Expand" />
-                    <TableHead className="bg-white">
+                  <TableRow className="bg-slate-50 hover:bg-slate-50">
+                    <TableHead className="w-8 bg-slate-50 text-xs font-medium uppercase tracking-wider text-slate-500" aria-label="Expand" />
+                    <TableHead className="bg-slate-50 text-xs font-medium uppercase tracking-wider text-slate-500">
                       <div className="flex items-center gap-1">
                         Confidence
                         <Tooltip>
@@ -952,12 +942,12 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                         </Tooltip>
                       </div>
                     </TableHead>
-                    <TableHead className="text-right bg-white">Source A — Amount</TableHead>
-                    <TableHead className="bg-white">Source A — Date</TableHead>
-                    <TableHead className="bg-white">Source A — Reference</TableHead>
-                    <TableHead className="text-right bg-white">Source B — Amount</TableHead>
-                    <TableHead className="bg-white">Source B — Date</TableHead>
-                    <TableHead className="bg-white">Source B — Reference</TableHead>
+                    <TableHead className="bg-slate-50 text-right text-xs font-medium uppercase tracking-wider text-slate-500">Source A — Amount</TableHead>
+                    <TableHead className="bg-slate-50 text-xs font-medium uppercase tracking-wider text-slate-500">Source A — Date</TableHead>
+                    <TableHead className="bg-slate-50 text-xs font-medium uppercase tracking-wider text-slate-500">Source A — Reference</TableHead>
+                    <TableHead className="bg-slate-50 text-right text-xs font-medium uppercase tracking-wider text-slate-500">Source B — Amount</TableHead>
+                    <TableHead className="bg-slate-50 text-xs font-medium uppercase tracking-wider text-slate-500">Source B — Date</TableHead>
+                    <TableHead className="bg-slate-50 text-xs font-medium uppercase tracking-wider text-slate-500">Source B — Reference</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -970,10 +960,10 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                     return (
                       <Fragment key={i}>
                         <TableRow
-                          className="cursor-pointer hover:bg-muted/70"
+                          className="cursor-pointer border-b border-slate-100 transition-colors hover:bg-slate-50/50"
                           onClick={() => toggleExpanded(i)}
                         >
-                          <TableCell className="w-8 p-2 text-muted-foreground">
+                          <TableCell className="w-8 p-2 text-sm text-[var(--app-body)]">
                             {isExpanded ? (
                               <ChevronDown className="size-4" aria-hidden />
                             ) : (
@@ -991,14 +981,14 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                               </Badge>
                             )}
                           </TableCell>
-                          <TableCell className="text-right">{formatSideAmounts(m.transactionsA)}</TableCell>
-                          <TableCell>{formatSideDates(m.transactionsA)}</TableCell>
-                          <TableCell className="max-w-[180px] truncate" title={formatSideReferences(m.transactionsA)}>
+                          <TableCell className="text-right text-sm text-[var(--app-body)]">{formatSideAmounts(m.transactionsA)}</TableCell>
+                          <TableCell className="text-sm text-[var(--app-body)]">{formatSideDates(m.transactionsA)}</TableCell>
+                          <TableCell className="max-w-[180px] truncate text-sm text-[var(--app-body)]" title={formatSideReferences(m.transactionsA)}>
                             {formatSideReferences(m.transactionsA)}
                           </TableCell>
-                          <TableCell className="text-right">{formatSideAmounts(m.transactionsB)}</TableCell>
-                          <TableCell>{formatSideDates(m.transactionsB)}</TableCell>
-                          <TableCell className="max-w-[180px] truncate" title={formatSideReferences(m.transactionsB)}>
+                          <TableCell className="text-right text-sm text-[var(--app-body)]">{formatSideAmounts(m.transactionsB)}</TableCell>
+                          <TableCell className="text-sm text-[var(--app-body)]">{formatSideDates(m.transactionsB)}</TableCell>
+                          <TableCell className="max-w-[180px] truncate text-sm text-[var(--app-body)]" title={formatSideReferences(m.transactionsB)}>
                             {formatSideReferences(m.transactionsB)}
                           </TableCell>
                         </TableRow>
@@ -1041,19 +1031,19 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
 
         <TabsContent value="unmatchedA" className="mt-4">
           <Card className="overflow-hidden">
-            <TableSectionHeader>
+            <TableSectionHeader className="!bg-slate-50 !text-[var(--app-heading)] text-sm font-semibold uppercase tracking-wide">
               <span>Unmatched Source A</span>
             </TableSectionHeader>
             <CardContent className="px-4 pb-4 pt-0 flex flex-col">
               <Table className="table-fixed w-full min-w-[900px]">
                 <TableHeader className="sticky top-0 z-[5]">
-                  <TableRow className="bg-white hover:bg-white">
-                    <TableHead className="bg-white">Row</TableHead>
-                    <TableHead className="text-right bg-white">Amount</TableHead>
-                    <TableHead className="bg-white">Date</TableHead>
-                    <TableHead className="bg-white">Reference</TableHead>
-                    <TableHead className="bg-white">Best Match</TableHead>
-                    <TableHead className="w-[100px] text-right bg-white">Actions</TableHead>
+                  <TableRow className="bg-slate-50 hover:bg-slate-50">
+                    <TableHead className="bg-slate-50 text-xs font-medium uppercase tracking-wider text-slate-500">Row</TableHead>
+                    <TableHead className="bg-slate-50 text-right text-xs font-medium uppercase tracking-wider text-slate-500">Amount</TableHead>
+                    <TableHead className="bg-slate-50 text-xs font-medium uppercase tracking-wider text-slate-500">Date</TableHead>
+                    <TableHead className="bg-slate-50 text-xs font-medium uppercase tracking-wider text-slate-500">Reference</TableHead>
+                    <TableHead className="bg-slate-50 text-xs font-medium uppercase tracking-wider text-slate-500">Best Match</TableHead>
+                    <TableHead className="w-[100px] bg-slate-50 text-right text-xs font-medium uppercase tracking-wider text-slate-500">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1072,11 +1062,11 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                     const nearMiss = nearMissScores?.[t.id];
                     return (
                       <Fragment key={t.id}>
-                        <TableRow className={rowBg}>
-                          <TableCell>{t.rowIndex}</TableCell>
-                          <TableCell className="text-right">{formatAmount(t.amount)}</TableCell>
-                          <TableCell>{formatDate(t.date)}</TableCell>
-                          <TableCell className="max-w-[300px] truncate">{t.reference}</TableCell>
+                        <TableRow className={cn("border-b border-slate-100 transition-colors hover:bg-slate-50/50", rowBg)}>
+                          <TableCell className="text-sm text-[var(--app-body)]">{t.rowIndex}</TableCell>
+                          <TableCell className="text-right text-sm text-[var(--app-body)]">{formatAmount(t.amount)}</TableCell>
+                          <TableCell className="text-sm text-[var(--app-body)]">{formatDate(t.date)}</TableCell>
+                          <TableCell className="max-w-[300px] truncate text-sm text-[var(--app-body)]">{t.reference}</TableCell>
                           <TableCell>
                             {nearMiss ? (
                               <div className="flex items-center gap-1.5">
@@ -1216,19 +1206,19 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
 
         <TabsContent value="unmatchedB" className="mt-4">
           <Card className="overflow-hidden">
-            <TableSectionHeader>
+            <TableSectionHeader className="!bg-slate-50 !text-[var(--app-heading)] text-sm font-semibold uppercase tracking-wide">
               <span>Unmatched Source B</span>
             </TableSectionHeader>
             <CardContent className="px-4 pb-4 pt-0 flex flex-col">
               <Table className="table-fixed w-full min-w-[900px]">
                 <TableHeader className="sticky top-0 z-[5]">
-                  <TableRow className="bg-white hover:bg-white">
-                    <TableHead className="bg-white">Row</TableHead>
-                    <TableHead className="text-right bg-white">Amount</TableHead>
-                    <TableHead className="bg-white">Date</TableHead>
-                    <TableHead className="bg-white">Reference</TableHead>
-                    <TableHead className="bg-white">Best Match</TableHead>
-                    <TableHead className="w-[100px] text-right bg-white">Actions</TableHead>
+                  <TableRow className="bg-slate-50 hover:bg-slate-50">
+                    <TableHead className="bg-slate-50 text-xs font-medium uppercase tracking-wider text-slate-500">Row</TableHead>
+                    <TableHead className="bg-slate-50 text-right text-xs font-medium uppercase tracking-wider text-slate-500">Amount</TableHead>
+                    <TableHead className="bg-slate-50 text-xs font-medium uppercase tracking-wider text-slate-500">Date</TableHead>
+                    <TableHead className="bg-slate-50 text-xs font-medium uppercase tracking-wider text-slate-500">Reference</TableHead>
+                    <TableHead className="bg-slate-50 text-xs font-medium uppercase tracking-wider text-slate-500">Best Match</TableHead>
+                    <TableHead className="w-[100px] bg-slate-50 text-right text-xs font-medium uppercase tracking-wider text-slate-500">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1247,11 +1237,11 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                     const nearMiss = nearMissScores?.[t.id];
                     return (
                       <Fragment key={t.id}>
-                        <TableRow className={rowBg}>
-                          <TableCell>{t.rowIndex}</TableCell>
-                          <TableCell className="text-right">{formatAmount(t.amount)}</TableCell>
-                          <TableCell>{formatDate(t.date)}</TableCell>
-                          <TableCell className="max-w-[300px] truncate">{t.reference}</TableCell>
+                        <TableRow className={cn("border-b border-slate-100 transition-colors hover:bg-slate-50/50", rowBg)}>
+                          <TableCell className="text-sm text-[var(--app-body)]">{t.rowIndex}</TableCell>
+                          <TableCell className="text-right text-sm text-[var(--app-body)]">{formatAmount(t.amount)}</TableCell>
+                          <TableCell className="text-sm text-[var(--app-body)]">{formatDate(t.date)}</TableCell>
+                          <TableCell className="max-w-[300px] truncate text-sm text-[var(--app-body)]">{t.reference}</TableCell>
                           <TableCell>
                             {nearMiss ? (
                               <div className="flex items-center gap-1.5">
