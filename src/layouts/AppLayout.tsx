@@ -123,20 +123,14 @@ export function AppLayout() {
           )}
           style={{ width: SIDEBAR_WIDTH, minHeight: 'calc(100vh - 1.5rem)' }}
         >
-          {/* Sidebar header: logo + org name */}
+          {/* Sidebar header: logo */}
           <div className="flex shrink-0 items-center justify-between border-b border-white/10 px-4 py-4">
             <NavLink
               to="/"
-              className="flex items-center gap-2"
+              className="flex items-center"
               onClick={() => setSidebarOpen(false)}
             >
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white/10">
-                <span className="text-lg font-bold text-white">R</span>
-              </div>
-              <span
-                className="text-lg font-bold tracking-tight text-white"
-                style={{ fontFamily: 'var(--font-heading)' }}
-              >
+              <span className="font-heading text-2xl font-bold tracking-tight text-white">
                 ReconcileX
               </span>
             </NavLink>
