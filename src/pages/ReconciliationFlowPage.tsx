@@ -9,6 +9,7 @@ import { UploadPage } from '@/features/upload/UploadPage';
 import { PreviewPage } from '@/features/preview/PreviewPage';
 import { MatchingRulesPage } from '@/features/matching-rules/MatchingRulesPage';
 import { ResultsPage } from '@/features/results/ResultsPage';
+import { ExportDropdown } from '@/features/results/ExportDropdown';
 import { useMatching } from '@/features/reconciliation/hooks/useMatching';
 import { runServerMatching } from '@/features/reconciliation/services/serverMatching';
 import { getDefaultRules } from '@/features/matching-rules/defaultRules';
@@ -503,13 +504,16 @@ export function ReconciliationFlowPage() {
               'Source B'
             }
           />
-          <div className="flex justify-between">
+          <div className="flex justify-between items-center">
             <Button variant="outline" onClick={() => setStep('matchingRules')}>
               Back to Matching Rules
             </Button>
-            <Button variant="dark" onClick={handleRunMatching} disabled={isMatching}>
-              {isMatching ? 'Processing…' : 'Run again'}
-            </Button>
+            <div className="flex items-center gap-2">
+              <ExportDropdown result={result!} />
+              <Button variant="dark" onClick={handleRunMatching} disabled={isMatching}>
+                {isMatching ? 'Processing…' : 'Run again'}
+              </Button>
+            </div>
           </div>
         </>
       )}

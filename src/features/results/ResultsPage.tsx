@@ -44,7 +44,6 @@ import {
   getIdsInManualMatches,
 } from './resultsAugmentation';
 import { ManualMatchModal } from './ManualMatchModal';
-import { ExportDropdown } from './ExportDropdown';
 import type { ExceptionAnalysis } from './exceptionAnalysis';
 import { fetchAnalyzeException } from './exceptionAnalysis';
 import { ExceptionAnalysisPanel } from './ExceptionAnalysisPanel';
@@ -905,7 +904,21 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
           </Tooltip>
         </TabsList>
             <div className="flex-1" />
-            <ExportDropdown result={result} />
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  onClick={() => setCopilotOpen(true)}
+                  className="rounded-xl border border-[var(--app-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--app-body)] hover:bg-gray-50 whitespace-nowrap"
+                >
+                  <Sparkles className="mr-1.5 h-4 w-4 text-purple-500" />
+                  Ask Copilot
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Chat with the AI assistant about your reconciliation results — ask questions, get insights, and investigate exceptions</p>
+              </TooltipContent>
+            </Tooltip>
           </div>
         </div>
 
