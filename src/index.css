@@ -53,8 +53,8 @@
   /* Updated SaaS palette */
   --app-bg: #F8FAFC;
   --app-bg-subtle: #F1F5F9;
-  --app-bg-shell: #F1F5F9;
-  --app-sidebar: #0F172A;
+  --app-bg-shell: #E8E8E8;
+  --app-sidebar: #1E3A5F;
   --app-sidebar-bg: #1E3A5F;
   --app-primary-dark: #1E3A5F;
   --app-primary-dark-hover: #24476F;
@@ -97,7 +97,7 @@
   --chart-3: #D97706;
   --chart-4: #7C3AED;
   --chart-5: #0EA5E9;
-  --sidebar: #0F172A;
+  --sidebar: #1E3A5F;
   --sidebar-foreground: rgba(255, 255, 255, 0.9);
   --sidebar-primary: #2563EB;
   --sidebar-primary-foreground: #ffffff;

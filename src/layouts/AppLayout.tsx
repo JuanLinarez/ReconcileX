@@ -159,8 +159,8 @@ export function AppLayout() {
                   cn(
                     'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors duration-150',
                     isActive
-                      ? 'bg-white/10 text-white font-medium [&_svg]:opacity-100'
-                      : 'text-white/60 hover:text-white/90 hover:bg-white/5 [&_svg]:opacity-60'
+                      ? 'bg-white/15 text-white font-medium opacity-100 [&_svg]:opacity-100'
+                      : 'text-white/70 hover:text-white/90 hover:bg-white/8 [&_svg]:opacity-70'
                   )
                 }
               >
@@ -179,11 +179,11 @@ export function AppLayout() {
           <div className="shrink-0 space-y-2 border-t border-white/10 p-3">
             {user && (
               <div className="rounded-lg px-3 py-2">
-                <p className="truncate text-xs font-medium text-white">
+                <p className="truncate text-sm font-medium text-white/80">
                   {displayName}
                 </p>
                 {user.email && (
-                  <p className="truncate text-xs text-white/40">
+                  <p className="truncate text-xs text-white/50">
                     {user.email}
                   </p>
                 )}
@@ -192,14 +192,14 @@ export function AppLayout() {
             <button
               type="button"
               onClick={() => signOut()}
-              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-white/60 transition-colors hover:bg-white/5 hover:text-white/90"
+              className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/50 transition-colors hover:text-white/80 hover:bg-white/8"
             >
               <LogOut className="h-5 w-5 shrink-0" />
               Sign Out
             </button>
-            <div className="flex items-center gap-2 rounded-md bg-violet-500/10 px-2 py-1">
-              <Sparkles className="h-4 w-4 text-[var(--app-ai-accent)]" />
-              <span className="text-xs font-medium text-[var(--app-ai-accent)]">AI Powered</span>
+            <div className="flex items-center gap-2 rounded-md px-2 py-1">
+              <Sparkles className="h-4 w-4 text-white/50 shrink-0" />
+              <span className="text-xs text-white/50">AI Powered</span>
             </div>
           </div>
         </aside>
@@ -239,7 +239,7 @@ export function AppLayout() {
               >
                 <Bell className="h-5 w-5" />
               </button>
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-[var(--app-primary)] text-xs font-semibold text-white">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--app-primary)] text-xs font-semibold text-white ring-2 ring-[var(--app-primary)] ring-offset-2 ring-offset-white">
                 {initials}
               </div>
             </div>
