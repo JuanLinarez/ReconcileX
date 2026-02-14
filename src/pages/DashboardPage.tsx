@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Check, ChevronRight, ClipboardList, Plus, Sparkles } from 'lucide-react';
+import { Check, ChevronRight, ClipboardList, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -57,7 +57,6 @@ function formatNumber(n: number): string {
 
 export function DashboardPage() {
   const { user, organizationId } = useAuth();
-  const navigate = useNavigate();
   const displayName = getDisplayFirstName(user);
 
   const [stats, setStats] = useState<{
@@ -113,13 +112,6 @@ export function DashboardPage() {
   const matchRatePct = stats.avgMatchRate != null
     ? Math.round(stats.avgMatchRate <= 1 ? stats.avgMatchRate * 100 : stats.avgMatchRate)
     : null;
-
-  const aiSuggestions = [
-    'Exact amount, date ±3 days, similar vendors',
-    'Amount within 2%, date ±7 days',
-    'Group: many payments to one invoice',
-    'Invoice number + amount only',
-  ];
 
   return (
     <div className="pb-8">
@@ -316,83 +308,6 @@ export function DashboardPage() {
               </Link>
             </>
           )}
-        </div>
-      </section>
-
-      {/* AI Rule Builder — light two-column layout (at bottom) */}
-      <section className="mb-6">
-        <div className="overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-[0_1px_3px_0_rgb(0,0,0,0.04)]">
-          <div className="flex flex-col md:flex-row">
-            {/* Left: Teal/cyan illustration area */}
-            <div className="relative flex shrink-0 items-center justify-center overflow-hidden bg-gradient-to-br from-[#0D9488] via-[#0F766E] to-[#115E59] p-8 md:w-[280px]">
-              {/* Decorative circuit-like grid pattern */}
-              <div className="absolute inset-0 opacity-20">
-                <div className="absolute left-4 top-4 h-16 w-16 rounded-lg border border-white/30" />
-                <div className="absolute left-8 top-8 h-8 w-8 rounded-md border border-white/20" />
-                <div className="absolute bottom-6 right-6 h-12 w-12 rounded-lg border border-white/25" />
-                <div className="absolute left-1/2 top-1/2 h-20 w-20 -translate-x-1/2 -translate-y-1/2 rounded-xl border-2 border-white/30" />
-                <div className="absolute left-20 top-12 h-px w-24 bg-white/20" />
-                <div className="absolute left-12 top-20 h-20 w-px bg-white/20" />
-                <div className="absolute bottom-16 right-16 h-px w-16 bg-white/20" />
-              </div>
-              {/* Glowing dots */}
-              <div className="absolute right-8 top-6 h-2 w-2 animate-pulse rounded-full bg-cyan-300" />
-              <div className="absolute bottom-8 left-6 h-1.5 w-1.5 animate-pulse rounded-full bg-teal-300" style={{ animationDelay: '1s' }} />
-              <div className="absolute right-1/4 top-1/3 h-1 w-1 animate-pulse rounded-full bg-white/60" style={{ animationDelay: '0.5s' }} />
-              {/* Central AI icon */}
-              <div className="relative z-10 flex flex-col items-center gap-3">
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/30 bg-white/20 backdrop-blur-sm">
-                  <span className="text-2xl font-bold text-white">AI</span>
-                </div>
-                <div className="flex gap-1">
-                  <div className="h-1 w-1 rounded-full bg-cyan-300" />
-                  <div className="h-1 w-1 rounded-full bg-cyan-300" />
-                  <div className="h-1 w-1 rounded-full bg-cyan-300" />
-                </div>
-              </div>
-            </div>
-
-            {/* Right: Content area */}
-            <div className="flex-1 p-6 md:p-8">
-              <h3 className="mb-1 text-xl font-bold text-[var(--app-heading)]" style={headingStyle}>
-                AI Rule Builder
-              </h3>
-              <p className="mb-5 text-sm text-[var(--app-body)]">
-                Describe your matching rules in plain English and AI will configure them for you
-              </p>
-
-              <div className="mb-4 flex flex-wrap gap-3">
-                <input
-                  type="text"
-                  placeholder="e.g. Match by amount within 1%, date within 5 days..."
-                  className="min-w-[200px] flex-1 cursor-pointer rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-[var(--app-heading)] placeholder-slate-400 transition-colors focus:border-[var(--app-primary)] focus:outline-none focus:ring-1 focus:ring-[var(--app-primary)]/20"
-                  readOnly
-                  onClick={() => navigate('/reconciliation/new')}
-                />
-                <button
-                  type="button"
-                  onClick={() => navigate('/reconciliation/new')}
-                  className="inline-flex shrink-0 items-center gap-2 whitespace-nowrap rounded-xl bg-[#E8475C] px-5 py-3 text-sm font-medium text-white shadow-md transition-colors hover:bg-[#D63B4F]"
-                >
-                  <Sparkles className="h-4 w-4" />
-                  Create Rules
-                </button>
-              </div>
-
-              <div className="flex flex-wrap gap-2">
-                {aiSuggestions.map((suggestion) => (
-                  <button
-                    key={suggestion}
-                    type="button"
-                    onClick={() => navigate('/reconciliation/new')}
-                    className="cursor-pointer rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs text-[var(--app-body)] transition-colors hover:border-slate-300 hover:bg-slate-50"
-                  >
-                    {suggestion}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </div>
         </div>
       </section>
     </div>
