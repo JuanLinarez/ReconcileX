@@ -137,33 +137,36 @@
   --sidebar-ring: oklch(0.551 0.027 264.364);
 }
 
-/* Force scrollbars to always be visible on result tables */
-.always-show-scrollbar {
-  overflow: auto !important;
+/* Constrain results table height so scrollbars are visible */
+[data-slot="table-container"] {
+  max-height: calc(100vh - 400px);
+  min-height: 300px;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E1 #F1F5F9;
 }
 
-.always-show-scrollbar::-webkit-scrollbar {
+[data-slot="table-container"]::-webkit-scrollbar {
   width: 10px;
   height: 10px;
-  display: block;
 }
 
-.always-show-scrollbar::-webkit-scrollbar-track {
+[data-slot="table-container"]::-webkit-scrollbar-track {
   background: #F1F5F9;
   border-radius: 5px;
 }
 
-.always-show-scrollbar::-webkit-scrollbar-thumb {
+[data-slot="table-container"]::-webkit-scrollbar-thumb {
   background: #CBD5E1;
   border-radius: 5px;
   border: 2px solid #F1F5F9;
 }
 
-.always-show-scrollbar::-webkit-scrollbar-thumb:hover {
+[data-slot="table-container"]::-webkit-scrollbar-thumb:hover {
   background: #94A3B8;
 }
 
-.always-show-scrollbar::-webkit-scrollbar-corner {
+[data-slot="table-container"]::-webkit-scrollbar-corner {
   background: #F1F5F9;
 }
 

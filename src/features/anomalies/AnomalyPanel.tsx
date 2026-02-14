@@ -117,7 +117,7 @@ function AnomalyCard({ anomaly }: { anomaly: Anomaly }) {
                   {anomaly.affectedTransactions.length})
                 </Button>
                 {showTransactions && (
-                  <div className="always-show-scrollbar mb-3 overflow-auto max-h-[300px] min-h-[120px] rounded-md border">
+                  <div className="mb-3 rounded-md border overflow-hidden">
                     <Table className="min-w-[500px]">
                       <TableHeader>
                         <TableRow className="hover:bg-transparent">

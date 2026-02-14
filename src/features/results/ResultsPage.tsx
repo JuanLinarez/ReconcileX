@@ -975,10 +975,9 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
               <p className="mt-0.5 text-xs font-normal opacity-90">Paired transactions with confidence score (1:1 and group matches)</p>
             </TableSectionHeader>
             <CardContent className="px-4 pb-4 pt-0 flex flex-col">
-              <div className="always-show-scrollbar overflow-auto max-h-[calc(100vh-380px)] min-h-[300px] rounded-b-lg relative">
-                <Table className="min-w-[1000px]">
-                <TableHeader className="sticky top-0 z-[5] bg-white shadow-[0_1px_0_0_var(--app-border)]">
-                  <TableRow>
+              <Table className="min-w-[1200px]">
+                <TableHeader className="sticky top-0 z-[5]">
+                  <TableRow className="bg-white hover:bg-white">
                     <TableHead className="w-8 bg-white" aria-label="Expand" />
                     <TableHead className="bg-white">
                       <div className="flex items-center gap-1">
@@ -1073,7 +1072,6 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                   })}
                 </TableBody>
               </Table>
-              </div>
               {matchedDisplay.length === 0 && (
                 <p className="py-8 text-center text-muted-foreground">No matched pairs.</p>
               )}
@@ -1095,10 +1093,9 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
               <p className="mt-0.5 text-xs font-normal opacity-90">Transactions from Source A with no match in Source B</p>
             </TableSectionHeader>
             <CardContent className="px-4 pb-4 pt-0 flex flex-col">
-              <div className="always-show-scrollbar overflow-auto max-h-[calc(100vh-380px)] min-h-[300px] rounded-b-lg relative">
-                <Table className="table-fixed w-full min-w-[1000px]">
-                <TableHeader className="sticky top-0 z-[5] bg-white shadow-[0_1px_0_0_var(--app-border)]">
-                  <TableRow>
+              <Table className="table-fixed w-full min-w-[900px]">
+                <TableHeader className="sticky top-0 z-[5]">
+                  <TableRow className="bg-white hover:bg-white">
                     <TableHead className="bg-white">Row</TableHead>
                     <TableHead className="text-right bg-white">Amount</TableHead>
                     <TableHead className="bg-white">Date</TableHead>
@@ -1251,7 +1248,6 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                   })}
                 </TableBody>
               </Table>
-              </div>
               {unmatchedADisplay.length === 0 && (
                 <p className="py-8 text-center text-muted-foreground">All Source A matched.</p>
               )}
@@ -1273,10 +1269,9 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
               <p className="mt-0.5 text-xs font-normal opacity-90">Transactions from Source B with no match in Source A</p>
             </TableSectionHeader>
             <CardContent className="px-4 pb-4 pt-0 flex flex-col">
-              <div className="always-show-scrollbar overflow-auto max-h-[calc(100vh-380px)] min-h-[300px] rounded-b-lg relative">
-                <Table className="table-fixed w-full min-w-[1000px]">
-                <TableHeader className="sticky top-0 z-[5] bg-white shadow-[0_1px_0_0_var(--app-border)]">
-                  <TableRow>
+              <Table className="table-fixed w-full min-w-[900px]">
+                <TableHeader className="sticky top-0 z-[5]">
+                  <TableRow className="bg-white hover:bg-white">
                     <TableHead className="bg-white">Row</TableHead>
                     <TableHead className="text-right bg-white">Amount</TableHead>
                     <TableHead className="bg-white">Date</TableHead>
@@ -1429,7 +1424,6 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                   })}
                 </TableBody>
               </Table>
-              </div>
               {unmatchedBDisplay.length === 0 && (
                 <p className="py-8 text-center text-muted-foreground">All Source B matched.</p>
               )}
