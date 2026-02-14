@@ -44,13 +44,7 @@ import {
   getIdsInManualMatches,
 } from './resultsAugmentation';
 import { ManualMatchModal } from './ManualMatchModal';
-import {
-  exportToExcel,
-  exportMatchedOnly,
-  exportUnmatchedSourceA,
-  exportUnmatchedSourceB,
-  exportAllUnmatched,
-} from './exportResults';
+import { ExportDropdown } from './ExportDropdown';
 import type { ExceptionAnalysis } from './exceptionAnalysis';
 import { fetchAnalyzeException } from './exceptionAnalysis';
 import { ExceptionAnalysisPanel } from './ExceptionAnalysisPanel';
@@ -598,31 +592,6 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
     runAnalyze(source, t, { followUpQuestion: question, previousAnalysis });
   };
 
-  const markExported = () => {
-    localStorage.setItem('rx_has_exported_results', 'true');
-    window.dispatchEvent(new CustomEvent('rx-onboarding-update'));
-  };
-  const handleExportAll = () => {
-    exportToExcel(result, augmentation);
-    markExported();
-  };
-  const handleExportMatched = () => {
-    exportMatchedOnly(result, augmentation);
-    markExported();
-  };
-  const handleExportUnmatchedA = () => {
-    exportUnmatchedSourceA(result, augmentation);
-    markExported();
-  };
-  const handleExportUnmatchedB = () => {
-    exportUnmatchedSourceB(result, augmentation);
-    markExported();
-  };
-  const handleExportAllUnmatched = () => {
-    exportAllUnmatched(result, augmentation, sourceAName, sourceBName);
-    markExported();
-  };
-
   // Clear analysis panel when changing pages
   useEffect(() => {
     setOpenAnalysisTxId(null);
@@ -955,50 +924,7 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
                 <p>Chat with the AI assistant about your reconciliation results — ask questions, get insights, and investigate exceptions</p>
               </TooltipContent>
             </Tooltip>
-            <DropdownMenu>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="rounded-xl border border-[var(--app-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--app-body)] hover:bg-gray-50 whitespace-nowrap"
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      Export Results
-                      <ChevronDown className="h-3.5 w-3.5 ml-1.5 opacity-60" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Download matched and unmatched transactions as Excel files</p>
-                  <p className="mt-1 text-xs text-muted-foreground">{totalMatched} matched, {totalUnmatchedA + totalUnmatchedB} unmatched</p>
-                </TooltipContent>
-              </Tooltip>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuItem onClick={handleExportAll} className="cursor-pointer">
-                  <FileSpreadsheet className="h-4 w-4 mr-2" />
-                  Export All (Workbook)
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleExportMatched} className="cursor-pointer">
-                  <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
-                  Export Matched Only
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleExportUnmatchedA} className="cursor-pointer">
-                  <AlertCircle className="h-4 w-4 mr-2 text-amber-500" />
-                  Export Unmatched Source A
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleExportUnmatchedB} className="cursor-pointer">
-                  <AlertCircle className="h-4 w-4 mr-2 text-amber-500" />
-                  Export Unmatched Source B
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleExportAllUnmatched} className="cursor-pointer">
-                  <AlertTriangle className="h-4 w-4 mr-2 text-red-500" />
-                  Export All Unmatched
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <ExportDropdown result={result} />
           </div>
         </div>
 
