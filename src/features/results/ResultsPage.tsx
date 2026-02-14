@@ -32,7 +32,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, AlertTriangle, CheckCircle, ChevronDown, ChevronRight, Check, Download, Eye, EyeOff, FileSpreadsheet, Info, Link2, Loader2, MinusCircle, Sparkles } from 'lucide-react';
+import { AlertTriangle, ChevronDown, ChevronRight, Check, Eye, EyeOff, Info, Link2, Loader2, MinusCircle, Sparkles } from 'lucide-react';
 import type {
   MatchResult,
   ReconciliationResult,
@@ -606,8 +606,6 @@ export function ResultsPage({ result, reconciliationId, organizationId, sourceAN
   }, [openAnalysisTxId, analysisByTxId]);
 
   const totalMatched = matchedDisplay.length;
-  const totalUnmatchedA = unmatchedADisplay.length;
-  const totalUnmatchedB = unmatchedBDisplay.length;
 
   // Dashboard metrics (dynamic with manual matches / status)
   const matchedTransactionSides = useMemo(

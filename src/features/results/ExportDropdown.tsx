@@ -69,7 +69,7 @@ export function ExportDropdown({ result }: ExportDropdownProps) {
 
   const handleExportUnmatchedA = () => {
     downloadWorkbook(
-      result.unmatchedA as Record<string, unknown>[],
+      result.unmatchedA as unknown as Record<string, unknown>[],
       'Unmatched Source A',
       `ReconcileX_Unmatched_SourceA_${date}.xlsx`
     );
@@ -77,7 +77,7 @@ export function ExportDropdown({ result }: ExportDropdownProps) {
 
   const handleExportUnmatchedB = () => {
     downloadWorkbook(
-      result.unmatchedB as Record<string, unknown>[],
+      result.unmatchedB as unknown as Record<string, unknown>[],
       'Unmatched Source B',
       `ReconcileX_Unmatched_SourceB_${date}.xlsx`
     );
@@ -89,7 +89,7 @@ export function ExportDropdown({ result }: ExportDropdownProps) {
       ...result.unmatchedB.map((r) => ({ ...r, Source: 'Source B' })),
     ];
     downloadWorkbook(
-      combined as Record<string, unknown>[],
+      combined as unknown as Record<string, unknown>[],
       'All Unmatched',
       `ReconcileX_All_Unmatched_${date}.xlsx`
     );
