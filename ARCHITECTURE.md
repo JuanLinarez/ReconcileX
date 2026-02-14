@@ -104,7 +104,7 @@ ReconciliationFlowPage.tsx is tier-agnostic — calls runServerMatching() for an
 
 ## Design System
 - Colors: --app-primary (#2563EB), --app-bg (#FAFAFA), --app-heading (#0F172A)
-- Fonts: Plus Jakarta Sans (headings), DM Sans (body)
+- Fonts: Sora (headings), DM Sans (body)
 - Components: shadcn/ui (Button, Card, Dialog, Tabs, Table, etc.)
 - Icons: Lucide React
 - AI features: purple/gradient accents, Sparkles icon

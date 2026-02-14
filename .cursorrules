@@ -125,7 +125,7 @@ reconcilex/
 
 ## Design System
 - Colors via CSS custom properties: --app-bg, --app-primary (#2563EB), --app-heading, --app-body, --app-border
-- Font heading: Plus Jakarta Sans
+- Font heading: Sora
 - Font body: DM Sans
 - Cards: border-[var(--app-border)] bg-white
 - Badges: blue (suggested/learned), purple (AI generated), red (critical), yellow (medium)
